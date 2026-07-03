@@ -132,6 +132,38 @@ Examples: detect lapsed high-value customers → trigger outreach · identify up
 - **Sonia Calvo** — Community Events Manager, Make (workshop: Make Deep Dive)
 - **Adam Oskwarek** — Ambassador, Lovable
 
+## Strategy — How Hackathons Actually Get Scored
+
+### Two scoring layers
+1. **The written rubric** they tally — for this event: 50% Xero Connection / 30% API Integration / 20% Architecture. Most hackathons score 4–6 axes boiling down to problem relevance, technical execution, working MVP, impact (MLH's canonical four: Technology / Design / Completion / Learning).
+2. **The unwritten multiplier — the demo + pitch — decides winners.** Straight from judges:
+   - "A strong project with a confusing demo loses to a simpler project that the judges understand."
+   - Judges form the decision in the **first ~90 seconds**.
+   - **One killer feature beats five half-built ones.**
+   - Judges reward what they *understand*. If the demo stalls or the problem isn't felt, the rubric points never land.
+
+### What's notable about this rubric
+Unusually pure execution rubric — **no explicit points for innovation, UI polish, or code cleanliness.** Judges are Xero API/Product/Eng staff. They reward **a real problem executed on Xero**, not novelty or design flair. Chase real-and-working, not clever.
+
+### Effort allocation
+
+| Focus | Rubric weight | Effort | Why |
+|---|---|---|---|
+| Real SMB problem + Xero central | 50% | ~40% | Biggest lever. One painful workflow, Xero as the beating heart (not bolted-on). Decide before coding. |
+| Meaningful API integration | 30% | ~25% | Real Accounting/Payments calls with substance (write invoices, reconcile, categorize) — not one read endpoint. MCP server = breadth fast. |
+| Production-ready reliability | 20% | ~15% | Trustworthy to accountants: error handling, real/seeded data, idempotent agent (no double-charge). Don't gold-plate. |
+| Demo + 3-min pitch | *unscored, decides ties* | ~20% | Problem-first, one flow end-to-end, mock/pre-fill everything flaky, rehearse out loud, time to 3:00. Sunday's job — protect it. |
+
+### Do NOT
+- No five-feature sprawl — one flow that fully works.
+- No custom UI polish — not scored; Lovable/Replit shell is enough.
+- No unfamiliar framework — stack familiarity beats the clock.
+- No hidden clean architecture — reliability that *shows* > elegance that doesn't.
+
+**Bottom line:** nail a real small-biz pain with Xero at the core (50%), prove it with genuine API calls (30%), make it reliable enough to trust (20%), then make a 3-minute demo of *one flow* impossible to misunderstand.
+
+*Sources: [JetBrains — Notes From the Judging Table (2026)](https://blog.jetbrains.com/ai/2026/06/how-to-win-a-hackathon-notes-from-the-judging-table/) · [MLH judging rubric](https://github.com/MLH/mlh-hackathon-rules/blob/master/Rules.md) · [TAIKAI — 6 judging criteria](https://taikai.network/en/blog/hackathon-judging).*
+
 ## Data Discrepancies to Verify On-Site
 
 - **Prize currency:** $9,000 (Luma, CompeteHub) vs £9,000 (Encode programme page).
