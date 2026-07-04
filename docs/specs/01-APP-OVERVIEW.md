@@ -329,7 +329,10 @@ No LLM schema inference on the golden path. The parser uses a hardcoded column m
 - `accounting.transactions` (or granular: `accounting.invoices`, `accounting.banktransactions`, `accounting.payments`)
 - `accounting.contacts`
 - `accounting.settings`
-- `accounting.reports.profitandloss.read` (or `accounting.reports.read`)
+- `accounting.reports.read` (covers P&L + trial balance + balance sheet + aged — expansion `11` E4; granular alternatives in `12`)
+- `accounting.attachments` (expansion `11` E2 — source CSV attached to invoice)
+
+Full endpoint/scope inventory (submission form requires it): [`12-ENDPOINTS-AND-SCOPES.md`](12-ENDPOINTS-AND-SCOPES.md).
 
 ### 8.2 Rate Limits
 
@@ -382,14 +385,15 @@ JournalPlan:
 
 ## 10. Explicitly Out of Scope
 
+> 2026-07-05: refunds and tracking categories moved **in scope** via the expansion — see [`11-EXPANSION-SPEC.md`](11-EXPANSION-SPEC.md) (E1 credit-note refunds, E3 channel tracking, plus E2 attachments, E4 dashboard reads, E5 VAT check, E6 history notes).
+
 - LLM schema inference (any, anywhere)
-- Refunds / `create-credit-note`
 - PDF parsing / OCR
-- Tracking categories
 - Multi-platform UI or recipe management
 - Live marketplace API connection
-- VAT splitting
+- VAT splitting (the `11` E5 VAT check only *reads and flags* — never splits or advises)
 - Email sending
+- Webhooks (`11` E7 — deferred, demo-day risk)
 - JAX-territory features (NL Q&A, auto-recon, categorisation)
 - Delete / void operations
 - Multi-client / bookkeeper views

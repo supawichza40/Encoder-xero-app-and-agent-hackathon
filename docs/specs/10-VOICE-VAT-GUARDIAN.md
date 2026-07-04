@@ -43,6 +43,8 @@ PayoutBridge  POST /approve  ──▶  3 Xero writes  ──▶  clearing £0.0
 Separately: owner can open Xero and ASK JAX follow-ups ("what did MarketplaceCo cost me?")
 ```
 
+> **Real-data grounding (2026-07-05, [`11-EXPANSION-SPEC.md`](11-EXPANSION-SPEC.md) E5):** the VAT-Guardian check is backed by a live `list-tax-rates` read via the backend's `GET /vat-check` — the assistant interpolates the org's actual rates ("Rates on file: 20% Standard, 0% Zero, No VAT") and confirms golden-path lines posted VAT-free (`consistent: true`). Chat/text assistant gets a "Check my VAT" suggested prompt wired to the same endpoint (mock fallback in mock mode). §6 guardrail unchanged: flag, never advise.
+
 ## 4. Voice scripts (hedged — flag, not advice)
 
 **Not VAT-registered (threshold hook):**

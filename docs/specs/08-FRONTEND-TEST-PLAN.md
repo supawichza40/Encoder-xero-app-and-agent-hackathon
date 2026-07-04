@@ -2,6 +2,16 @@
 
 Test plan for the React/Vite/Tailwind frontend, organised into the same parallel tracks as the [implementation plan](06-FRONTEND-IMPLEMENTATION-PLAN.md). Each track's tests are independent and can run without the other tracks being built.
 
+> **Expansion cases (2026-07-05, [`11-EXPANSION-SPEC.md`](11-EXPANSION-SPEC.md)):**
+> - **FX1** ApprovalDrawer: 4-step plan renders 4 checklist items incl. credit-note; refund row visible when `refunds != "0.00"`.
+> - **FX2** StepProgress: `totalSteps` follows `plan.steps.length` (3 and 4 both correct).
+> - **FX3** Persona: sign-up stores persona; switcher re-orders dashboard KPIs per tinting map (§P4); switching never refetches/mutates data.
+> - **FX4** Landing: 3 persona cards render; card click pre-selects persona in sign-up dialog.
+> - **FX5** Dashboard: `/dashboard` success → live values + "Live from Xero" stamp, no "illustrative" footer; failure → fallback figures + footer retained.
+> - **FX6** Assistant: "Check my VAT" renders `/vat-check` rates with flag-not-advice wording.
+> - **FX7** AuditTrail: renders `attach-source` and `history-note` rows.
+> - **FX8** `/status` fetch uses path param `/status/{hash}` (regression for query-param bug).
+
 References: [04-FRONTEND-SPEC.md](04-FRONTEND-SPEC.md), [03-API-SPEC.md](03-API-SPEC.md), [06-FRONTEND-IMPLEMENTATION-PLAN.md](06-FRONTEND-IMPLEMENTATION-PLAN.md).
 
 ---

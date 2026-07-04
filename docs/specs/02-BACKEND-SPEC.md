@@ -1,5 +1,7 @@
 # PayoutBridge — Backend Specification (Python)
 
+> **Expansion (2026-07-05):** approved features add to this spec — E1 credit-note refund step (`planner.py`, `models.py`, `idempotency.py`), E2 attachment upload + E6 history notes (raw-REST helpers in `xero_client.py`), E3 tracking category (`seed.py`, write calls), E4 `GET /dashboard`, E5 `GET /vat-check` (`main.py`). Authoritative detail: [`11-EXPANSION-SPEC.md`](11-EXPANSION-SPEC.md); endpoint inventory: [`12-ENDPOINTS-AND-SCOPES.md`](12-ENDPOINTS-AND-SCOPES.md).
+
 ## 1. Overview
 
 The backend is a Python FastAPI application that serves as the agent core for PayoutBridge. It handles CSV parsing, journal planning, idempotency, Xero API integration (via MCP server), and exposes a REST API consumed by the React frontend.

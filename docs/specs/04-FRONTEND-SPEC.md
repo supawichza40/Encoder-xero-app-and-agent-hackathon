@@ -1,5 +1,7 @@
 # PayoutBridge — Frontend Specification
 
+> **Expansion (2026-07-05):** approved additions — three-persona entry system (landing cards, sign-up persona, navbar switcher, tinting map in [`11-EXPANSION-SPEC.md`](11-EXPANSION-SPEC.md) §P); dynamic plan length (4 steps for refund files — StepProgress/ApprovalDrawer must use `plan.steps.length`, E1); live dashboard from `GET /dashboard` replacing hardcoded figures (E4); "Check my VAT" assistant entry via `GET /vat-check` (E5); attachment badge + `attach-source`/`history-note` audit rows (E2/E6); Xero health badge; demo-vs-live mode indicator. The Lovable build (`Orestis+Arbaaz/`) must also fix `GET /status` to the path-param form `/status/{file_hash}`.
+
 ## 1. Overview
 
 The PayoutBridge frontend is a single-page React application that provides the human-in-the-loop approval interface. It communicates with the Python backend API and is the primary visual surface for the demo pitch.

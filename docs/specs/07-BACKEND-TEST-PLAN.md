@@ -2,6 +2,16 @@
 
 Test plan for the Python/FastAPI backend, organised into the same parallel tracks as the [implementation plan](05-BACKEND-IMPLEMENTATION-PLAN.md). Each track's tests are independent and can run without the other tracks being built.
 
+> **Expansion cases (2026-07-05, [`11-EXPANSION-SPEC.md`](11-EXPANSION-SPEC.md)):**
+> - **EX1** parser: refund fixture (`marketplaceco-payout-2107.csv`) parses, invariant holds with `refunds="60.00"`.
+> - **EX2** planner: refund payout → 4-step plan, `create-credit-note` second; zero-refund payout still → 3 steps.
+> - **EX3** planner: 4-step plan amounts still satisfy invariant; refuse when broken.
+> - **EX4** idempotency: 4-step step-map; crash after step 2 of 4 resumes with steps 3–4 only.
+> - **EX5** approve: attachment failure is non-fatal — `results` all success, `attachment.status="failed"`.
+> - **EX6** `GET /dashboard`: aggregates mocked reads; 60 s cache (second call within window does not re-hit client); 503 when disconnected.
+> - **EX7** `GET /vat-check`: returns org rates + `consistent` flag from mocked `list-tax-rates`.
+> - **EX8** seed: tracking category created once; re-seed skips (check-before-create, 2-category cap).
+
 References: [02-BACKEND-SPEC.md](02-BACKEND-SPEC.md), [03-API-SPEC.md](03-API-SPEC.md), [05-BACKEND-IMPLEMENTATION-PLAN.md](05-BACKEND-IMPLEMENTATION-PLAN.md).
 
 ---

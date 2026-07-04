@@ -88,6 +88,8 @@ file: <CSV file>
 }
 ```
 
+> **Refund files (expansion `11` E1):** when the CSV has `Refunds > 0`, `plan.steps` contains **4 steps** — a `create-credit-note` step (amount = refunds, account = Platform Clearing) is inserted after `create-invoice`. Step `kind` enum: `create-invoice | create-credit-note | create-bank-transaction | create-payment`. Clients must render `plan.steps.length` items, not a hardcoded 3.
+
 **Response (200 — already posted):**
 
 ```json
@@ -159,9 +161,12 @@ Content-Type: application/json
     }
   ],
   "clearing_balance": "0.00",
-  "verified": true
+  "verified": true,
+  "attachment": { "invoice_id": "INV-0042", "filename": "marketplaceco-payout-0407.csv", "status": "success" }
 }
 ```
+
+> `attachment` (expansion `11` E2) is optional; `"status": "failed"` never fails the approve — attachment upload is non-fatal. Refund files return 4 entries in `results` (includes `create-credit-note`). History-note writes (`11` E6) appear as `history-note` rows in the audit trail, not in this response.
 
 **Response (200 — partial, resumed after crash):**
 
@@ -319,6 +324,43 @@ GET /health
   "status": "degraded",
   "xero_connected": false,
   "organisation": null
+}
+```
+
+---
+
+### 2.6 `GET /dashboard` — Live Xero Dashboard Data *(expansion `11` E4)*
+
+Aggregates three cached MCP reads (trial balance, aged receivables, balance sheet) plus local state, so the frontend dashboard shows real Demo Company data.
+
+**Response (200):**
+
+```json
+{
+  "trial_balance": { "clearing": "0.00", "fees_expense": "493.00", "revenue": "1340.00" },
+  "aged_receivables": [ { "contact": "MarketplaceCo (Marketplace)", "outstanding": "0.00" } ],
+  "balance_sheet": { "bank": "1234.00", "current_assets": "1234.00" },
+  "recent_payouts": [
+    { "payout_ref": "MC-PAYOUT-0407", "net": "847.00", "status": "verified", "posted_at": "2026-07-05T00:00:00Z" }
+  ],
+  "fetched_at": "2026-07-05T00:00:00Z"
+}
+```
+
+- Reads cached 60 s in-process (rate-limit rule: never live-loop).
+- 503 when Xero disconnected — frontend falls back to illustrative figures and keeps the "figures are illustrative" footer; live data replaces footer with "Live from Xero · fetched HH:MM".
+
+### 2.7 `GET /vat-check` — VAT Rate Consistency Read *(expansion `11` E5)*
+
+Backs the assistant's "Check my VAT" answer with a real `list-tax-rates` read. **Flags, never advises** (spec `10` §6 guardrail).
+
+**Response (200):**
+
+```json
+{
+  "org_rates": [ { "name": "20% (VAT on Income)", "rate": "20.00" }, { "name": "No VAT", "rate": "0.00" } ],
+  "golden_path_tax_type": "NONE",
+  "consistent": true
 }
 ```
 

@@ -40,6 +40,8 @@ The demo uses a **synthetic** marketplace, **"MarketplaceCo"**, with invented fi
 - **Pain:** doesn't realise reported income is understated by withheld fees; risks a wrong tax filing.
 - **Goal:** correct income and deductible-fee records with minimal accounting knowledge.
 
+> **Entry points (decided 2026-07-05):** the product ships as **3 doors, 1 room** — the landing page offers three persona cards (owner / bookkeeper / freelancer) that pre-select a persona at sign-up; a navbar switcher re-tints the shared app (KPI order, greeting, panel emphasis, assistant prompts). No separate per-persona builds — UC-R4 stays roadmap. Full tinting map: [`11-EXPANSION-SPEC.md`](11-EXPANSION-SPEC.md) §P.
+
 ### 1.3 Who this is *not* for
 
 - Businesses paid gross (no platform intermediary) — they have no gross-up problem.
@@ -99,7 +101,7 @@ Each use case: **Actor**, **Trigger**, **Preconditions**, **Main flow**, **Outco
 - **Preconditions:** A statement has been posted.
 - **Main flow:** Open the Audit Trail (Transaction Trace) panel; each row maps a CSV input to the Xero write it produced, with the returned Xero ID, timestamp, and status tick.
 - **Outcome:** Every posted figure is traceable to a source row and a Xero object.
-- **Value:** Turns "trust me" into a defensible, timestamped audit trail.
+- **Value:** Turns "trust me" into a defensible, timestamped audit trail. Strengthened by [`11`](11-EXPANSION-SPEC.md) E2 (source CSV attached to the Xero invoice) and E6 (provenance note in each object's Xero history).
 
 ### UC-5 — Prove the clearing account is truly zero at period end **[Demo]**
 - **Actor:** Sam or Priya
@@ -127,9 +129,17 @@ Listed so the audience understands the boundary — none are implemented (`01 §
 |---|---|---|
 | UC-R1 | Email-to-agent auto-ingestion (statement arrives → auto-proposed) | Make stretch goal; manual upload is the reliable demo path |
 | UC-R2 | Multiple marketplace formats via schema inference | Golden path uses a hardcoded, deterministic column map; no LLM inference |
-| UC-R3 | Refunds / credit notes (`create-credit-note`) | Demo is refund-free by design to keep the invariant clean |
+| ~~UC-R3~~ | ~~Refunds / credit notes~~ — **promoted to UC-7 [Supported]** (2026-07-05) | See [`11-EXPANSION-SPEC.md`](11-EXPANSION-SPEC.md) E1 |
 | UC-R4 | Multi-client bookkeeper dashboard | Single-tenant Demo Company only |
 | UC-R5 | Live marketplace API connection, VAT splitting, forecasting | Scope and rounding risk for a 90-second demo |
+| UC-R6 | Webhook-driven ingestion (invoice events instead of polling) | Needs public callback URL on demo day — unacceptable live risk (`11` E7) |
+
+### UC-7 — Post a settlement containing refunds **[Supported]** *(promoted from UC-R3)*
+- **Actor:** Sam or Priya
+- **Trigger:** A settlement CSV whose `Refunds` column is non-zero (fixture `marketplaceco-payout-2107.csv`).
+- **Main flow:** planner emits a **4-step plan** — invoice → `create-credit-note` (refund) → bank transaction (fees) → payment — invariant `gross − commission − fees − refunds === net` enforced as ever.
+- **Outcome:** refunds appear as a credit note in Xero; clearing still nets to £0.00.
+- **Value:** 4th distinct write type; proves the pattern generalises past the happy path. Detail: [`11-EXPANSION-SPEC.md`](11-EXPANSION-SPEC.md) E1.
 
 ---
 
