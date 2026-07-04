@@ -51,3 +51,28 @@ Acceptance: every factor ≥2 proposed moves; composed spec raises every factor 
 ## Expected outcome (unverified — the run never finished)
 
 Directional estimate if the mechanisms hold: F3 68→~74, F6 68→~76, F4 82→~86, F5 84→~86, F1/F2 +2–3 → total roughly **84–86**. Treat as hypothesis only; the rescore/red-team/verify chain exists precisely because such estimates self-inflate.
+
+---
+
+## Demo design — LOCKED (user directive 2026-07-04: Demo Company data, no Treatwell/vendor files)
+
+The payout *statement* is the product's input and cannot come from the Demo Company — but nothing Treatwell is needed anywhere. The stage is the Demo Company; the only external input is a **synthetic statement from a fictional marketplace** ("BeautyBook"/"GigPay") authored by us.
+
+### Pre-demo seeding (run once; sandbox is resettable, so re-runnable)
+Via the free Custom Connection (M2M, read+write on UK Demo Company):
+1. `create-bank-transaction` — the NET deposit in the bank feed: `"MARKETPLACE PAYOUT — £1,234.56"`.
+2. A few open sales invoices for the same period (or reuse the pre-seeded ones).
+3. The **clearing account** (chart-of-accounts entry; optional tracking category per platform).
+4. Author the synthetic statement file (one pinned CSV/PDF, schema-shaped like real platforms: gross / commission / fees / VAT / refunds / net). Deterministic — a **recipe** ships for it; the LLM schema-inference path stays OFF the golden path.
+
+### The 90-second golden path (4 beats)
+1. **Hook (pure pre-seeded data):** agent scans the Demo Company bank feed live, finds the net deposit, flags it on screen — *"booked as net revenue: revenue understated, commission costs invisible."* Before-P&L shown.
+2. **Input:** upload the one synthetic BeautyBook statement. Decomposition table appears (gross/commission/fees/VAT/refunds/net).
+3. **Action (human-in-loop):** one-click approve → gross-up posts live: sales invoice/receipt at GROSS + commission/fee journal + payment clearing the deposit. Three distinct write types, idempotency keys.
+4. **Payoff:** **clearing account hits 0.00 on screen** + after-P&L side-by-side with the before. Wrong books → right books, self-evident to an accountant judge.
+
+### Why this beats the original Treatwell-CSV plan
+- Complies with the directive — Demo Company is the stage, zero vendor data.
+- **Raises F3**: one authored deterministic file; the fragile "parse any format" claim leaves the demo (exactly what both red-teams demanded). "Any platform" becomes the scale *story*, not a live bet.
+- Fictional marketplace generalizes the pitch (no single-platform impression) and avoids naming partners.
+- Matches the F3/F4 factor briefs above (recipe cache · pinned golden path · clearing-hits-zero payoff) and the mentor's architecture signals in [JUDGE-SIGNALS.md](JUDGE-SIGNALS.md) (deterministic engine decides, LLM explains; human approves writes).
