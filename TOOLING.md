@@ -103,6 +103,8 @@ Accounts · Attachments · Bank Statements · **Bank Transactions** · Bank Tran
 
 ## 1.8 Xero AI toolkit (developer.xero.com/ai)
 Four pieces (stage-announced): **Agentic SDK**, **MCP servers** (local + **remote in beta**), **CLI**, **prompt libraries**.
+- Toolkit page tagline: "Build Next-Gen Xero Integrations" — **"powered by Xero's MCP Server, Command Line Interface, OpenAI Agents SDK and LangChain."** → **OpenAI Agents SDK + LangChain** are the named supported agent frameworks. (event photo of developer.xero.com/ai, IMG_3688)
+- **Agentic SDK** = examples building AI agents with those frameworks + the Xero MCP Server. **CLI** = wraps the Xero API as a "high-performance bridge for autonomous systems." **MCP servers** local + remote are **open source**. (IMG_3687)
 
 ### Xero MCP server — the agent's actual tool surface (VERIFIED)
 Repo `@xeroapi/xero-mcp-server` (github.com/XeroAPI/xero-mcp-server). Node ≥18. Run: `npx -y @xeroapi/xero-mcp-server@latest`.
