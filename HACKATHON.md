@@ -176,7 +176,7 @@ Unusually pure execution rubric — **no explicit points for innovation, UI poli
 ## Our Plan & Decisions
 
 ### Tracks in scope
-- **Bounty 01 — Small Business Productivity Powerhouse** — a real workflow our own business would use (genuine problem = strong on the 50% Xero-connection score).
+- **Bounty 01 — Small Business Productivity Powerhouse** — a **real-world small-business problem solved at scale** (help many businesses, not just ours). The owner's beauty/spa pains (Treatwell commission reconciliation, receipts, manual accounting) are a **seed example, NOT a hard constraint**. Target = widespread + high-impact + underserved by existing Xero apps. Idea research is deliberately **broad**, not spa-specific.
 - **Bounty 03 — Cash Flow Accelerator** — best autonomous-agent narrative for an "App & Agent" event judged by Xero Product/Eng.
 - *(Bounty 02 Integrator out of scope for now — needs a strong second-platform skill.)*
 
@@ -200,13 +200,16 @@ Triple the prize surface for near-zero extra work.
 
 ### Feasibility — verified
 - Toolkit can **write, not just read** — `create-*` / `update-*` tools exist (see MCP section). "Autonomous agents that act" is fully supported.
-- Sandbox = **Xero Demo Company** (resettable sample data); set region to **UK** for payroll.
+- Sandbox = **Xero Demo Company** (resettable pre-loaded data: contacts, sales invoices, bills, bank transactions); set region to **UK** for payroll.
+- **Custom Connection (OAuth2 machine-to-machine) works FREE on a Demo Company** — the one official free exception; full Accounting API **read + write** with granted scopes; can POST our own records to seed demo data. Real client orgs would need a paid Custom Connection subscription. Source: developer.xero.com/documentation/guides/oauth2/custom-connections
+- **Rate limits:** 5 concurrent · 60/min · 5,000/day per org; 10,000/min app-wide; HTTP 429 on exceed (headers `X-MinLimit-Remaining` etc.). Not increasable — batch bulk analysis.
 - `create-payment` records/reconciles, does not charge a card.
+- **Treatwell data access:** no public API, but Treatwell Connect exports **sales-proceeds CSV** + client list — file ingestion is the demo path (no OAuth needed).
 
 ### Still to confirm on-site
 - Submission mechanics — Devpost or other platform? Required deliverables (repo, demo video, deployed URL)?
 - Can one project win **multiple** bounties, or pick one track?
-- Xero API rate limits for bulk-analysis agents (~60/min, 5000/day per org — verify).
+- Make & Lovable partner-prize amounts (unpublished).
 
 ## Data Discrepancies to Verify On-Site
 
