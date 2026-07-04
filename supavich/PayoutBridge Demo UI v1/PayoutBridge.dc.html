@@ -710,5 +710,52 @@ class Component extends DCLogic {
   }
 }
 </script>
+<!-- ===== Spline 3D on-demand toggle · vanilla · DEFAULT OFF · zero load until clicked ===== -->
+<script>
+(function(){
+  if(window.__splineToggleInit)return; window.__splineToggleInit=true;
+  // Paste your Spline scene URL here to load a real 3D scene (Spline export gives you this).
+  // Leave empty ("") to show a lightweight placeholder — nothing external loads either way when OFF.
+  var SPLINE_SCENE_URL="";
+  function init(){
+    if(document.getElementById('spline-toggle-btn'))return;
+    var layer=document.createElement('div');
+    layer.id='spline-layer';
+    layer.style.cssText='position:fixed;inset:0;z-index:-1;pointer-events:none;display:none';
+    document.body.appendChild(layer);
+    var btn=document.createElement('button');
+    btn.id='spline-toggle-btn'; btn.type='button';
+    btn.style.cssText='position:fixed;top:16px;right:16px;z-index:2147483000;display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;border:1px solid #334155;background:rgba(15,23,42,.92);color:#f8fafc;font:600 13px system-ui;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4)';
+    btn.innerHTML='<span id="spline-dot" style="width:8px;height:8px;border-radius:50%;background:#475569"></span>3D <span id="spline-state">off</span>';
+    document.body.appendChild(btn);
+    var on=false, loaded=false, prevBg='';
+    function ensureViewer(cb){
+      if(loaded)return cb();
+      var s=document.createElement('script'); s.type='module';
+      s.src='https://unpkg.com/@splinetool/viewer@latest/build/spline-viewer.js';
+      s.onload=function(){loaded=true;cb();}; s.onerror=function(){cb('err');};
+      document.head.appendChild(s);
+    }
+    btn.addEventListener('click',function(){
+      on=!on;
+      document.getElementById('spline-state').textContent=on?'on':'off';
+      document.getElementById('spline-dot').style.background=on?'#22c55e':'#475569';
+      if(!on){ layer.style.display='none'; layer.innerHTML=''; document.body.style.background=prevBg; return; }
+      prevBg=document.body.style.background; document.body.style.background='transparent';
+      layer.style.display='block';
+      if(SPLINE_SCENE_URL){
+        ensureViewer(function(err){
+          if(err){ layer.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font:600 14px system-ui">3D failed to load</div>'; return; }
+          layer.innerHTML='<spline-viewer url="'+SPLINE_SCENE_URL+'" style="width:100%;height:100%"></spline-viewer>';
+        });
+      } else {
+        layer.innerHTML='<div style="position:absolute;inset:0;background:radial-gradient(1100px 560px at 28% 18%,rgba(59,130,246,.20),transparent 60%),radial-gradient(900px 520px at 76% 74%,rgba(34,197,94,.16),transparent 60%),#070b16"></div><div style="position:absolute;left:50%;top:18px;transform:translateX(-50%);color:#94a3b8;font:600 12px system-ui;letter-spacing:.08em;text-transform:uppercase">3D layer active · set SPLINE_SCENE_URL to load a scene</div>';
+      }
+    });
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
+})();
+</script>
+<!-- ===== end Spline toggle ===== -->
 </body>
 </html>
