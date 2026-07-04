@@ -72,9 +72,9 @@ All via Motion (framer-motion). Theme-agnostic.
 
 ---
 
-## 4. Spline decision — SKIP for this build
+## 4. Spline decision — OPTIONAL, default OFF (see §7 for the safe switch)
 
-Do **not** add Spline/3D to the core UI:
+Spline is **allowed but gated behind a switch that defaults OFF** — see §7 for the exact toggle. With the switch off it has **zero impact** (the WebGL runtime is never even downloaded). Only turn it on if the demo laptop handles it smoothly. Why it's off by default, not always-on:
 - The hero is a **number** (£0.00), not a 3D object — 3D competes with the financial-clarity story judges reward.
 - Adds a WebGL runtime + GPU dependence + load time on unknown venue hardware = a "can't-die demo" fragility.
 - Only conceivable use: one slow, muted ambient 3D shape behind the **idle screen only**, never near the payoff. Even then, skip it for a 90-second pitch. (Spline is better saved for a post-hackathon marketing landing page.)
@@ -140,6 +140,51 @@ Build the **web application** UI as one self-contained artifact (single HTML wit
 **Priority to nail:** NumberFlow (the £0.00 + money) → Tremor cards (P&L) → Vaul drawer (approval) → Origin/Aceternity dropzone. Those four carry the demo.
 
 > _Note: the 21st.dev `magic` MCP was returning malformed responses at build time, so this shortlist is sourced directly from the underlying open-source libraries it indexes (all real, all installable) rather than scraped from the 21st.dev site._
+
+---
+
+## 7. Spline 3D — OPTIONAL, behind a switch (default OFF, zero impact when off)
+
+You may reference a Spline 3D scene for extra "wow" **only if it is gated by a switch that defaults OFF**. With the switch off there is ZERO impact: no WebGL, no runtime download, no GPU load — the app is fully demo-ready without it. Turn it on only if the demo laptop runs it smoothly; flip it off instantly on stage if it stutters.
+
+**Principles**
+- **Default OFF.** The app looks complete with Spline off — a static fallback (poster image, or the CSS gradient / `DotPattern` from §6) sits behind the idle screen instead.
+- **Lazy-load.** The Spline runtime bundle (~200–500KB) downloads ONLY when the switch is on. Off = it is never fetched, so it can't slow first paint.
+- **Idle screen only.** Never mounts during the golden-path demo; leaving idle unmounts it and frees the GPU.
+- **Kill switch in the header** (next to the light/dark toggle) — one click to turn 3D off live.
+- **Always ship the static fallback** — shown when Spline is off OR fails to load (WebGL error), so it can never look broken.
+- **Self-host** the `.splinecode` file — don't depend on Spline's CDN mid-demo.
+
+**React pattern (default OFF, lazy, idle-only):**
+```tsx
+import { lazy, Suspense, useState } from "react";
+const Spline = lazy(() => import("@splinetool/react-spline")); // bundle loads ONLY when this renders
+
+function HeroBackground({ phase }: { phase: Phase }) {
+  const [spline3D, setSpline3D] = useState(false); // ← DEFAULT OFF = zero impact
+  const Fallback = () => <div className="hero-gradient" />; // safe, no WebGL (or <img>/<DotPattern/>)
+
+  return (
+    <div className="hero-media">
+      {phase === "idle" && spline3D ? (
+        <Suspense fallback={<Fallback />}>
+          <Spline scene="/scene.splinecode" className="hero-spline" />
+        </Suspense>
+      ) : (
+        <Fallback />
+      )}
+      <div className="hero-overlay" />
+      <button className="spline-toggle" onClick={() => setSpline3D(v => !v)}>
+        3D {spline3D ? "on" : "off"}
+      </button>
+    </div>
+  );
+}
+```
+- `spline3D = false` → `Fallback` renders and the `import("@splinetool/react-spline")` **never executes**, so the runtime is never downloaded and WebGL never starts. True zero cost when off.
+- **Hard off for the demo build:** gate it with an env flag too — `const ENABLE_SPLINE = import.meta.env.VITE_SPLINE === "1"` and add `&& ENABLE_SPLINE` to the condition; ship the demo build with `VITE_SPLINE` unset so it can't be toggled on at all.
+
+**Best of both:** design the scene in Spline, then **record it to the hero MP4** (see [hero-video-prompts.md](hero-video-prompts.md)) — you get the Spline look with none of the runtime cost, and keep this live toggle as a bonus for a post-hackathon build.
 
 ---
 
