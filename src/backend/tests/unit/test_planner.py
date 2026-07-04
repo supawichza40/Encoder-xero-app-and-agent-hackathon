@@ -10,6 +10,25 @@ from backend.models import CanonicalPayout, StepKind
 from backend.planner import create_plan
 
 
+def _broken_payout() -> CanonicalPayout:
+    """
+    Build a CanonicalPayout that violates gross - commission - fees - refunds == net
+    by bypassing the Pydantic model validator (model_construct skips validation).
+    This simulates a payout that slips past the model layer so we can test
+    the planner's own defence-in-depth guard at planner.py:33-37.
+    """
+    return CanonicalPayout.model_construct(
+        payout_ref="MC-PAYOUT-0407",
+        period="16-30 Jun 2026",
+        gross=Decimal("1340.00"),
+        commission=Decimal("445.90"),
+        fees=Decimal("47.10"),
+        refunds=Decimal("0.00"),
+        net=Decimal("999.00"),   # correct value is 847.00
+        bookings=[],
+    )
+
+
 def _golden_payout() -> CanonicalPayout:
     return CanonicalPayout(
         payout_ref="MC-PAYOUT-0407",
@@ -102,3 +121,20 @@ def test_PL9_nonzero_refund():
     assert plan.steps[2].amount == Decimal("550.00")
     # Refund is included as a fee line
     assert len(plan.steps[1].lines) == 3
+
+
+# ── PL10: Planner refuses when invariant is broken ────────────────────────
+def test_PL10_invariant_failure_refuses():
+    """Planner raises ValueError (refuses) when the payout invariant is broken,
+    even if a malformed payout slips past the model validator.
+
+    This exercises the defence-in-depth guard at planner.py:33-37, which is
+    the crown-jewel rule from CLAUDE.md: the agent must be structurally
+    unable to propose books that don't balance.
+
+    The expected net is 1340.00 - 445.90 - 47.10 - 0.00 = 847.00.
+    We inject 999.00 instead, bypassing the model validator via model_construct.
+    """
+    broken = _broken_payout()
+    with pytest.raises(ValueError, match="Planner invariant failure"):
+        create_plan(broken)
