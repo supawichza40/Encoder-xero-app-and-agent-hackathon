@@ -27,6 +27,20 @@ CONTACT_NAME = "MarketplaceCo (Marketplace)"
 PAYOUT_REFERENCE = "MC-PAYOUT-0407"
 NET_DEPOSIT_AMOUNT = "847.00"
 
+# ── CORS ──────────────────────────────────────────────────────────────────
+# Comma-separated list of allowed origins.  Set to "*" during a demo where
+# the backend is exposed via ngrok/tunnel so Make's HTTP module can reach it.
+_cors_env = os.getenv("CORS_ALLOW_ORIGINS", "")
+CORS_ALLOW_ORIGINS: list[str] = (
+    [o.strip() for o in _cors_env.split(",") if o.strip()]
+    if _cors_env.strip()
+    else [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://localhost:5174",
+    ]
+)
+
 # ── Dev flags ─────────────────────────────────────────────────────────────
 ALLOW_SEED = os.getenv("ALLOW_SEED", "true").lower() == "true"
 

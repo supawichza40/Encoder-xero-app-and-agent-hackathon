@@ -35,6 +35,7 @@ from .config import (
     ALLOW_SEED,
     CLEARING_ACCOUNT_CODE,
     CONTACT_NAME,
+    CORS_ALLOW_ORIGINS,
     PAYOUT_REFERENCE,
     STATE_DIR,
 )
@@ -97,11 +98,7 @@ app = FastAPI(title="PayoutBridge Agent", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://localhost:5174",
-    ],
+    allow_origins=CORS_ALLOW_ORIGINS,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )

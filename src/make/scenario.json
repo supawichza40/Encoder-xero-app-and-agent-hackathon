@@ -1,0 +1,176 @@
+{
+  "name": "PayoutBridge — Gmail to Xero approval",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gmail:WatchEmails",
+      "version": 1,
+      "parameters": {
+        "account": "",
+        "criteria": "subject:\"Treatwell Sales Proceeds\" has:attachment",
+        "label": "INBOX",
+        "markSeen": false,
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "restore": { "parameters": { "criteria": { "label": "Filter" } } },
+        "parameters": [
+          { "name": "account", "type": "account:gmail", "label": "Connection", "required": true },
+          { "name": "criteria", "type": "text", "label": "Search criteria (Gmail query)" },
+          { "name": "label", "type": "text", "label": "Folder to watch" },
+          { "name": "markSeen", "type": "boolean", "label": "Mark as read when processed" },
+          { "name": "maxResults", "type": "integer", "label": "Max emails per cycle" }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "module": "gmail:GetAttachments",
+      "version": 1,
+      "parameters": { "account": "" },
+      "mapper": { "messageId": "{{1.id}}", "threadId": "{{1.threadId}}" },
+      "metadata": {
+        "designer": { "x": 300, "y": 0 },
+        "parameters": [
+          { "name": "account", "type": "account:gmail", "label": "Connection", "required": true },
+          { "name": "messageId", "type": "text", "label": "Message ID" }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "module": "builtin:BasicFeeder",
+      "version": 1,
+      "parameters": {},
+      "mapper": { "array": "{{2.attachments}}", "key": "filename" },
+      "metadata": {
+        "designer": { "x": 600, "y": 0 },
+        "notes": "Iterate over attachments — we expect exactly one CSV per email."
+      }
+    },
+    {
+      "id": 4,
+      "module": "builtin:filter",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "filter": {
+        "name": "Only CSV attachments",
+        "conditions": [
+          [
+            {
+              "a": "{{toLower(3.filename)}}",
+              "b": ".csv",
+              "o": "text:endswith"
+            }
+          ]
+        ]
+      },
+      "metadata": {
+        "designer": { "x": 900, "y": 0 }
+      }
+    },
+    {
+      "id": 5,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {},
+      "mapper": {
+        "url": "{{YOUR_BACKEND_URL}}/propose",
+        "method": "POST",
+        "bodyType": "multipart_form_data",
+        "formDataFields": [
+          {
+            "key": "file",
+            "value": "{{3.data}}",
+            "filename": "{{3.filename}}",
+            "mime": "text/csv"
+          }
+        ],
+        "parseResponse": true,
+        "timeout": 30,
+        "followRedirects": true
+      },
+      "metadata": {
+        "designer": { "x": 1200, "y": 0 },
+        "notes": "POST CSV to /propose. No auth required (local demo). Replace {{YOUR_BACKEND_URL}} with your ngrok URL."
+      }
+    },
+    {
+      "id": 6,
+      "module": "builtin:filter",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "filter": {
+        "name": "Only new payouts (skip already-posted)",
+        "conditions": [
+          [
+            {
+              "a": "{{5.data.status}}",
+              "b": "new",
+              "o": "text:equal"
+            }
+          ]
+        ]
+      },
+      "metadata": {
+        "designer": { "x": 1500, "y": 0 },
+        "notes": "If status == already-posted the scenario stops here — idempotency handled by the backend."
+      }
+    },
+    {
+      "id": 7,
+      "module": "slack:CreateAMessage",
+      "version": 1,
+      "parameters": { "account": "" },
+      "mapper": {
+        "channel": "#payouts",
+        "text": ":bank: *New payout ready for approval*\n\n>*Gross:* £{{5.data.payout.gross}}\n>*Net:* £{{5.data.payout.net}}\n>*Reference:* {{5.data.payout.payout_ref}}\n>*Period:* {{5.data.payout.period}}\n\n:white_check_mark: <{{YOUR_APPROVAL_DRAWER_URL}}|Review & Approve in PayoutBridge>\n\n_File hash: {{5.data.file_hash}}_"
+      },
+      "metadata": {
+        "designer": { "x": 1800, "y": 0 },
+        "notes": "Replace {{YOUR_APPROVAL_DRAWER_URL}} with the URL of your React Approval Drawer, e.g. http://localhost:5173/?hash={{5.data.file_hash}}",
+        "parameters": [
+          { "name": "account", "type": "account:slack", "label": "Slack Connection", "required": true },
+          { "name": "channel", "type": "text", "label": "Channel (e.g. #payouts)" }
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "instant": false,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    },
+    "zone": "eu2.make.com"
+  },
+  "_payoutbridge_notes": {
+    "purpose": "Ingest payout CSV from Gmail, POST to /propose, send Slack approval card.",
+    "make_never_calls": "/approve — every Xero write stays inside the PayoutBridge backend (human-in-the-loop).",
+    "idempotency": "already-posted status stops the scenario at module 6 — no duplicate Slack messages.",
+    "setup_steps": [
+      "1. Import this blueprint: Make → Scenarios → Import blueprint → upload this file",
+      "2. Module 1 (Gmail Watch): connect your Gmail account, adjust search criteria",
+      "3. Module 5 (HTTP): replace {{YOUR_BACKEND_URL}} with your ngrok URL",
+      "4. Module 7 (Slack): connect Slack, set channel, replace {{YOUR_APPROVAL_DRAWER_URL}}",
+      "5. Set CORS_ALLOW_ORIGINS=* in .env and restart the backend",
+      "6. Run the scenario once manually (Run once button) with a test email",
+      "7. Screenshot the scenario canvas and the Slack card for the demo deck"
+    ]
+  }
+}
