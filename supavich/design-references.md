@@ -87,4 +87,60 @@ Build the **web application** UI as one self-contained artifact (single HTML wit
 
 ---
 
+## 6. Component shortlist — the good ones, by name
+
+> 21st.dev aggregates real open-source component libraries. These are the specific best-fit components (with their source library) to reference/rebuild for each part of PayoutBridge. The Claude design chat can recreate any of them from name + description — no external fetch needed. Libraries: shadcn/ui (`ui.shadcn.com`), Aceternity UI (`ui.aceternity.com`), Magic UI (`magicui.design`), **Tremor** (`tremor.so` — purpose-built for financial dashboards), Origin UI (`originui.com`), motion-primitives (`motion-primitives.com`), Vaul (`vaul.emilkowal.ski`), Sonner (`sonner.emilkowal.ski`), NumberFlow (`number-flow.barvian.me`), lucide icons (`lucide.dev`).
+
+### The £0.00 hero + money figures (most important)
+- **NumberFlow** (barvian) — animated number transitions, tabular, currency-aware. **First choice** for the gross/net count-up and the clearing balance ticking to £0.00.
+- **Magic UI — `NumberTicker`** — simpler count-up alternative.
+- **Magic UI — `AnimatedShinyText`** or a static green success chip for the "✓ Verified" label.
+- Pair with **lucide `CircleCheck` / `BadgeCheck`** drawn-in via Framer Motion path animation.
+
+### FileUpload
+- **Aceternity UI — `File Upload`** — animated dashed dropzone with drag-over highlight (closest to our spec).
+- **Origin UI — file-upload / dropzone** components — cleaner, more minimal alternative.
+- Base logic: `react-dropzone`.
+
+### StepProgress (Invoice → Fees → Payment)
+- **Origin UI — `Stepper`** — horizontal steps with states.
+- **motion-primitives — animated checkmark / `AnimatedCheck`** for the per-step pop.
+- Connector-fill + check-draw via Framer Motion.
+
+### PnLComparison (before/after) + payout summary
+- **Tremor — `Card`, `Metric`, `BadgeDelta`, `Flex`** — literally built for P&L / KPI before-after with delta badges. **Strong fit** for the two comparison cards.
+- Alt: **shadcn `Card`** + **shadcn `Badge`** (for `+£493.00` delta and the "NEW" tag).
+- **Magic UI — `MagicCard`** (spotlight border) if you want the AFTER card to feel highlighted.
+
+### ApprovalDrawer
+- **Vaul — `Drawer`** (also shipped as **shadcn `Drawer`**) — the standard slide-up sheet.
+- shadcn **`Sheet`** if you prefer a side panel.
+
+### AuditTrail
+- **shadcn `DataTable`** (TanStack Table) — collapsible, sortable, monospace cells.
+- Alt: **Tremor `Table`** — lighter, dashboard-styled.
+- Wrap in shadcn **`Collapsible`** for the "Transaction Trace" disclosure.
+
+### IdempotencyBanner + toasts
+- **shadcn `Alert`** (amber/`warning` variant) — the persistent banner.
+- **Sonner `toast`** — for transient "already posted" / success flashes.
+- **Origin UI — `Banner`/`Notification`** — nicer full-width banner alternative.
+
+### App shell + theme toggle (light default → dark)
+- **shadcn `ThemeProvider` + `ModeToggle`** (next-themes) — the standard light/dark toggle, top-right.
+- **shadcn `Button`** — the big green "Approve & Post to Xero" CTA (avoid flashy shimmer buttons; financial-grade = restraint).
+- **shadcn `Badge`, `Separator`, `Card`** — layout primitives.
+
+### Optional ambient (idle screen only, subtle)
+- **Magic UI — `DotPattern`** or **`AnimatedGridPattern`**, or **Aceternity `Grid`/`Dot Background`** — faint, professional texture behind the idle/upload state. Keep it near-invisible; never near the payoff.
+
+### Icon set
+- **lucide-react**: `Upload`, `FileText`, `CircleCheck`, `BadgeCheck`, `AlertTriangle`, `X`, `ChevronDown`, `ArrowUpRight` (delta), `Sun`/`Moon` (toggle).
+
+**Priority to nail:** NumberFlow (the £0.00 + money) → Tremor cards (P&L) → Vaul drawer (approval) → Origin/Aceternity dropzone. Those four carry the demo.
+
+> _Note: the 21st.dev `magic` MCP was returning malformed responses at build time, so this shortlist is sourced directly from the underlying open-source libraries it indexes (all real, all installable) rather than scraped from the 21st.dev site._
+
+---
+
 *Paste order for the design chat: (1) design.md, then (2) this file. Iterate on the £0.00 payoff frame first — it's the win.*
