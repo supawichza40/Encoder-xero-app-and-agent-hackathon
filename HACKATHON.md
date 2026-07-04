@@ -75,10 +75,19 @@ Examples: detect lapsed high-value customers → trigger outreach · identify up
 ### Xero MCP Server — available tools
 `list-accounts` · `list-contacts` · `list-credit-notes` · `list-invoices` · `list-items` · `list-manual-journals` · `list-organisation-details` · `list-profit-and-loss` · `list-quotes` · `list-tax-rates` · `list-payments` · `list-trial-balance` · `list-bank-transactions` · `list-report-balance-sheet` · `list-aged-receivables-by-contact`
 
-**Payroll:** `list-payroll-employees` · `list-payroll-employee-leave` · `list-payroll-employee-leave-balances` · `list-payroll-employee-leave-types` · `list-payroll-leave-periods` · `list-payroll-leave-types` · `list-timesheets`
+Also read: `list-aged-payables-by-contact` · `list-contact-groups` · `list-tracking-categories`
+
+**Payroll (read):** `list-payroll-employees` · `list-payroll-employee-leave` · `list-payroll-employee-leave-balances` · `list-payroll-employee-leave-types` · `list-payroll-leave-periods` · `list-payroll-leave-types` · `list-timesheets`
+
+**Write tools (the server can take action, not just read):** `create-bank-transaction` · `create-contact` · `create-credit-note` · `create-invoice` · `create-item` · `create-manual-journal` · `create-payment` · `create-quote` · `create-payroll-timesheet` · `create-tracking-category` · `create-tracking-option` · plus `update-*` counterparts (e.g. `update-contact`, `update-invoice`, `update-bank-transaction`).
+- **Caveat:** `create-payment` *records* a payment against an invoice — it is not a card-processing gateway. "Take payment" ideas = reconcile/record, not charge a card.
 
 **Auth — Custom Connections** (recommended for Claude Desktop / 3rd-party MCP clients): specify client id + secret per organisation. Setup: https://developer.xero.com/documentation/guides/oauth2/custom-connections/
 - Scopes: SCOPES_V1 (before Apr 29 2026, bundled) vs SCOPES_V2 (from Apr 29 2026, granular). Server tries V1 first, falls back to V2. Override with `XERO_SCOPES` env var (space-separated list).
+- Install for MCP client: `npx -y @xeroapi/xero-mcp-server@latest` (env: `XERO_CLIENT_ID`/`XERO_CLIENT_SECRET`, or `XERO_CLIENT_BEARER_TOKEN` which takes precedence).
+
+**Sandbox — Xero Demo Company:** free org with pre-loaded sample data, resettable, country-changeable (top-left dropdown → My Xero). Build and demo here.
+- **Payroll queries require the org region = NZ or UK.** London → set Demo Company to **UK** to keep payroll ideas viable.
 
 ## Schedule
 
@@ -163,6 +172,41 @@ Unusually pure execution rubric — **no explicit points for innovation, UI poli
 **Bottom line:** nail a real small-biz pain with Xero at the core (50%), prove it with genuine API calls (30%), make it reliable enough to trust (20%), then make a 3-minute demo of *one flow* impossible to misunderstand.
 
 *Sources: [JetBrains — Notes From the Judging Table (2026)](https://blog.jetbrains.com/ai/2026/06/how-to-win-a-hackathon-notes-from-the-judging-table/) · [MLH judging rubric](https://github.com/MLH/mlh-hackathon-rules/blob/master/Rules.md) · [TAIKAI — 6 judging criteria](https://taikai.network/en/blog/hackathon-judging).*
+
+## Our Plan & Decisions
+
+### Tracks in scope
+- **Bounty 01 — Small Business Productivity Powerhouse** — a real workflow our own business would use (genuine problem = strong on the 50% Xero-connection score).
+- **Bounty 03 — Cash Flow Accelerator** — best autonomous-agent narrative for an "App & Agent" event judged by Xero Product/Eng.
+- *(Bounty 02 Integrator out of scope for now — needs a strong second-platform skill.)*
+
+### Stack decision — TypeScript / Node
+- Xero's first-party tooling is all Node/TS: MCP server (`@xeroapi/xero-mcp-server`), `xero-node` SDK, agent toolkit. Riding official tooling = fewer integration bugs → lifts the 30% API and 20% architecture scores.
+- Lovable ships React/TS, so front-to-back is one language.
+- Python only if a specific ML need appears (unlikely for these tracks).
+
+### Build tools
+- **Claude Code** — primary builder, front + back end (TS/Node core + agent loop).
+- **Lovable** — UI shell (React/TS).
+- **Make** — no-code automation flows (e.g. outbound email/Slack the agent triggers).
+
+### Partner-prize multiplier
+Structure one project to be eligible for **three prizes** at once:
+- Main track (Claude Code / TS core)
+- **Lovable** partner prize (the UI)
+- **Make** partner prize (an automation flow)
+
+Triple the prize surface for near-zero extra work.
+
+### Feasibility — verified
+- Toolkit can **write, not just read** — `create-*` / `update-*` tools exist (see MCP section). "Autonomous agents that act" is fully supported.
+- Sandbox = **Xero Demo Company** (resettable sample data); set region to **UK** for payroll.
+- `create-payment` records/reconciles, does not charge a card.
+
+### Still to confirm on-site
+- Submission mechanics — Devpost or other platform? Required deliverables (repo, demo video, deployed URL)?
+- Can one project win **multiple** bounties, or pick one track?
+- Xero API rate limits for bulk-analysis agents (~60/min, 5000/day per org — verify).
 
 ## Data Discrepancies to Verify On-Site
 
