@@ -80,3 +80,22 @@ BimpeAI is a multi-channel AI agent platform: **WhatsApp · web chat · Instagra
 - Seed the Demo Company near ~£85–95k turnover so the threshold-crossing warning is numerically real.
 - Decide demo channel (web voice widget recommended for reliability).
 - Pull §4 scripts into the pitch Q&A (`build/06`).
+
+## 8. Demo posture + production privacy architecture
+
+**BimpeAI is a DEMO stand-in, not the product.** For the hackathon we use BimpeAI to *demonstrate* the voice/outreach experience fast. The real product builds the **same capability natively into the Xero-integrated agent** (proactive voice/outreach + approval), so production does not depend on a third-party conversation cloud.
+
+**Self-contained demo (no connection to our production web).** The demo runs standalone against the Xero Demo Company + synthetic data — it does **not** call our production backend/site. It exists so judges *understand the experience*. The voice layer is **optional and has zero dependency**: toggle it off and the core £0.00 golden path is completely unaffected.
+
+**Production privacy architecture (design intent — shown conceptually, not fully built in the demo):**
+- Sensitive customer data (conversation content, PII) is **encrypted**; **decryption happens only inside our private/local model environment.**
+- Third-party services in the pipeline (voice/transport) handle **ciphertext only** — they never see decrypted customer data.
+- Encryption keys **never leave the private environment**; the local model is the **sole decryption point**.
+- **Scope:** this protects the data *we* process through the AI/voice layer. The **Xero ledger itself lives in Xero** and is governed by Xero's own security/compliance — we don't claim to re-secure Xero's data.
+
+**Honesty guardrails (so a security-minded judge can't poke a hole):**
+- **Do NOT claim "impossible to intercept / cannot be extracted."** No system is absolute; that invites attack. Say instead: *"third parties in the pipeline only ever handle ciphertext; the private local model is the only place data is decrypted, and keys never leave it."*
+- Because BimpeAI is a **third-party cloud**, the **demo uses synthetic data only** (Sarah / MarketplaceCo) — no real customer data flows to BimpeAI. The encrypted + local-model privacy model describes the **native production build**, not the BimpeAI demo. State this openly; it resolves the otherwise-contradiction of "we protect data" while using a cloud voice tool.
+- Present the privacy architecture as the **production design** (a diagram / spoken explanation), never as something fully wired in the running demo. Pitching the vision is fine; claiming the demo *is* the secured production system is not.
+
+**One-line pitch framing:** *"Today's voice is a stand-in so you can feel it; in production we build this natively on Xero — customer data is encrypted end-to-end and only decrypted inside our private local model, so the voice/transport layer only ever sees ciphertext. The voice is optional; the correction works with or without it."*
