@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden}
+body{background:#070b16;color:#f8fafc;font-family:system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button{font-family:inherit;color:inherit}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(59,130,246,.45)}70%{box-shadow:0 0 0 13px rgba(59,130,246,0)}100%{box-shadow:0 0 0 0 rgba(59,130,246,0)}}
+@keyframes reconIn{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+@keyframes heroGlow{0%,100%{text-shadow:0 0 24px rgba(34,197,94,.35)}50%{text-shadow:0 0 44px rgba(34,197,94,.62)}}
+</style>
+</helmet>
+
+<div style="padding:38px 20px 90px;max-width:1360px;margin:0 auto">
+
+<!-- BOARD HEADER -->
+<div style="max-width:1280px;margin:0 auto 30px;display:flex;align-items:center;gap:15px;flex-wrap:wrap">
+  <div style="width:50px;height:50px;border-radius:13px;background:#3b82f6;color:#f8fafc;display:flex;align-items:center;justify-content:center"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M3 15h18"/><path d="M7 5 3 9l4 4"/><path d="M17 11l4 4-4 4"/></svg></div>
+  <div>
+    <div style="font:800 27px system-ui;letter-spacing:-.02em;color:#f8fafc">PayoutBridge <span style="color:#64748b;font-weight:600;font-size:16px">· UI State Board</span></div>
+    <div style="font-size:15px;color:#94a3b8;margin-top:2px">8 phases · financial-grade dark UI · 1280×720 projector target</div>
+  </div>
+</div>
+
+<!-- ============ 01 IDLE ============ -->
+<section data-screen-label="01 · idle" style="max-width:1280px;margin:0 auto 56px">
+<sc-if value="{{ showCaptions }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:0 2px 14px">
+  <span style="font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:13px;letter-spacing:.06em;padding:5px 9px;border-radius:7px;border:1px solid #3b82f6;color:#3b82f6;background:rgba(59,130,246,.12)">01</span>
+  <span style="font:700 15px system-ui;letter-spacing:.16em;text-transform:uppercase;color:#f8fafc">idle</span>
+  <span style="width:7px;height:7px;border-radius:50%;background:#3b82f6"></span>
+  <span style="font-size:15px;color:#94a3b8">Beat 1 · Establish the pain — the bank feed under-reports turnover.</span>
+  <span style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#475569">1280×720</span>
+</div>
+</sc-if>
+<div style="background:#0f172a;border:1px solid #1e293b;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.55)">
+<div style="padding:44px 56px;display:flex;flex-direction:column;gap:32px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:13px">
+      <div style="width:44px;height:44px;border-radius:12px;background:#3b82f6;color:#f8fafc;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M3 15h18"/><path d="M7 5 3 9l4 4"/><path d="M17 11l4 4-4 4"/></svg></div>
+      <div><div style="font:800 22px system-ui;color:#f8fafc">PayoutBridge</div><div style="font-size:13px;color:#94a3b8">Settlement → Xero gross-up</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;background:#1e293b;border:1px solid #334155;border-radius:999px;padding:7px 14px">
+      <span style="width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)"></span>
+      <span style="font-size:14px;color:#cbd5e1">Xero connected · Demo Company (UK)</span>
+    </div>
+  </div>
+  <div style="max-width:22ch">
+    <h1 style="font:800 clamp(32px,4.4vw,52px)/1.04 system-ui;letter-spacing:-.02em;color:#f8fafc;margin:0">Your bank feed has been lying about your turnover.</h1>
+  </div>
+  <p style="font-size:18px;line-height:1.55;color:#94a3b8;margin:0;max-width:62ch">MarketplaceCo paid you the net. Your books recorded the net. The commission you actually earned — and the fees you actually paid — quietly vanished from your P&amp;L.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:18px">
+    <div style="flex:1 1 300px;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:22px 26px">
+      <div style="font:700 13px system-ui;letter-spacing:.13em;text-transform:uppercase;color:#94a3b8">Bank feed says</div>
+      <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:clamp(34px,4.6vw,48px);font-weight:700;color:#f8fafc;margin:10px 0 12px">£847.00</div>
+      <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);color:#f59e0b;font-size:14px;font-weight:600;padding:6px 11px;border-radius:8px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Under-reported turnover</div>
+    </div>
+    <div style="flex:1 1 300px;background:#1e293b;border:1px solid rgba(34,197,94,.4);border-radius:14px;padding:22px 26px">
+      <div style="font:700 13px system-ui;letter-spacing:.13em;text-transform:uppercase;color:#94a3b8">You actually billed</div>
+      <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:clamp(34px,4.6vw,48px);font-weight:700;color:#f8fafc;margin:10px 0 12px">£1,340.00</div>
+      <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);color:#22c55e;font-size:14px;font-weight:600;padding:6px 11px;border-radius:8px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>True turnover</div>
+    </div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:9px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:16px;color:#94a3b8;padding:14px 16px;background:rgba(148,163,184,.06);border:1px solid #263248;border-radius:10px">
+    <span style="color:#f8fafc">£1,340.00 billed</span><span>−</span><span style="color:#f59e0b">£493.00 kept by MarketplaceCo</span><span>=</span><span style="color:#f8fafc">£847.00 into your bank</span>
+  </div>
+  <button type="button" style="width:100%;border:2px dashed #475569;border-radius:16px;background:rgba(30,41,59,.35);padding:44px 32px;display:flex;flex-direction:column;align-items:center;gap:15px;cursor:pointer;text-align:center" style-hover="border-color:#3b82f6;background:rgba(59,130,246,.06)" style-focus="outline:3px solid #3b82f6;outline-offset:4px">
+    <div style="width:64px;height:64px;border-radius:16px;background:rgba(59,130,246,.14);color:#3b82f6;display:flex;align-items:center;justify-content:center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></div>
+    <div style="font:600 21px system-ui;color:#f8fafc">Drag &amp; drop your payout CSV, or click to browse</div>
+    <div style="font-size:15px;color:#94a3b8">MarketplaceCo settlement statement · .csv only</div>
+  </button>
+</div>
+</div>
+</section>
+
+<!-- ============ 02 UPLOADING ============ -->
+<section data-screen-label="02 · uploading" style="max-width:1280px;margin:0 auto 56px">
+<sc-if value="{{ showCaptions }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:0 2px 14px">
+  <span style="font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:13px;letter-spacing:.06em;padding:5px 9px;border-radius:7px;border:1px solid #3b82f6;color:#3b82f6;background:rgba(59,130,246,.12)">02</span>
+  <span style="font:700 15px system-ui;letter-spacing:.16em;text-transform:uppercase;color:#f8fafc">uploading</span>
+  <span style="width:7px;height:7px;border-radius:50%;background:#3b82f6"></span>
+  <span style="font-size:15px;color:#94a3b8">Parsing the CSV (~10s) — drop zone disabled, spinner in place.</span>
+  <span style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#475569">1280×720</span>
+</div>
+</sc-if>
+<div style="background:#0f172a;border:1px solid #1e293b;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.55)">
+<div style="padding:40px 52px;display:flex;flex-direction:column;gap:26px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:13px">
+      <div style="width:44px;height:44px;border-radius:12px;background:#3b82f6;color:#f8fafc;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M3 15h18"/><path d="M7 5 3 9l4 4"/><path d="M17 11l4 4-4 4"/></svg></div>
+      <div><div style="font:800 22px system-ui;color:#f8fafc">PayoutBridge</div><div style="font-size:13px;color:#94a3b8">Settlement → Xero gross-up</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;background:#1e293b;border:1px solid #334155;border-radius:999px;padding:7px 14px">
+      <span style="width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)"></span>
+      <span style="font-size:14px;color:#cbd5e1">Xero connected · Demo Company (UK)</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:10px"><span style="width:3px;align-self:stretch;background:#3b82f6;border-radius:2px"></span><span style="font-size:16px;color:#cbd5e1">Your bank feed has been lying about your turnover.</span></div>
+  <div style="width:100%;border:2px dashed #475569;border-radius:16px;background:rgba(30,41,59,.35);padding:44px 32px;display:flex;flex-direction:column;align-items:center;gap:15px;opacity:.7;pointer-events:none">
+    <div style="width:64px;height:64px;border-radius:16px;background:rgba(59,130,246,.14);color:#3b82f6;display:flex;align-items:center;justify-content:center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="animation:spin .8s linear infinite"><path d="M21 12a9 9 0 1 1-6.22-8.56" stroke-linecap="round"/></svg></div>
+    <div style="font:600 21px system-ui;color:#f8fafc">Parsing MC-PAYOUT-0407…</div>
+    <div style="font-size:15px;color:#94a3b8">Restoring gross · matching 9 bookings · checking invariant</div>
+  </div>
+</div>
+</div>
+</section>
+
+<!-- ============ 03 ERROR ============ -->
+<section data-screen-label="03 · error" style="max-width:1280px;margin:0 auto 56px">
+<sc-if value="{{ showCaptions }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:0 2px 14px">
+  <span style="font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:13px;letter-spacing:.06em;padding:5px 9px;border-radius:7px;border:1px solid #ef4444;color:#ef4444;background:rgba(239,68,68,.12)">03</span>
+  <span style="font:700 15px system-ui;letter-spacing:.16em;text-transform:uppercase;color:#f8fafc">error</span>
+  <span style="width:7px;height:7px;border-radius:50%;background:#ef4444"></span>
+  <span style="font-size:15px;color:#94a3b8">Wrong file type — inline red error, retry allowed.</span>
+  <span style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#475569">1280×720</span>
+</div>
+</sc-if>
+<div style="background:#0f172a;border:1px solid #1e293b;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.55)">
+<div style="padding:40px 52px;display:flex;flex-direction:column;gap:26px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:13px">
+      <div style="width:44px;height:44px;border-radius:12px;background:#3b82f6;color:#f8fafc;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M3 15h18"/><path d="M7 5 3 9l4 4"/><path d="M17 11l4 4-4 4"/></svg></div>
+      <div><div style="font:800 22px system-ui;color:#f8fafc">PayoutBridge</div><div style="font-size:13px;color:#94a3b8">Settlement → Xero gross-up</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;background:#1e293b;border:1px solid #334155;border-radius:999px;padding:7px 14px">
+      <span style="width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)"></span>
+      <span style="font-size:14px;color:#cbd5e1">Xero connected · Demo Company (UK)</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:10px"><span style="width:3px;align-self:stretch;background:#3b82f6;border-radius:2px"></span><span style="font-size:16px;color:#cbd5e1">Your bank feed has been lying about your turnover.</span></div>
+  <button type="button" style="width:100%;border:2px dashed #ef4444;border-radius:16px;background:rgba(239,68,68,.05);padding:40px 32px;display:flex;flex-direction:column;align-items:center;gap:14px;cursor:pointer;text-align:center" style-hover="background:rgba(239,68,68,.09)" style-focus="outline:3px solid #3b82f6;outline-offset:4px">
+    <div style="width:60px;height:60px;border-radius:16px;background:rgba(239,68,68,.14);color:#ef4444;display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <div style="font:600 20px system-ui;color:#f8fafc">That file isn't a CSV — drop a .csv to try again</div>
+    <div style="font-size:15px;color:#94a3b8">MarketplaceCo settlement statement · .csv only</div>
+  </button>
+  <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);border-radius:10px">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    <span style="font-size:16px;color:#fca5a5"><strong style="color:#f8fafc">Please upload a .csv file.</strong> <span style="font-family:ui-monospace,Menlo,monospace">receipt.txt</span> was rejected before any Xero call.</span>
+  </div>
+</div>
+</div>
+</section>
+
+<!-- ============ 04 IDEMPOTENT ============ -->
+<section data-screen-label="04 · idempotent" style="max-width:1280px;margin:0 auto 56px">
+<sc-if value="{{ showCaptions }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:0 2px 14px">
+  <span style="font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:13px;letter-spacing:.06em;padding:5px 9px;border-radius:7px;border:1px solid #f59e0b;color:#f59e0b;background:rgba(245,158,11,.12)">04</span>
+  <span style="font:700 15px system-ui;letter-spacing:.16em;text-transform:uppercase;color:#f8fafc">idempotent</span>
+  <span style="width:7px;height:7px;border-radius:50%;background:#f59e0b"></span>
+  <span style="font-size:15px;color:#94a3b8">Same file re-uploaded — already posted, skipped, existing IDs returned.</span>
+  <span style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#475569">1280×720</span>
+</div>
+</sc-if>
+<div style="background:#0f172a;border:1px solid #1e293b;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.55)">
+<div style="padding:40px 52px;display:flex;flex-direction:column;gap:26px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:13px">
+      <div style="width:44px;height:44px;border-radius:12px;background:#3b82f6;color:#f8fafc;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M3 15h18"/><path d="M7 5 3 9l4 4"/><path d="M17 11l4 4-4 4"/></svg></div>
+      <div><div style="font:800 22px system-ui;color:#f8fafc">PayoutBridge</div><div style="font-size:13px;color:#94a3b8">Settlement → Xero gross-up</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;background:#1e293b;border:1px solid #334155;border-radius:999px;padding:7px 14px">
+      <span style="width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)"></span>
+      <span style="font-size:14px;color:#cbd5e1">Xero connected · Demo Company (UK)</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:10px"><span style="width:3px;align-self:stretch;background:#3b82f6;border-radius:2px"></span><span style="font-size:16px;color:#cbd5e1">Your bank feed has been lying about your turnover.</span></div>
+  <div style="display:flex;align-items:flex-start;gap:15px;padding:20px 24px;background:rgba(245,158,11,.1);border:1px solid #f59e0b;border-radius:14px">
+    <div style="width:40px;height:40px;border-radius:10px;background:rgba(245,158,11,.18);color:#f59e0b;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
+    <div style="flex:1">
+      <div style="font:700 19px system-ui;color:#f8fafc">Already posted — skipped (idempotent)</div>
+      <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:16px;color:#94a3b8;margin-top:7px">Xero IDs: <span style="color:#f8fafc">INV-0042, BT-0117, PMT-0089</span></div>
+      <button type="button" style="margin-top:12px;background:none;border:none;padding:0;color:#3b82f6;font-size:15px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px" style-focus="outline:2px solid #3b82f6;outline-offset:3px;border-radius:4px">Upload a different file</button>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(30,41,59,.5);border:1px solid #334155;border-radius:12px">
+    <span style="background:#334155;color:#94a3b8;font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:11px;padding:4px 6px;border-radius:5px">CSV</span>
+    <div style="flex:1"><div style="font-family:ui-monospace,Menlo,monospace;font-size:16px;color:#f8fafc">MC-PAYOUT-0407.csv</div><div style="font-size:13px;color:#94a3b8">re-uploaded · hash abc123 matched a prior post</div></div>
+    <span style="display:flex;align-items:center;gap:6px;color:#f59e0b;font-size:14px;font-weight:600"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>duplicate</span>
+  </div>
+</div>
+</div>
+</section>
+
+<!-- ============ 05 PROPOSED ============ -->
+<section data-screen-label="05 · proposed" style="max-width:1280px;margin:0 auto 56px">
+<sc-if value="{{ showCaptions }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:0 2px 14px">
+  <span style="font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:13px;letter-spacing:.06em;padding:5px 9px;border-radius:7px;border:1px solid #3b82f6;color:#3b82f6;background:rgba(59,130,246,.12)">05</span>
+  <span style="font:700 15px system-ui;letter-spacing:.16em;text-transform:uppercase;color:#f8fafc">proposed</span>
+  <span style="width:7px;height:7px;border-radius:50%;background:#3b82f6"></span>
+  <span style="font-size:15px;color:#94a3b8">Beat 2 · Approval drawer proposes 3 Xero writes; 9 bookings expanded for review.</span>
+  <span style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#475569">1280×720</span>
+</div>
+</sc-if>
+<div style="background:#0f172a;border:1px solid #1e293b;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.55)">
+<div style="padding:40px 52px;display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:13px">
+      <div style="width:44px;height:44px;border-radius:12px;background:#3b82f6;color:#f8fafc;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M3 15h18"/><path d="M7 5 3 9l4 4"/><path d="M17 11l4 4-4 4"/></svg></div>
+      <div><div style="font:800 22px system-ui;color:#f8fafc">PayoutBridge</div><div style="font-size:13px;color:#94a3b8">Settlement → Xero gross-up</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;background:#1e293b;border:1px solid #334155;border-radius:999px;padding:7px 14px">
+      <span style="width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)"></span>
+      <span style="font-size:14px;color:#cbd5e1">Xero connected · Demo Company (UK)</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;background:rgba(30,41,59,.5);border:1px solid #334155;border-radius:12px;opacity:.85">
+    <span style="background:#334155;color:#94a3b8;font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:11px;padding:4px 6px;border-radius:5px">CSV</span>
+    <div style="flex:1"><div style="font-family:ui-monospace,Menlo,monospace;font-size:16px;color:#f8fafc">MC-PAYOUT-0407.csv</div><div style="font-size:13px;color:#94a3b8">9 bookings · 16–30 Jun 2026</div></div>
+    <span style="display:flex;align-items:center;gap:6px;color:#22c55e;font-size:14px;font-weight:600"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>parsed</span>
+    <span style="display:flex;align-items:center;gap:6px;color:#64748b;font-size:13px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>locked</span>
+  </div>
+
+  <!-- APPROVAL DRAWER -->
+  <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:28px 30px;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div style="font:700 20px system-ui;color:#f8fafc">Review &amp; approve</div>
+      <div style="font-family:ui-monospace,Menlo,monospace;font-size:14px;color:#94a3b8">MC-PAYOUT-0407 · 16–30 Jun 2026</div>
+    </div>
+
+    <!-- payout summary -->
+    <div>
+      <table style="width:100%;border-collapse:collapse">
+        <tbody>
+          <tr><td style="padding:9px 0;font-size:16px;color:#94a3b8">Gross</td><td style="padding:9px 0;text-align:right;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:18px;color:#f8fafc">£1,340.00</td></tr>
+          <tr><td style="padding:9px 0;font-size:16px;color:#94a3b8">Commission</td><td style="padding:9px 0;text-align:right;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:18px;color:#cbd5e1">−£445.90</td></tr>
+          <tr><td style="padding:9px 0;font-size:16px;color:#94a3b8">Fees</td><td style="padding:9px 0;text-align:right;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:18px;color:#cbd5e1">−£47.10</td></tr>
+          <tr><td style="padding:9px 0;font-size:16px;color:#94a3b8">Refunds</td><td style="padding:9px 0;text-align:right;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:18px;color:#64748b">£0.00</td></tr>
+          <tr><td style="padding:13px 0 4px;font-size:17px;font-weight:700;color:#f8fafc;border-top:1px solid #334155">Net payout</td><td style="padding:13px 0 4px;text-align:right;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;color:#f8fafc;border-top:1px solid #334155">£847.00</td></tr>
+        </tbody>
+      </table>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:16px;padding:14px 16px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.35);border-radius:10px">
+        <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:20px;color:#f8fafc">£1,340.00</span>
+        <span style="color:#94a3b8;font-size:18px">−</span>
+        <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:20px;color:#f8fafc">£493.00</span>
+        <span style="color:#94a3b8;font-size:18px">=</span>
+        <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;color:#22c55e">£847.00</span>
+        <span style="margin-left:auto;display:flex;align-items:center;gap:6px;color:#22c55e;font-size:14px;font-weight:600"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>invariant holds</span>
+      </div>
+    </div>
+
+    <!-- booking detail -->
+    <div style="border:1px solid #334155;border-radius:12px;overflow:hidden">
+      <button type="button" onClick="{{ toggleBookings }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:14px 18px;background:rgba(15,23,42,.5);border:none;cursor:pointer;text-align:left" style-focus="outline:2px solid #3b82f6;outline-offset:-2px">
+        <span style="font:600 16px system-ui;color:#f8fafc">{{ bookingsToggleLabel }}</span>
+        <span style="margin-left:auto;color:#94a3b8;display:flex">
+          <sc-if value="{{ bookingsOpen }}" hint-placeholder-val="{{ true }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg></sc-if>
+          <sc-if value="{{ bookingsClosed }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></sc-if>
+        </span>
+      </button>
+      <sc-if value="{{ bookingsOpen }}" hint-placeholder-val="{{ true }}">
+      <div style="overflow-x:auto">
+        <table style="width:100%;min-width:660px;border-collapse:collapse">
+          <thead><tr style="background:rgba(15,23,42,.5)">
+            <th style="text-align:left;padding:11px 16px;font:600 13px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8">Date</th>
+            <th style="text-align:left;padding:11px 12px;font:600 13px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8">Client</th>
+            <th style="text-align:left;padding:11px 12px;font:600 13px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8">Type</th>
+            <th style="text-align:left;padding:11px 12px;font:600 13px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8">Service</th>
+            <th style="text-align:right;padding:11px 12px;font:600 13px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8">Amount</th>
+            <th style="text-align:right;padding:11px 12px;font:600 13px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8">Comm. Rate</th>
+            <th style="text-align:right;padding:11px 16px;font:600 13px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8">Commission</th>
+          </tr></thead>
+          <tbody>
+            <sc-for list="{{ bookings }}" as="b" hint-placeholder-count="9">
+            <tr style="border-top:1px solid #263248">
+              <td style="padding:11px 16px;font-family:ui-monospace,Menlo,monospace;font-size:15px;color:#94a3b8">{{ b.date }}</td>
+              <td style="padding:11px 12px;font-size:16px;color:#f8fafc">{{ b.client }}</td>
+              <td style="padding:11px 12px">
+                <sc-if value="{{ b.isNew }}" hint-placeholder-val="{{ true }}"><span style="font-size:13px;font-weight:600;color:#3b82f6;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);padding:2px 8px;border-radius:6px">New</span></sc-if>
+                <sc-if value="{{ b.isRepeat }}"><span style="font-size:13px;font-weight:600;color:#94a3b8;background:rgba(148,163,184,.1);border:1px solid #334155;padding:2px 8px;border-radius:6px">Repeat</span></sc-if>
+              </td>
+              <td style="padding:11px 12px;font-size:16px;color:#cbd5e1">{{ b.service }}</td>
+              <td style="padding:11px 12px;text-align:right;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:18px;color:#f8fafc">{{ b.amount }}</td>
+              <td style="padding:11px 12px;text-align:right;font-family:ui-monospace,Menlo,monospace;font-size:16px;color:#94a3b8">{{ b.rate }}</td>
+              <td style="padding:11px 16px;text-align:right;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:18px;color:#cbd5e1">{{ b.commission }}</td>
+            </tr>
+            </sc-for>
+            <tr style="border-top:2px solid #334155;background:rgba(15,23,42,.4)">
+              <td colspan="4" style="padding:13px 16px;font:700 15px system-ui;color:#f8fafc">Totals · 9 bookings</td>
+              <td style="padding:13px 12px;text-align:right;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;color:#f8fafc">£1,340.00</td>
+              <td></td>
+              <td style="padding:13px 16px;text-align:right;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;color:#f8fafc">£445.90</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      </sc-if>
+    </div>
+
+    <!-- what xero will do -->
+    <div>
+      <div style="font:700 15px system-ui;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;margin-bottom:14px">What Xero will do</div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div style="display:flex;gap:13px;align-items:flex-start"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" style="flex:0 0 auto;margin-top:1px"><circle cx="12" cy="12" r="9"/></svg><span style="font-size:16px;line-height:1.5;color:#cbd5e1">Create a gross revenue invoice for <strong style="color:#f8fafc">£1,340.00</strong> into Platform Clearing</span></div>
+        <div style="display:flex;gap:13px;align-items:flex-start"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" style="flex:0 0 auto;margin-top:1px"><circle cx="12" cy="12" r="9"/></svg><span style="font-size:16px;line-height:1.5;color:#cbd5e1">Book commission (<strong style="color:#f8fafc">£445.90</strong>) and fees (<strong style="color:#f8fafc">£47.10</strong>) as expenses from Platform Clearing</span></div>
+        <div style="display:flex;gap:13px;align-items:flex-start"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" style="flex:0 0 auto;margin-top:1px"><circle cx="12" cy="12" r="9"/></svg><span style="font-size:16px;line-height:1.5;color:#cbd5e1">Clear the <strong style="color:#f8fafc">£847.00</strong> net payout against your bank deposit</span></div>
+      </div>
+    </div>
+
+    <button type="button" style="width:100%;background:#22c55e;color:#ffffff;border:none;border-radius:12px;padding:16px;font:700 19px system-ui;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;text-shadow:0 1px 2px rgba(2,6,23,.35)" style-hover="background:#16a34a" style-focus="outline:3px solid #3b82f6;outline-offset:3px">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Approve &amp; Post to Xero
+    </button>
+  </div>
+</div>
+</div>
+</section>
+
+<!-- ============ 06 APPROVING ============ -->
+<section data-screen-label="06 · approving" style="max-width:1280px;margin:0 auto 56px">
+<sc-if value="{{ showCaptions }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:0 2px 14px">
+  <span style="font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:13px;letter-spacing:.06em;padding:5px 9px;border-radius:7px;border:1px solid #3b82f6;color:#3b82f6;background:rgba(59,130,246,.12)">06</span>
+  <span style="font:700 15px system-ui;letter-spacing:.16em;text-transform:uppercase;color:#f8fafc">approving</span>
+  <span style="width:7px;height:7px;border-radius:50%;background:#3b82f6"></span>
+  <span style="font-size:15px;color:#94a3b8">Beat 3 · Live rail posts each write, returning a real Xero ID. Scrub with the stepPhase tweak.</span>
+  <span style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#475569">1280×720</span>
+</div>
+</sc-if>
+<div style="background:#0f172a;border:1px solid #1e293b;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.55)">
+<div style="padding:40px 52px;display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:13px">
+      <div style="width:44px;height:44px;border-radius:12px;background:#3b82f6;color:#f8fafc;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M3 15h18"/><path d="M7 5 3 9l4 4"/><path d="M17 11l4 4-4 4"/></svg></div>
+      <div><div style="font:800 22px system-ui;color:#f8fafc">PayoutBridge</div><div style="font-size:13px;color:#94a3b8">Settlement → Xero gross-up</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;background:#1e293b;border:1px solid #334155;border-radius:999px;padding:7px 14px">
+      <span style="width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)"></span>
+      <span style="font-size:14px;color:#cbd5e1">Xero connected · Demo Company (UK)</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;background:rgba(30,41,59,.5);border:1px solid #334155;border-radius:12px;opacity:.7">
+    <span style="background:#334155;color:#94a3b8;font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:11px;padding:4px 6px;border-radius:5px">CSV</span>
+    <div style="flex:1"><div style="font-family:ui-monospace,Menlo,monospace;font-size:16px;color:#f8fafc">MC-PAYOUT-0407.csv</div><div style="font-size:13px;color:#94a3b8">9 bookings · locked while posting</div></div>
+    <span style="display:flex;align-items:center;gap:6px;color:#64748b;font-size:13px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>locked</span>
+  </div>
+
+  <!-- drawer condensed, disabled -->
+  <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:22px 26px;opacity:.75">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+      <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:19px;color:#f8fafc">£1,340.00</span>
+      <span style="color:#94a3b8">−</span>
+      <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:19px;color:#f8fafc">£493.00</span>
+      <span style="color:#94a3b8">=</span>
+      <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;color:#22c55e">£847.00</span>
+      <span style="margin-left:auto;font-size:14px;color:#94a3b8">MC-PAYOUT-0407 · 9 bookings</span>
+    </div>
+    <button type="button" disabled style="margin-top:18px;width:100%;background:#22c55e;color:#ffffff;border:none;border-radius:12px;padding:16px;font:700 19px system-ui;opacity:.5;cursor:not-allowed;display:flex;align-items:center;justify-content:center;gap:10px">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="animation:spin .8s linear infinite"><path d="M21 12a9 9 0 1 1-6.22-8.56" stroke-linecap="round"/></svg>Posting to Xero…
+    </button>
+  </div>
+
+  <!-- step progress -->
+  <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:26px 30px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px">
+      <div style="display:flex;align-items:center;gap:10px;font:700 18px system-ui;color:#f8fafc"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="3" style="animation:spin .8s linear infinite"><path d="M21 12a9 9 0 1 1-6.22-8.56" stroke-linecap="round"/></svg>{{ approvingHeader }}</div>
+      <div style="font-family:ui-monospace,Menlo,monospace;font-size:15px;color:#94a3b8">{{ stepPhase }} complete</div>
+    </div>
+    <div style="display:flex;align-items:flex-start;padding:0 4px">
+      <sc-for list="{{ approvingSteps }}" as="s" hint-placeholder-count="3">
+        <div style="flex:0 0 130px;display:flex;flex-direction:column;align-items:center;gap:10px">
+          <div style="{{ s.circleStyle }}">
+            <sc-if value="{{ s.isComplete }}" hint-placeholder-val="{{ true }}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></sc-if>
+            <sc-if value="{{ s.isActive }}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="animation:spin .8s linear infinite"><path d="M21 12a9 9 0 1 1-6.22-8.56" stroke-linecap="round"/></svg></sc-if>
+            <sc-if value="{{ s.isError }}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></sc-if>
+            <sc-if value="{{ s.isPending }}"><span style="font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:19px">{{ s.num }}</span></sc-if>
+          </div>
+          <div style="{{ s.labelStyle }}">{{ s.label }}</div>
+          <sc-if value="{{ s.id }}"><div style="font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#94a3b8;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:3px 8px">{{ s.id }}</div></sc-if>
+          <sc-if value="{{ s.note }}"><div style="font-size:13px;color:#ef4444;text-align:center;max-width:120px">{{ s.note }}</div></sc-if>
+        </div>
+        <sc-if value="{{ s.hasConn }}"><div style="{{ s.connStyle }}"></div></sc-if>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</div>
+</section>
+
+<!-- ============ 07 PARTIAL_ERROR ============ -->
+<section data-screen-label="07 · partial_error" style="max-width:1280px;margin:0 auto 56px">
+<sc-if value="{{ showCaptions }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:0 2px 14px">
+  <span style="font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:13px;letter-spacing:.06em;padding:5px 9px;border-radius:7px;border:1px solid #ef4444;color:#ef4444;background:rgba(239,68,68,.12)">07</span>
+  <span style="font:700 15px system-ui;letter-spacing:.16em;text-transform:uppercase;color:#f8fafc">partial_error</span>
+  <span style="width:7px;height:7px;border-radius:50%;background:#ef4444"></span>
+  <span style="font-size:15px;color:#94a3b8">Edge · Backend killed mid-approve — step 1 committed, retry resumes at step 2, never double-posts.</span>
+  <span style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#475569">1280×720</span>
+</div>
+</sc-if>
+<div style="background:#0f172a;border:1px solid #1e293b;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.55)">
+<div style="padding:40px 52px;display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:13px">
+      <div style="width:44px;height:44px;border-radius:12px;background:#3b82f6;color:#f8fafc;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M3 15h18"/><path d="M7 5 3 9l4 4"/><path d="M17 11l4 4-4 4"/></svg></div>
+      <div><div style="font:800 22px system-ui;color:#f8fafc">PayoutBridge</div><div style="font-size:13px;color:#94a3b8">Settlement → Xero gross-up</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;background:#1e293b;border:1px solid #334155;border-radius:999px;padding:7px 14px">
+      <span style="width:9px;height:9px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.18)"></span>
+      <span style="font-size:14px;color:#cbd5e1">Xero degraded · Demo Company (UK)</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;background:rgba(30,41,59,.5);border:1px solid #334155;border-radius:12px;opacity:.7">
+    <span style="background:#334155;color:#94a3b8;font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:11px;padding:4px 6px;border-radius:5px">CSV</span>
+    <div style="flex:1"><div style="font-family:ui-monospace,Menlo,monospace;font-size:16px;color:#f8fafc">MC-PAYOUT-0407.csv</div><div style="font-size:13px;color:#94a3b8">9 bookings · post interrupted</div></div>
+    <span style="display:flex;align-items:center;gap:6px;color:#64748b;font-size:13px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>locked</span>
+  </div>
+  <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:22px 26px;opacity:.7">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+      <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:19px;color:#f8fafc">£1,340.00</span><span style="color:#94a3b8">−</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:19px;color:#f8fafc">£493.00</span><span style="color:#94a3b8">=</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;color:#22c55e">£847.00</span>
+      <span style="margin-left:auto;font-size:14px;color:#94a3b8">MC-PAYOUT-0407 · 9 bookings</span>
+    </div>
+    <button type="button" disabled style="margin-top:18px;width:100%;background:#22c55e;color:#ffffff;border:none;border-radius:12px;padding:16px;font:700 19px system-ui;opacity:.4;cursor:not-allowed">Approve &amp; Post to Xero</button>
+  </div>
+  <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:26px 30px">
+    <div style="display:flex;align-items:center;gap:10px;font:700 18px system-ui;color:#ef4444;margin-bottom:22px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Posting halted at step 2</div>
+    <div style="display:flex;align-items:flex-start;padding:0 4px">
+      <sc-for list="{{ partialSteps }}" as="s" hint-placeholder-count="3">
+        <div style="flex:0 0 130px;display:flex;flex-direction:column;align-items:center;gap:10px">
+          <div style="{{ s.circleStyle }}">
+            <sc-if value="{{ s.isComplete }}" hint-placeholder-val="{{ true }}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></sc-if>
+            <sc-if value="{{ s.isActive }}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="animation:spin .8s linear infinite"><path d="M21 12a9 9 0 1 1-6.22-8.56" stroke-linecap="round"/></svg></sc-if>
+            <sc-if value="{{ s.isError }}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></sc-if>
+            <sc-if value="{{ s.isPending }}"><span style="font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:19px">{{ s.num }}</span></sc-if>
+          </div>
+          <div style="{{ s.labelStyle }}">{{ s.label }}</div>
+          <sc-if value="{{ s.id }}"><div style="font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#94a3b8;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:3px 8px">{{ s.id }}</div></sc-if>
+          <sc-if value="{{ s.note }}"><div style="display:flex;align-items:center;gap:5px;font-size:13px;color:#ef4444;text-align:center;max-width:120px;justify-content:center">{{ s.note }}</div></sc-if>
+        </div>
+        <sc-if value="{{ s.hasConn }}"><div style="{{ s.connStyle }}"></div></sc-if>
+      </sc-for>
+    </div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px;padding:18px 22px;background:rgba(239,68,68,.1);border:1px solid #ef4444;border-radius:14px">
+    <div style="width:38px;height:38px;border-radius:10px;background:rgba(239,68,68,.18);color:#ef4444;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <div style="flex:1">
+      <div style="font:700 17px system-ui;color:#f8fafc">Xero write failed at step 2 (create-bank-transaction): rate limit exceeded (429)</div>
+      <div style="font-size:15px;line-height:1.55;color:#94a3b8;margin-top:6px">Step 1 committed and preserved (<span style="font-family:ui-monospace,Menlo,monospace;color:#f8fafc">INV-0042</span>). Retry resumes at step 2 — re-running is idempotent, so the invoice will not be re-created.</div>
+      <button type="button" style="margin-top:13px;background:#3b82f6;color:#ffffff;border:none;border-radius:9px;padding:9px 16px;font:600 15px system-ui;cursor:pointer" style-hover="background:#2563eb" style-focus="outline:3px solid #3b82f6;outline-offset:3px">Retry from step 2</button>
+    </div>
+  </div>
+</div>
+</div>
+</section>
+
+<!-- ============ 08 VERIFIED (HERO) ============ -->
+<section data-screen-label="08 · verified" style="max-width:1280px;margin:0 auto 20px">
+<sc-if value="{{ showCaptions }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:0 2px 14px">
+  <span style="font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:13px;letter-spacing:.06em;padding:5px 9px;border-radius:7px;border:1px solid #22c55e;color:#22c55e;background:rgba(34,197,94,.14)">08</span>
+  <span style="font:700 15px system-ui;letter-spacing:.16em;text-transform:uppercase;color:#f8fafc">verified</span>
+  <span style="display:inline-flex;align-items:center;gap:6px;font:700 12px system-ui;letter-spacing:.1em;color:#22c55e;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.4);padding:3px 9px;border-radius:6px">★ PAYOFF</span>
+  <span style="font-size:15px;color:#94a3b8">Beat 4 · Clearing nets to £0.00, turnover restored to £1,340, profit unchanged at £847.</span>
+  <span style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#475569">1280×720</span>
+</div>
+</sc-if>
+<div style="background:#0f172a;border:1px solid rgba(34,197,94,.35);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 0 1px rgba(34,197,94,.06)">
+<div style="height:4px;background:linear-gradient(90deg,#22c55e,rgba(34,197,94,0))"></div>
+<div style="padding:44px 56px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:13px">
+      <div style="width:44px;height:44px;border-radius:12px;background:#3b82f6;color:#f8fafc;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M3 15h18"/><path d="M7 5 3 9l4 4"/><path d="M17 11l4 4-4 4"/></svg></div>
+      <div><div style="font:800 22px system-ui;color:#f8fafc">PayoutBridge</div><div style="font-size:13px;color:#94a3b8">Settlement → Xero gross-up</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;background:#1e293b;border:1px solid #334155;border-radius:999px;padding:7px 14px">
+      <span style="width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)"></span>
+      <span style="font-size:14px;color:#cbd5e1">Xero connected · Demo Company (UK)</span>
+    </div>
+  </div>
+
+  <button type="button" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 18px;background:transparent;border:1px dashed #475569;border-radius:12px;cursor:pointer;text-align:left" style-hover="border-color:#3b82f6;background:rgba(59,130,246,.05)" style-focus="outline:3px solid #3b82f6;outline-offset:3px">
+    <div style="width:38px;height:38px;border-radius:10px;background:rgba(59,130,246,.14);color:#3b82f6;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></div>
+    <div style="flex:1"><div style="font-size:16px;color:#f8fafc">Upload another statement</div><div style="font-size:13px;color:#94a3b8">Posts a new payout · MC-PAYOUT-0407 is locked (idempotent)</div></div>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+  </button>
+
+  <!-- approved drawer condensed -->
+  <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:24px 28px;display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="display:flex;align-items:center;gap:7px;font:700 16px system-ui;color:#22c55e"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Approved &amp; posted to Xero</span>
+      <span style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:14px;color:#94a3b8">15:30:02 · hash abc123</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 15px;background:rgba(15,23,42,.5);border-radius:10px">
+      <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:19px;color:#f8fafc">£1,340.00</span><span style="color:#94a3b8">−</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:19px;color:#f8fafc">£493.00</span><span style="color:#94a3b8">=</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;color:#22c55e">£847.00</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px">
+      <div style="display:flex;gap:12px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:1px"><path d="M20 6 9 17l-5-5"/></svg><span style="font-size:15px;color:#cbd5e1">Gross revenue invoice <strong style="color:#f8fafc">£1,340.00</strong> into Platform Clearing</span></div>
+      <div style="display:flex;gap:12px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:1px"><path d="M20 6 9 17l-5-5"/></svg><span style="font-size:15px;color:#cbd5e1">Commission <strong style="color:#f8fafc">£445.90</strong> and fees <strong style="color:#f8fafc">£47.10</strong> booked as expenses</span></div>
+      <div style="display:flex;gap:12px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:1px"><path d="M20 6 9 17l-5-5"/></svg><span style="font-size:15px;color:#cbd5e1">Net <strong style="color:#f8fafc">£847.00</strong> cleared against the bank deposit</span></div>
+    </div>
+  </div>
+
+  <!-- step progress complete -->
+  <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:24px 30px">
+    <div style="display:flex;align-items:center;gap:10px;font:700 17px system-ui;color:#22c55e;margin-bottom:20px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Posted to Xero</div>
+    <div style="display:flex;align-items:flex-start;padding:0 4px">
+      <sc-for list="{{ verifiedSteps }}" as="s" hint-placeholder-count="3">
+        <div style="flex:0 0 130px;display:flex;flex-direction:column;align-items:center;gap:10px">
+          <div style="{{ s.circleStyle }}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <div style="{{ s.labelStyle }}">{{ s.label }}</div>
+          <sc-if value="{{ s.id }}" hint-placeholder-val="{{ true }}"><div style="font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#94a3b8;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:3px 8px">{{ s.id }}</div></sc-if>
+        </div>
+        <sc-if value="{{ s.hasConn }}"><div style="{{ s.connStyle }}"></div></sc-if>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- CLEARING RECONCILIATION — HERO -->
+  <div style="background:#1e293b;border:1px solid rgba(34,197,94,.4);border-radius:18px;padding:38px 32px;display:flex;flex-direction:column;align-items:center;gap:20px;animation:reconIn .5s ease-out both;box-shadow:0 0 0 1px rgba(34,197,94,.1),0 20px 50px rgba(34,197,94,.06)">
+    <div style="font:700 14px system-ui;letter-spacing:.16em;text-transform:uppercase;color:#94a3b8">Clearing reconciliation</div>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:clamp(20px,2.4vw,26px);color:#cbd5e1;text-align:center">
+      <span>Gross <span style="color:#f8fafc">£1,340</span></span><span style="color:#64748b">−</span><span>Commission &amp; fees <span style="color:#f8fafc">£493</span></span><span style="color:#64748b">=</span><span>Net <span style="color:#f8fafc">£847</span></span>
+    </div>
+    <div style="font:600 15px system-ui;color:#94a3b8;margin-top:4px">Platform Clearing account</div>
+    <div style="display:flex;align-items:center;gap:18px">
+      <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:clamp(46px,7.5vw,74px);font-weight:800;line-height:1;color:#22c55e;animation:heroGlow 2.6s ease-in-out infinite">{{ clearingBalance }}</div>
+      <div style="width:clamp(48px,7vw,72px);height:clamp(48px,7vw,72px);border-radius:50%;background:#22c55e;color:#052e16;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="60%" height="60%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+    </div>
+    <div style="display:inline-flex;align-items:center;gap:8px;font:600 16px system-ui;color:#22c55e"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Verified — Platform Clearing nets to zero</div>
+  </div>
+
+  <!-- P&L before/after -->
+  <div>
+    <div style="font:700 15px system-ui;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;margin-bottom:14px">Profit &amp; Loss · before / after</div>
+    <div style="display:flex;flex-wrap:wrap;gap:20px">
+      <div style="flex:1 1 320px;min-width:280px;background:#151d2e;border:1px solid #263248;border-radius:14px;padding:24px 26px;opacity:.72">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span style="font:700 14px system-ui;letter-spacing:.14em;text-transform:uppercase;color:#94a3b8">Before</span><span style="font-size:13px;color:#64748b">bank-feed books</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0"><span style="font-size:16px;color:#94a3b8">Revenue</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:19px;color:#f8fafc">£847.00</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0"><span style="font-size:16px;color:#94a3b8">Commission Expense</span><span style="font-family:ui-monospace,Menlo,monospace;font-size:19px;color:#64748b">—</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:12px 0 2px;border-top:1px solid #263248;margin-top:4px"><span style="font-size:17px;font-weight:700;color:#f8fafc">Net Profit</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;color:#f8fafc">£847.00</span></div>
+      </div>
+      <div style="flex:1 1 320px;min-width:280px;background:#1e293b;border:1px solid rgba(34,197,94,.4);border-radius:14px;padding:24px 26px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span style="font:700 14px system-ui;letter-spacing:.14em;text-transform:uppercase;color:#f8fafc">After</span><span style="font-size:13px;color:#22c55e">gross-up applied</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;gap:10px"><span style="font-size:16px;color:#94a3b8">Revenue</span><span style="display:flex;align-items:center;gap:9px"><span style="display:inline-flex;align-items:center;gap:3px;font-size:13px;font-weight:600;color:#22c55e;background:rgba(34,197,94,.12);padding:2px 7px;border-radius:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>+£493.00</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:19px;color:#22c55e">£1,340.00</span></span></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;gap:10px;background:rgba(59,130,246,.06);border-radius:8px;padding-left:9px;padding-right:9px"><span style="display:flex;align-items:center;gap:8px;font-size:16px;color:#cbd5e1">Commission Expense<span style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#3b82f6;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.4);padding:1px 6px;border-radius:5px">NEW</span></span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:19px;color:#f8fafc">£493.00</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:12px 0 2px;border-top:1px solid #334155;margin-top:4px;gap:10px"><span style="font-size:17px;font-weight:700;color:#f8fafc">Net Profit <span style="font-size:13px;font-weight:500;color:#94a3b8">· unchanged</span></span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;color:#f8fafc">£847.00</span></div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:14px;color:#64748b;margin-top:14px">Both nets = £847.00 — turnover restored, cash unchanged. Reporting corrected, not inflated.</div>
+  </div>
+
+  <!-- audit trail collapsed -->
+  <div style="border:1px solid #334155;border-radius:14px;overflow:hidden">
+    <button type="button" onClick="{{ toggleAudit }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:16px 20px;background:rgba(15,23,42,.5);border:none;cursor:pointer;text-align:left" style-focus="outline:2px solid #3b82f6;outline-offset:-2px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+      <span style="font:700 16px system-ui;color:#f8fafc">Transaction Trace</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:#22c55e;background:rgba(34,197,94,.1);padding:2px 9px;border-radius:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>3 writes · all success</span>
+      <span style="margin-left:auto;color:#94a3b8;display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px">{{ auditToggleLabel }}</span>
+        <sc-if value="{{ auditOpen }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg></sc-if>
+        <sc-if value="{{ auditClosed }}" hint-placeholder-val="{{ true }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6 6-6"/></svg></sc-if>
+      </span>
+    </button>
+    <sc-if value="{{ auditOpen }}">
+    <div style="overflow-x:auto;border-top:1px solid #334155">
+      <table style="width:100%;min-width:680px;border-collapse:collapse">
+        <thead><tr style="background:rgba(15,23,42,.4)">
+          <th style="text-align:left;padding:11px 20px;font:600 13px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8">Timestamp</th>
+          <th style="text-align:left;padding:11px 12px;font:600 13px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8">Action</th>
+          <th style="text-align:left;padding:11px 12px;font:600 13px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8">Request Summary</th>
+          <th style="text-align:left;padding:11px 12px;font:600 13px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8">Xero ID</th>
+          <th style="text-align:left;padding:11px 20px;font:600 13px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8">Status</th>
+        </tr></thead>
+        <tbody>
+          <sc-for list="{{ audit }}" as="a" hint-placeholder-count="3">
+          <tr style="border-top:1px solid #263248">
+            <td style="padding:12px 20px;font-family:ui-monospace,Menlo,monospace;font-size:15px;color:#94a3b8">{{ a.time }}</td>
+            <td style="padding:12px 12px"><span style="font-family:ui-monospace,Menlo,monospace;font-size:14px;color:#cbd5e1;background:#334155;padding:3px 8px;border-radius:6px">{{ a.action }}</span></td>
+            <td style="padding:12px 12px;font-size:15px;color:#cbd5e1">{{ a.summary }}</td>
+            <td style="padding:12px 12px;font-family:ui-monospace,Menlo,monospace;font-size:15px;color:#f8fafc">{{ a.id }}</td>
+            <td style="padding:12px 20px"><span style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:#22c55e"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>success</span></td>
+          </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+    </sc-if>
+  </div>
+</div>
+</div>
+</section>
+
+<!-- FOOTER · TOKENS -->
+<sc-if value="{{ showCaptions }}" hint-placeholder-val="{{ true }}">
+<div style="max-width:1280px;margin:40px auto 0;padding:26px 28px;background:#0f172a;border:1px solid #1e293b;border-radius:16px">
+  <div style="font:700 13px system-ui;letter-spacing:.14em;text-transform:uppercase;color:#94a3b8;margin-bottom:16px">Design tokens · dark financial theme</div>
+  <div style="display:flex;flex-wrap:wrap;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px;background:#0b1424;border:1px solid #1e293b;border-radius:9px;padding:9px 13px"><span style="width:22px;height:22px;border-radius:6px;background:#0f172a;border:1px solid #334155;flex:0 0 auto"></span><div><div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#f8fafc">#0f172a</div><div style="font-size:11px;color:#64748b">bg-primary · Page</div></div></div>
+    <div style="display:flex;align-items:center;gap:10px;background:#0b1424;border:1px solid #1e293b;border-radius:9px;padding:9px 13px"><span style="width:22px;height:22px;border-radius:6px;background:#1e293b;border:1px solid #334155;flex:0 0 auto"></span><div><div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#f8fafc">#1e293b</div><div style="font-size:11px;color:#64748b">bg-card · Card</div></div></div>
+    <div style="display:flex;align-items:center;gap:10px;background:#0b1424;border:1px solid #1e293b;border-radius:9px;padding:9px 13px"><span style="width:22px;height:22px;border-radius:6px;background:#f8fafc;flex:0 0 auto"></span><div><div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#f8fafc">#f8fafc</div><div style="font-size:11px;color:#64748b">text-primary</div></div></div>
+    <div style="display:flex;align-items:center;gap:10px;background:#0b1424;border:1px solid #1e293b;border-radius:9px;padding:9px 13px"><span style="width:22px;height:22px;border-radius:6px;background:#94a3b8;flex:0 0 auto"></span><div><div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#f8fafc">#94a3b8</div><div style="font-size:11px;color:#64748b">text-secondary</div></div></div>
+    <div style="display:flex;align-items:center;gap:10px;background:#0b1424;border:1px solid #1e293b;border-radius:9px;padding:9px 13px"><span style="width:22px;height:22px;border-radius:6px;background:#22c55e;flex:0 0 auto"></span><div><div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#f8fafc">#22c55e</div><div style="font-size:11px;color:#64748b">text-success</div></div></div>
+    <div style="display:flex;align-items:center;gap:10px;background:#0b1424;border:1px solid #1e293b;border-radius:9px;padding:9px 13px"><span style="width:22px;height:22px;border-radius:6px;background:#f59e0b;flex:0 0 auto"></span><div><div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#f8fafc">#f59e0b</div><div style="font-size:11px;color:#64748b">text-warning</div></div></div>
+    <div style="display:flex;align-items:center;gap:10px;background:#0b1424;border:1px solid #1e293b;border-radius:9px;padding:9px 13px"><span style="width:22px;height:22px;border-radius:6px;background:#ef4444;flex:0 0 auto"></span><div><div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#f8fafc">#ef4444</div><div style="font-size:11px;color:#64748b">text-error</div></div></div>
+    <div style="display:flex;align-items:center;gap:10px;background:#0b1424;border:1px solid #1e293b;border-radius:9px;padding:9px 13px"><span style="width:22px;height:22px;border-radius:6px;background:#3b82f6;flex:0 0 auto"></span><div><div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#f8fafc">#3b82f6</div><div style="font-size:11px;color:#64748b">bg-accent · CTA</div></div></div>
+  </div>
+  <div style="margin-top:16px;font-size:13px;line-height:1.6;color:#64748b">Synthetic demo data · platform = MarketplaceCo · org = Demo Company (UK). Amounts are display-only literal strings (never computed), monospace tabular-nums, right-aligned. The £0.00 verification is the largest element on the page. Minimums held: body ≥16px · table amounts ≥18px · £0.00 ≥32px · Approve label ≥18px.</div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showCaptions&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Board&quot;},&quot;stepPhase&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;2/3&quot;,&quot;options&quot;:[&quot;1/3&quot;,&quot;2/3&quot;,&quot;3/3&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Approving frame&quot;},&quot;clearingVerified&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Payoff frame&quot;}}">
+class Component extends DCLogic {
+  state = { bookingsOpen: true, auditOpen: false };
+
+  getBookings() {
+    return [
+      { date:'2026-06-17', client:'Client A', service:'Cut & Colour',      amount:'£180.00', rate:'35%', commission:'£63.00', isNew:true,  isRepeat:false },
+      { date:'2026-06-18', client:'Client B', service:'Balayage',          amount:'£220.00', rate:'35%', commission:'£77.00', isNew:true,  isRepeat:false },
+      { date:'2026-06-19', client:'Client C', service:'Full Head Colour',  amount:'£195.00', rate:'35%', commission:'£68.25', isNew:true,  isRepeat:false },
+      { date:'2026-06-21', client:'Client D', service:'Cut & Blow Dry',    amount:'£95.00',  rate:'35%', commission:'£33.25', isNew:true,  isRepeat:false },
+      { date:'2026-06-23', client:'Client E', service:'Highlights',        amount:'£240.00', rate:'35%', commission:'£84.00', isNew:true,  isRepeat:false },
+      { date:'2026-06-25', client:'Client F', service:'Keratin Treatment', amount:'£180.00', rate:'35%', commission:'£63.00', isNew:true,  isRepeat:false },
+      { date:'2026-06-27', client:'Client G', service:'Colour Correction', amount:'£164.00', rate:'35%', commission:'£57.40', isNew:true,  isRepeat:false },
+      { date:'2026-06-29', client:'Client H', service:'Blow Dry',          amount:'£35.00',  rate:'—',   commission:'£0.00',  isNew:false, isRepeat:true },
+      { date:'2026-06-30', client:'Client I', service:'Fringe Trim',       amount:'£31.00',  rate:'—',   commission:'£0.00',  isNew:false, isRepeat:true },
+    ];
+  }
+
+  getAudit() {
+    return [
+      { time:'15:30:00', action:'create-invoice',          summary:'Invoice £1,340.00 → Platform Clearing (MarketplaceCo)', id:'INV-0042' },
+      { time:'15:30:01', action:'create-bank-transaction', summary:'Commission £445.90 + Fees £47.10 → expenses',          id:'BT-0117'  },
+      { time:'15:30:02', action:'create-payment',          summary:'Payment £847.00 clears MC-PAYOUT-0407',                id:'PMT-0089' },
+    ];
+  }
+
+  mkStep(num, label, st, id, note) {
+    const complete = st === 'complete', active = st === 'active', pending = st === 'pending', error = st === 'error';
+    const base = 'width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;';
+    let circle, color;
+    if (complete)    { circle = base + 'background:#22c55e;color:#052e16;box-shadow:0 0 0 6px rgba(34,197,94,.14);'; color = '#22c55e'; }
+    else if (active) { circle = base + 'background:rgba(59,130,246,.16);color:#3b82f6;border:2px solid #3b82f6;animation:pulseRing 1.6s ease-out infinite;'; color = '#3b82f6'; }
+    else if (error)  { circle = base + 'background:rgba(239,68,68,.16);color:#ef4444;border:2px solid #ef4444;'; color = '#ef4444'; }
+    else             { circle = base + 'background:#0f172a;color:#64748b;border:2px solid #475569;'; color = '#64748b'; }
+    return {
+      num, label,
+      id: complete ? id : null,
+      note: error ? note : null,
+      isComplete: complete, isActive: active, isPending: pending, isError: error,
+      circleStyle: circle,
+      labelStyle: 'font:600 17px system-ui;letter-spacing:.01em;color:' + color,
+      hasConn: false, connStyle: ''
+    };
+  }
+
+  conn(green) {
+    return green
+      ? 'flex:1 1 auto;height:3px;margin-top:28px;border-radius:2px;background:#22c55e;min-width:24px;'
+      : 'flex:1 1 auto;height:0;margin-top:28px;border-top:3px dashed #475569;min-width:24px;';
+  }
+
+  withConn(step, green) { return Object.assign({}, step, { hasConn: true, connStyle: this.conn(green) }); }
+
+  renderVals() {
+    const showCaptions     = this.props.showCaptions ?? true;
+    const stepPhase        = this.props.stepPhase ?? '2/3';
+    const clearingVerified = this.props.clearingVerified ?? true;
+
+    const s2done = stepPhase !== '1/3';
+    const s3done = stepPhase === '3/3';
+
+    const approvingSteps = [
+      this.withConn(this.mkStep(1, 'Invoice', 'complete', 'INV-0042'), true),
+      this.withConn(this.mkStep(2, 'Fees', s2done ? 'complete' : 'active', 'BT-0117'), s2done),
+      this.mkStep(3, 'Payment', s3done ? 'complete' : (s2done ? 'active' : 'pending'), 'PMT-0089'),
+    ];
+
+    const verifiedSteps = [
+      this.withConn(this.mkStep(1, 'Invoice', 'complete', 'INV-0042'), true),
+      this.withConn(this.mkStep(2, 'Fees', 'complete', 'BT-0117'), true),
+      this.mkStep(3, 'Payment', 'complete', 'PMT-0089'),
+    ];
+
+    const partialSteps = [
+      this.withConn(this.mkStep(1, 'Invoice', 'complete', 'INV-0042'), true),
+      this.withConn(this.mkStep(2, 'Fees', 'error', null, 'Xero 429 · rate limit'), false),
+      this.mkStep(3, 'Payment', 'pending', 'PMT-0089'),
+    ];
+
+    return {
+      bookings: this.getBookings(),
+      audit: this.getAudit(),
+      bookingsOpen: this.state.bookingsOpen,
+      bookingsClosed: !this.state.bookingsOpen,
+      auditOpen: this.state.auditOpen,
+      auditClosed: !this.state.auditOpen,
+      bookingsToggleLabel: this.state.bookingsOpen ? 'Hide 9 bookings' : 'View 9 bookings',
+      auditToggleLabel: this.state.auditOpen ? 'Collapse' : 'Expand',
+      toggleBookings: () => this.setState(s => ({ bookingsOpen: !s.bookingsOpen })),
+      toggleAudit: () => this.setState(s => ({ auditOpen: !s.auditOpen })),
+      showCaptions,
+      stepPhase, approvingSteps,
+      approvingHeader: s3done ? 'Posted to Xero' : 'Posting to Xero…',
+      verifiedSteps, partialSteps,
+      clearingBalance: clearingVerified ? '£0.00' : '£12.40',
+    };
+  }
+}
+</script>
+</body>
+</html>

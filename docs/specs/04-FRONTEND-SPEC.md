@@ -19,8 +19,10 @@ The PayoutBridge frontend is a single-page React application that provides the h
 
 ### 3.1 Theme
 
-- **Dark professional theme** — optimised for projector visibility during the live pitch
-- High-contrast text on dark backgrounds
+- **Light professional theme is the default** — clean white canvas, financial-grade
+- **Dark theme available via a header toggle** — optimised for projector visibility during the live pitch
+- Toggle: sun/moon button top-right of the header; Tailwind class-based dark mode (`darkMode: 'class'`, `dark` class on `<html>`); choice persisted in `localStorage` (`payoutbridge-theme`), defaulting to light when unset (does not auto-follow OS)
+- High-contrast text in both themes; every colour token has a light value and a `dark:` variant
 - Accent colours: green for success/verification, amber for warnings (idempotency), red for errors
 - Financial-grade aesthetic: clean typography, precise alignment, tabular numbers
 
@@ -32,16 +34,19 @@ The PayoutBridge frontend is a single-page React application that provides the h
 
 ### 3.3 Colour Palette
 
-| Use | Colour | Token |
-|---|---|---|
-| Background | `#0f172a` (slate-900) | `bg-primary` |
-| Card background | `#1e293b` (slate-800) | `bg-card` |
-| Text primary | `#f8fafc` (slate-50) | `text-primary` |
-| Text secondary | `#94a3b8` (slate-400) | `text-secondary` |
-| Success / verified | `#22c55e` (green-500) | `text-success` |
-| Warning / idempotent | `#f59e0b` (amber-500) | `text-warning` |
-| Error | `#ef4444` (red-500) | `text-error` |
-| Accent / CTA | `#3b82f6` (blue-500) | `bg-accent` |
+Light is the default; the dark column is the `dark:` variant applied when the toggle is on. Semantic accents step one shade darker in light mode for AA contrast on white.
+
+| Use | Light (default) | Dark (`dark:`) | Token |
+|---|---|---|---|
+| Background | `#ffffff` (white) | `#0f172a` (slate-900) | `bg-primary` |
+| Card background | `#f8fafc` (slate-50) | `#1e293b` (slate-800) | `bg-card` |
+| Border / divider | `#e2e8f0` (slate-200) | `#334155` (slate-700) | `border` |
+| Text primary | `#0f172a` (slate-900) | `#f8fafc` (slate-50) | `text-primary` |
+| Text secondary | `#475569` (slate-600) | `#94a3b8` (slate-400) | `text-secondary` |
+| Success / verified | `#16a34a` (green-600) | `#22c55e` (green-500) | `text-success` |
+| Warning / idempotent | `#d97706` (amber-600) | `#f59e0b` (amber-500) | `text-warning` |
+| Error | `#dc2626` (red-600) | `#ef4444` (red-500) | `text-error` |
+| Accent / CTA | `#2563eb` (blue-600) | `#3b82f6` (blue-500) | `bg-accent` |
 
 ## 4. Page Layout
 
@@ -436,7 +441,7 @@ All monetary amounts from the API are strings (e.g. `"1340.00"`). The frontend d
 - All interactive elements keyboard-navigable
 - Approve button has clear focus state
 - Colour is never the sole indicator of status (always paired with text/icon)
-- High contrast meets WCAG AA on the dark background
+- High contrast meets WCAG AA in both themes (dark text on white by default, light text on `#0f172a` when the dark toggle is on)
 
 ## 11. Development
 

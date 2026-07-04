@@ -52,20 +52,21 @@ The whole page is built to make this arc land. Design each beat to be unmissable
 
 # 2. HARD RULES (non-negotiable — a reviewer will check each one)
 
-1. **Dark theme, exact tokens only.** Use these hex values; do not substitute or "improve" them.
+1. **Light default + dark toggle, exact tokens only.** Light is the default theme; dark is the `dark:` variant applied when the header toggle is on. Use these exact hex values in each column; do not substitute or "improve" them.
 
-   | Use | Hex | Token |
-   |---|---|---|
-   | Page background | `#0f172a` | `bg-primary` |
-   | Card / panel background | `#1e293b` | `bg-card` |
-   | Text primary | `#f8fafc` | `text-primary` |
-   | Text secondary / muted | `#94a3b8` | `text-secondary` |
-   | Success / verified | `#22c55e` | `text-success` |
-   | Warning / idempotent | `#f59e0b` | `text-warning` |
-   | Error | `#ef4444` | `text-error` |
-   | Accent / CTA / focus | `#3b82f6` | `bg-accent` |
+   | Use | Light (default) | Dark (`dark:`) | Token |
+   |---|---|---|---|
+   | Page background | `#ffffff` | `#0f172a` | `bg-primary` |
+   | Card / panel background | `#f8fafc` | `#1e293b` | `bg-card` |
+   | Border / divider | `#e2e8f0` | `#334155` | `border` |
+   | Text primary | `#0f172a` | `#f8fafc` | `text-primary` |
+   | Text secondary / muted | `#475569` | `#94a3b8` | `text-secondary` |
+   | Success / verified | `#16a34a` | `#22c55e` | `text-success` |
+   | Warning / idempotent | `#d97706` | `#f59e0b` | `text-warning` |
+   | Error | `#dc2626` | `#ef4444` | `text-error` |
+   | Accent / CTA / focus | `#2563eb` | `#3b82f6` | `bg-accent` |
 
-   Semantics: **green = success/verification, amber = warnings (idempotency), red = errors, blue = accent/interaction**.
+   Semantics: **green = success/verification, amber = warnings (idempotency), red = errors, blue = accent/interaction**. Semantic accents step one shade darker in light mode for AA contrast on white. **Toggle:** sun/moon button top-right of the header; class-based dark mode (`darkMode: 'class'`, toggle the `dark` class on `<html>`); persist the choice in `localStorage` (`payoutbridge-theme`), defaulting to light when unset — do not auto-follow OS.
 
 2. **`£0.00 ✓` MUST be the single largest element on the page after approval.** In the `verified` frame, the Platform Clearing `£0.00 ✓` is the visual hero — larger than any heading, any other number, any logo. Render it at **≥32px** (aim 48–72px for the hero payoff frame). If a viewer 5 metres from a projector can read only one thing, it must be this.
 
@@ -79,15 +80,15 @@ The whole page is built to make this arc land. Design each beat to be unmissable
 
 7. **No horizontal page scroll, ever, at any width.** Wide content (the audit table) scrolls **inside its own `overflow-x:auto` container** — the page body itself never scrolls sideways.
 
-8. **Status is never signalled by colour alone.** Every state pairs colour **with an icon and text**: green success has a **tick** icon, the amber banner has a **warning** icon, red errors have a **cross** icon + a text message. Must survive a greyscale/colour-blind check. Target **WCAG AA (4.5:1)** contrast on the dark background.
+8. **Status is never signalled by colour alone.** Every state pairs colour **with an icon and text**: green success has a **tick** icon, the amber banner has a **warning** icon, red errors have a **cross** icon + a text message. Must survive a greyscale/colour-blind check. Target **WCAG AA (4.5:1)** contrast in both themes — on white in light mode, on `#0f172a` in dark.
 
 ---
 
 # 3. DESIGN SYSTEM
 
-- **Theme:** dark, professional, financial-grade. High-contrast text on `#0f172a`. Precise alignment, generous whitespace, no gradients-for-decoration.
+- **Theme:** light by default, professional, financial-grade — **dark theme via a header toggle**. High-contrast text in both modes (dark text on `#ffffff` by default, light text on `#0f172a` when toggled). Precise alignment, generous whitespace, no gradients-for-decoration.
 - **Typography:** sans-serif (system stack) for headings/body; **monospace with tabular numerals** for all amounts and all Xero IDs. Monetary columns right-aligned.
-- **Layout:** single page, **vertically stacked panels, no routing**. Max-width content column centred on the dark background. Panel order (the app's natural top-to-bottom flow):
+- **Layout:** single page, **vertically stacked panels, no routing**. Max-width content column centred on the page background (white by default, `#0f172a` when the dark toggle is on). Panel order (the app's natural top-to-bottom flow):
 
   ```
   HEADER            PayoutBridge logo + tagline
@@ -122,7 +123,7 @@ interface FileUploadProps {
   // 04 variant of the same component: { onProposalReceived, onError, disabled }
 }
 ```
-- Dashed-border rectangle + upload icon + text **"Drag & drop your payout CSV, or click to browse"**. Base border `border-slate-600`; on hover and drag-over the border turns **accent blue** (`#3b82f6`); drag-leave resets it.
+- Dashed-border rectangle + upload icon + text **"Drag & drop your payout CSV, or click to browse"**. Base border `border-slate-300 dark:border-slate-600`; on hover and drag-over the border turns **accent blue** (`#2563eb` light / `#3b82f6` dark); drag-leave resets it.
 - Hidden `<input type="file" accept=".csv">` fallback for click-to-browse.
 - Accepts `.csv` only; validate extension before firing the callback.
 - **States:** `idle` (ready) · `loading` (`disabled=true`: spinner in the zone, greyed out, drops prevented) · `error` (inline **red** text below the zone with a cross icon, e.g. after dropping a `.txt`; cleared on next interaction).
@@ -211,14 +212,14 @@ interface AuditTrailProps {
 ```
 - Collapsible disclosure, header **"Transaction Trace"** + chevron, **default collapsed** (expanded only for the architecture beat / Q&A).
 - Table columns: **Timestamp · Action · Request Summary · Xero ID · Status**. Wrap in `overflow-x-auto` so it scrolls **inside its own box** on narrow screens.
-- Row formatting: timestamp → **`HH:MM:SS`**; action in a **code-style badge** (`bg-slate-700 rounded px-2`); request truncated to a summary (e.g. "Invoice £1,340.00 → Platform Clearing"); `xero_id` in **monospace**; status = green **tick** (success) / red **cross** (error).
+- Row formatting: timestamp → **`HH:MM:SS`**; action in a **code-style badge** (`bg-slate-100 dark:bg-slate-700 rounded px-2`); request truncated to a summary (e.g. "Invoice £1,340.00 → Platform Clearing"); `xero_id` in **monospace**; status = green **tick** (success) / red **cross** (error).
 - Empty state: **"No audit entries yet."** in secondary text.
 
 ### 4.8 Header / Brand (structural)
-- Top of page: **PayoutBridge** wordmark/logo + the tagline **"Your bank feed has been lying about your turnover."** Understated, financial-grade. This is the constant across all frames.
+- Top of page: **PayoutBridge** wordmark/logo + the tagline **"Your bank feed has been lying about your turnover."** Understated, financial-grade. This is the constant across all frames. **Top-right: a theme toggle** — sun icon in light mode, moon in dark; `aria-label="Toggle dark theme"`, keyboard-reachable with a visible focus ring. Default light; toggles the `dark` class on `<html>` and persists to `localStorage`.
 
 ### 4.9 App / Layout shell (structural)
-- The single-page container: dark `#0f172a` background, centred max-width column, vertically stacked panels, no routing. Owns the `phase` state and renders exactly the components each phase calls for (§5). Between frames in the deliverable, this shell is what you clone per phase.
+- The single-page container: **white `#ffffff` background by default (`dark:` → `#0f172a`)**, centred max-width column, vertically stacked panels, no routing. Owns the `phase` state **and the `theme` state (default `light`)**, and renders exactly the components each phase calls for (§5). Between frames in the deliverable, this shell is what you clone per phase.
 
 ---
 
@@ -376,11 +377,11 @@ Errors: `404` no proposal; `409` all steps already done (`+ existing_ids`); `503
 # 8. DELIVERABLE SPEC
 
 - **One self-contained artifact.** A single HTML file (inline `<style>`, inline data, inline SVG icons — no external requests, no CDN) **or** a single React artifact. It must render standalone.
-- **Show all 8 phases in order**, each as its own labeled frame stacked top-to-bottom (§5), each captioned with the phase name + a one-line description. This is a design board of every state, not a click-through app (static frames are fine; light animation on the payoff frame is welcome).
+- **Show all 8 phases in order**, each as its own labeled frame stacked top-to-bottom (§5), each captioned with the phase name + a one-line description. This is a design board of every state, not a click-through app (static frames are fine; light animation on the payoff frame is welcome). Render the board in the **default light theme** with the header theme-toggle visible; also render the `verified` payoff frame **once in dark** to demonstrate the toggle.
 - **Give the `verified` (payoff) frame hero treatment** — the largest frame, the most polish, and inside it the `£0.00 ✓` is the biggest element on the entire page. This is the frame Supavich will iterate on first, so make it shine.
 - **Design tokens exactly as §2.1.** Amounts in monospace tabular-nums, right-aligned, `£`-prefixed, never computed.
 - **Responsive:** primary target **1280×720**. Below **768px**, the P&L cards **stack vertically** and the audit table scrolls horizontally **inside its own container**; the **page body never scrolls horizontally** at any width; the drop zone stays usable down to 480px.
-- **Accessibility:** every status carries **icon + text**, not colour alone (green tick / amber warning / red cross); interactive elements are keyboard-reachable with a **visible blue focus ring** on the dark background; WCAG AA contrast throughout.
+- **Accessibility:** every status carries **icon + text**, not colour alone (green tick / amber warning / red cross); interactive elements are keyboard-reachable with a **visible blue focus ring** in both themes; WCAG AA contrast throughout, in light and dark.
 - **Copy is verbatim** where this prompt quotes it ("Approve & Post to Xero", "Already posted — skipped (idempotent)", "Posting to Xero…", the three "What Xero will do" lines, step labels "Invoice/Fees/Payment", "Transaction Trace").
 - **No "Treatwell" anywhere.** Platform = MarketplaceCo, clients = Client A–I, org = "Demo Company (UK)".
 
