@@ -16,7 +16,7 @@
 
 # ROLE
 
-You are an **elite product designer + front-end engineer**. Design and build the complete visual UI for a hackathon demo app called **PayoutBridge**. Deliver **one self-contained artifact** (a single HTML file with inline CSS, or a single React artifact) that renders **every screen state as a labeled frame, stacked top to bottom, in one page**.
+You are an **elite product designer + front-end engineer**. Design and build the complete visual UI for a **web application** (browser-based, desktop-first, rendered in a modern browser) — a hackathon demo app called **PayoutBridge**. Deliver **one self-contained artifact** (a single HTML file with inline CSS, or a single React artifact) that renders **every screen state as a labeled frame, stacked top to bottom, in one page**.
 
 This UI will be shown **live on a 1280×720 projector** during a 90-second pitch. It must **read from the back of a room**: big type, high contrast, one obvious hero moment. Treat legibility at projector scale as a first-class constraint, not an afterthought. This is a **financial-grade** product — clean typography, precise alignment, tabular numbers, zero visual noise.
 
