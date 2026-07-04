@@ -68,6 +68,21 @@ def test_P6_empty_rejects():
         parse_payout_csv(b"")
 
 
+# ── P7: Header only — missing summary row rejects ─────────────────────────
+def test_P7_header_only_rejects():
+    csv = b"PayoutRef,Period,GrossSales,NewClientCommission,PrepaymentFees,Refunds,NetPayout\n"
+    with pytest.raises(ValueError, match="CSV parse error"):
+        parse_payout_csv(csv)
+
+
+# ── P8: Wrong column count rejects ────────────────────────────────────────
+def test_P8_wrong_column_count_rejects():
+    # Summary row has fewer columns than expected (only 4)
+    csv = b"PayoutRef,Period,GrossSales,NetPayout\nMC-001,Jun,1340.00,847.00\n"
+    with pytest.raises(ValueError, match="CSV parse error"):
+        parse_payout_csv(csv)
+
+
 # ── P9: Non-numeric amount rejects ────────────────────────────────────────
 def test_P9_non_numeric_rejects(golden_bytes):
     tampered = golden_bytes.replace(b",1340.00,", b",abc,")
