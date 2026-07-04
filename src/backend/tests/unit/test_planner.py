@@ -1,0 +1,104 @@
+"""
+Tier 1 unit tests: Planner (PL1-PL9)
+"""
+
+from decimal import Decimal
+
+import pytest
+
+from backend.models import CanonicalPayout, StepKind
+from backend.planner import create_plan
+
+
+def _golden_payout() -> CanonicalPayout:
+    return CanonicalPayout(
+        payout_ref="MC-PAYOUT-0407",
+        period="16-30 Jun 2026",
+        gross=Decimal("1340.00"),
+        commission=Decimal("445.90"),
+        fees=Decimal("47.10"),
+        refunds=Decimal("0.00"),
+        net=Decimal("847.00"),
+        bookings=[],
+    )
+
+
+# ── PL1: 3 steps ──────────────────────────────────────────────────────────
+def test_PL1_three_steps():
+    plan = create_plan(_golden_payout())
+    assert len(plan.steps) == 3
+
+
+# ── PL2: Step 1 is create-invoice ─────────────────────────────────────────
+def test_PL2_step1_invoice():
+    plan = create_plan(_golden_payout())
+    s = plan.steps[0]
+    assert s.kind == StepKind.CREATE_INVOICE
+    assert s.amount == Decimal("1340.00")
+    assert s.account == "Platform Clearing"
+
+
+# ── PL3: Step 2 is create-bank-transaction ────────────────────────────────
+def test_PL3_step2_bank_txn():
+    plan = create_plan(_golden_payout())
+    s = plan.steps[1]
+    assert s.kind == StepKind.CREATE_BANK_TRANSACTION
+    assert s.amount == Decimal("493.00")
+    assert s.lines is not None and len(s.lines) == 2
+
+
+# ── PL4: Step 2 fee lines correct ─────────────────────────────────────────
+def test_PL4_fee_lines():
+    plan = create_plan(_golden_payout())
+    lines = plan.steps[1].lines
+    assert lines[0].amount == Decimal("445.90")
+    assert lines[1].amount == Decimal("47.10")
+    assert "commission" in lines[0].description.lower()
+    assert "fee" in lines[1].description.lower()
+
+
+# ── PL5: Step 3 is create-payment ─────────────────────────────────────────
+def test_PL5_step3_payment():
+    plan = create_plan(_golden_payout())
+    s = plan.steps[2]
+    assert s.kind == StepKind.CREATE_PAYMENT
+    assert s.amount == Decimal("847.00")
+    assert s.clears == "MC-PAYOUT-0407"
+
+
+# ── PL6: invariant_check is True ──────────────────────────────────────────
+def test_PL6_invariant_true():
+    plan = create_plan(_golden_payout())
+    assert plan.invariant_check is True
+
+
+# ── PL7: Step amounts sum correctly ───────────────────────────────────────
+def test_PL7_amounts_balance():
+    plan = create_plan(_golden_payout())
+    assert plan.steps[0].amount - plan.steps[1].amount == plan.steps[2].amount
+
+
+# ── PL8: Zero-refund payout ────────────────────────────────────────────────
+def test_PL8_zero_refund():
+    payout = _golden_payout()
+    plan = create_plan(payout)
+    # With refunds=0, only 2 fee lines
+    assert len(plan.steps[1].lines) == 2
+
+
+# ── PL9: Non-zero refund included in bank txn ─────────────────────────────
+def test_PL9_nonzero_refund():
+    payout = CanonicalPayout(
+        payout_ref="REF",
+        period="Jun",
+        gross=Decimal("1000.00"),
+        commission=Decimal("300.00"),
+        fees=Decimal("50.00"),
+        refunds=Decimal("100.00"),
+        net=Decimal("550.00"),
+        bookings=[],
+    )
+    plan = create_plan(payout)
+    assert plan.steps[2].amount == Decimal("550.00")
+    # Refund is included as a fee line
+    assert len(plan.steps[1].lines) == 3

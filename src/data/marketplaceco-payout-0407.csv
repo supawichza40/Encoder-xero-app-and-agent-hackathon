@@ -1,0 +1,12 @@
+PayoutRef,Period,GrossSales,NewClientCommission,PrepaymentFees,Refunds,NetPayout
+MC-PAYOUT-0407,16-30 Jun 2026,1340.00,445.90,47.10,0.00,847.00
+BookingDate,Client,ClientType,Service,GrossAmount,CommissionRate,Commission
+2026-06-17,Client A,New,Cut & Colour,180.00,35%,63.00
+2026-06-18,Client B,Repeat,Blow Dry,45.00,0%,0.00
+2026-06-19,Client C,New,Full Head Highlights,220.00,35%,77.00
+2026-06-20,Client D,Repeat,Cut,55.00,0%,0.00
+2026-06-21,Client E,New,Balayage,240.00,35%,84.00
+2026-06-24,Client F,New,Cut & Colour,175.00,35%,61.25
+2026-06-25,Client G,Repeat,Treatment,60.00,0%,0.00
+2026-06-26,Client H,New,Colour Correction,290.00,35%,101.50
+2026-06-28,Client I,Repeat,Cut & Finish,75.00,0%,0.00
