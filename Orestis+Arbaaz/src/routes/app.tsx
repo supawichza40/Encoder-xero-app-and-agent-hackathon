@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 
@@ -10,6 +10,12 @@ import { StepProgress } from "@/components/StepProgress";
 import { ClearingReconciliation } from "@/components/ClearingReconciliation";
 import { PnLComparison } from "@/components/PnLComparison";
 import { AuditTrail } from "@/components/AuditTrail";
+import {
+  InvoiceHistory,
+  saveHistoryEntry,
+  type HistoryEntry,
+} from "@/components/InvoiceHistory";
+import { InvoiceDetails } from "@/components/InvoiceDetails";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
@@ -36,12 +42,38 @@ export const Route = createFileRoute("/app")({
 function Index() {
   const bridge = usePayoutBridge();
   const clearingRef = useRef<HTMLDivElement>(null);
+  const [lastFileName, setLastFileName] = useState<string | null>(null);
+  const [selected, setSelected] = useState<HistoryEntry | null>(null);
+  const savedHashRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (bridge.phase === "verified" && clearingRef.current) {
       clearingRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [bridge.phase]);
+
+  // Persist a history entry when a fresh proposal arrives.
+  useEffect(() => {
+    if (
+      bridge.proposal &&
+      lastFileName &&
+      savedHashRef.current !== bridge.proposal.file_hash
+    ) {
+      savedHashRef.current = bridge.proposal.file_hash;
+      saveHistoryEntry({
+        id: bridge.proposal.file_hash,
+        fileName: lastFileName,
+        uploadedAt: new Date().toISOString(),
+        proposal: bridge.proposal,
+      });
+    }
+  }, [bridge.proposal, lastFileName]);
+
+  const handleFile = (f: File) => {
+    setLastFileName(f.name);
+    setSelected(null);
+    void bridge.uploadFile(f);
+  };
 
   const uploadDisabled =
     bridge.phase === "uploading" ||
@@ -56,89 +88,109 @@ function Index() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-4 py-10 sm:px-6 sm:py-14">
-      <header className="flex flex-col gap-3">
-        <Link
-          to="/"
-          className="w-fit text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-        >
-          ← Back to home
-        </Link>
-        <h1 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
-          PayoutBridge
-        </h1>
-        <p className="text-sm text-muted-foreground sm:text-base">
-          Your bank feed has been lying about your turnover.
-        </p>
-      </header>
-
-
-      <FileUpload
-        onFileSelected={(f) => void bridge.uploadFile(f)}
-        disabled={uploadDisabled}
-        loading={bridge.phase === "uploading"}
-        error={bridge.phase === "error" ? bridge.error : null}
-      />
-
-      {bridge.phase === "idempotent" && bridge.proposal?.existing_ids ? (
-        <IdempotencyBanner
-          existingIds={bridge.proposal.existing_ids}
-          onReset={bridge.reset}
-        />
-      ) : null}
-
-      {(bridge.phase === "proposed" ||
-        bridge.phase === "approving" ||
-        bridge.phase === "verified") &&
-      bridge.proposal &&
-      bridge.proposal.plan ? (
-        <ApprovalDrawer
-          payout={bridge.proposal.payout}
-          plan={bridge.proposal.plan}
-          fileHash={bridge.proposal.file_hash}
-          onApprove={() => void bridge.approve()}
-          disabled={bridge.phase !== "proposed"}
-          loading={bridge.phase === "approving"}
-          approved={bridge.phase === "verified"}
-        />
-      ) : null}
-
-      {(bridge.phase === "approving" ||
-        bridge.phase === "verified" ||
-        bridge.phase === "partial_error") &&
-      bridge.approval ? (
-        <StepProgress results={bridge.approval.results} totalSteps={3} />
-      ) : null}
-
-      {bridge.phase === "partial_error" && bridge.error ? (
-        <div
-          role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive-foreground"
-        >
-          {bridge.error}
+      <main className="mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 gap-6 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[260px_1fr]">
+        <div className="lg:sticky lg:top-6 lg:self-start">
+          <InvoiceHistory
+            selectedId={selected?.id ?? null}
+            onSelect={(e) => setSelected(e)}
+          />
         </div>
-      ) : null}
 
-      {bridge.phase === "verified" && bridge.approval ? (
-        <>
-          <div ref={clearingRef}>
-            <ClearingReconciliation
-              gross={bridge.proposal!.payout.gross}
-              feesTotal={feesTotal}
-              net={bridge.proposal!.payout.net}
-              clearingBalance={bridge.approval.clearing_balance}
-              verified={bridge.approval.verified}
+        <div className="flex flex-col gap-6">
+          <header className="flex flex-col gap-3">
+            <Link
+              to="/"
+              className="w-fit text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+            >
+              ← Back to home
+            </Link>
+            <h1 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
+              PayoutBridge
+            </h1>
+            <p className="text-sm text-muted-foreground sm:text-base">
+              Your bank feed has been lying about your turnover.
+            </p>
+          </header>
+
+          {selected ? (
+            <InvoiceDetails
+              fileName={selected.fileName}
+              uploadedAt={selected.uploadedAt}
+              proposal={selected.proposal}
+              onClose={() => setSelected(null)}
             />
-          </div>
-          <PnLComparison before={bridge.pnl?.before ?? null} after={bridge.pnl?.after ?? null} />
-          <AuditTrail entries={bridge.audit} />
-        </>
-      ) : null}
+          ) : (
+            <>
+              <FileUpload
+                onFileSelected={handleFile}
+                disabled={uploadDisabled}
+                loading={bridge.phase === "uploading"}
+                error={bridge.phase === "error" ? bridge.error : null}
+                compact={Boolean(bridge.proposal)}
+              />
 
-      <footer className="mt-auto pt-8 text-center text-xs text-muted-foreground">
-        3 writes · zero-balance verification · every action auditable
-      </footer>
-    </main>
+              {bridge.phase === "idempotent" && bridge.proposal?.existing_ids ? (
+                <IdempotencyBanner
+                  existingIds={bridge.proposal.existing_ids}
+                  onReset={bridge.reset}
+                />
+              ) : null}
+
+              {(bridge.phase === "proposed" ||
+                bridge.phase === "approving" ||
+                bridge.phase === "verified") &&
+              bridge.proposal &&
+              bridge.proposal.plan ? (
+                <ApprovalDrawer
+                  payout={bridge.proposal.payout}
+                  plan={bridge.proposal.plan}
+                  fileHash={bridge.proposal.file_hash}
+                  onApprove={() => void bridge.approve()}
+                  disabled={bridge.phase !== "proposed"}
+                  loading={bridge.phase === "approving"}
+                  approved={bridge.phase === "verified"}
+                />
+              ) : null}
+
+              {(bridge.phase === "approving" ||
+                bridge.phase === "verified" ||
+                bridge.phase === "partial_error") &&
+              bridge.approval ? (
+                <StepProgress results={bridge.approval.results} totalSteps={3} />
+              ) : null}
+
+              {bridge.phase === "partial_error" && bridge.error ? (
+                <div
+                  role="alert"
+                  className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive-foreground"
+                >
+                  {bridge.error}
+                </div>
+              ) : null}
+
+              {bridge.phase === "verified" && bridge.approval ? (
+                <>
+                  <div ref={clearingRef}>
+                    <ClearingReconciliation
+                      gross={bridge.proposal!.payout.gross}
+                      feesTotal={feesTotal}
+                      net={bridge.proposal!.payout.net}
+                      clearingBalance={bridge.approval.clearing_balance}
+                      verified={bridge.approval.verified}
+                    />
+                  </div>
+                  <PnLComparison before={bridge.pnl?.before ?? null} after={bridge.pnl?.after ?? null} />
+                  <AuditTrail entries={bridge.audit} />
+                </>
+              ) : null}
+            </>
+          )}
+
+          <footer className="mt-auto pt-8 text-center text-xs text-muted-foreground">
+            3 writes · zero-balance verification · every action auditable
+          </footer>
+        </div>
+      </main>
     </>
   );
 }

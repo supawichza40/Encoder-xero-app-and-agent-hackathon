@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Loader2, CheckCircle2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader2, CheckCircle2, FileText, Receipt, Landmark, XCircle } from "lucide-react";
 import type { CanonicalPayout, JournalPlan } from "@/lib/payout-types";
 import { cn } from "@/lib/utils";
 
@@ -48,21 +48,25 @@ export function ApprovalDrawer({
       </header>
 
       {/* Summary */}
-      <dl className="tabular grid grid-cols-2 gap-x-6 gap-y-3 rounded-lg bg-background/50 p-4 sm:grid-cols-4">
-        <SummaryCell label="Gross" value={money(payout.gross)} />
-        <SummaryCell label="Commission" value={money(payout.commission)} />
-        <SummaryCell label="Fees" value={money(payout.fees)} />
-        <SummaryCell label="Net payout" value={money(payout.net)} highlight />
+      <dl className="tabular grid grid-cols-2 gap-x-6 gap-y-4 rounded-lg bg-background/50 p-4 sm:grid-cols-4">
+        <SummaryCell label="Gross" value={money(payout.gross)} icon={<FileText className="size-3.5" />} tone="blue" />
+        <SummaryCell label="Commission" value={money(payout.commission)} icon={<Receipt className="size-3.5" />} tone="amber" />
+        <SummaryCell label="Fees" value={money(payout.fees)} icon={<Receipt className="size-3.5" />} tone="rose" />
+        <SummaryCell label="Net payout" value={money(payout.net)} icon={<Landmark className="size-3.5" />} tone="emerald" />
       </dl>
 
       {/* Equation */}
-      <p className="tabular mt-4 text-center text-sm text-muted-foreground">
+      <p className="tabular mt-4 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground">
         {money(payout.gross)} − {money(payout.commission)} − {money(payout.fees)} ={" "}
-        <span className="text-foreground">{money(payout.net)}</span>
+        <span className="font-semibold text-emerald-500">{money(payout.net)}</span>
         {plan.invariant_check ? (
-          <span className="ml-2 text-success">✓ balanced</span>
+          <span className="inline-flex items-center gap-1 text-emerald-500">
+            <CheckCircle2 className="size-4" /> balanced
+          </span>
         ) : (
-          <span className="ml-2 text-destructive">✗ invariant failed</span>
+          <span className="inline-flex items-center gap-1 text-red-500">
+            <XCircle className="size-4" /> invariant failed
+          </span>
         )}
       </p>
 
@@ -119,16 +123,26 @@ export function ApprovalDrawer({
           What Xero will do
         </h3>
         <ul className="mt-3 space-y-2">
-          <ChecklistItem approved={approved}>
-            Create a gross revenue invoice for {money(invoiceStep?.amount ?? payout.gross)} into
-            Platform Clearing
+          <ChecklistItem approved={approved} icon={<FileText className="size-4 text-blue-500" />} tone="blue">
+            Create a gross revenue invoice for{" "}
+            <span className="font-semibold text-blue-500">
+              {money(invoiceStep?.amount ?? payout.gross)}
+            </span>{" "}
+            into Platform Clearing
           </ChecklistItem>
-          <ChecklistItem approved={approved}>
-            Book commission ({money(payout.commission)}) and fees ({money(payout.fees)}) as
-            expenses from Platform Clearing ({money(feesAmount)})
+          <ChecklistItem approved={approved} icon={<Receipt className="size-4 text-amber-500" />} tone="amber">
+            Book commission ({" "}
+            <span className="font-semibold text-amber-500">{money(payout.commission)}</span>) and fees ({" "}
+            <span className="font-semibold text-rose-500">{money(payout.fees)}</span>) as expenses
+            from Platform Clearing ({" "}
+            <span className="font-semibold text-amber-500">{money(feesAmount)}</span>)
           </ChecklistItem>
-          <ChecklistItem approved={approved}>
-            Clear {money(paymentStep?.amount ?? payout.net)} against your bank deposit
+          <ChecklistItem approved={approved} icon={<Landmark className="size-4 text-emerald-500" />} tone="emerald">
+            Clear{" "}
+            <span className="font-semibold text-emerald-500">
+              {money(paymentStep?.amount ?? payout.net)}
+            </span>{" "}
+            against your bank deposit
           </ChecklistItem>
         </ul>
       </div>
@@ -139,11 +153,11 @@ export function ApprovalDrawer({
           onClick={onApprove}
           disabled={disabled || loading || approved || !plan.invariant_check}
           className={cn(
-            "inline-flex w-full items-center justify-center gap-2 rounded-lg px-6 py-3 text-lg font-semibold transition-colors",
+            "inline-flex w-full items-center justify-center gap-2 rounded-lg px-6 py-3 text-lg font-semibold shadow-lg transition-all",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             approved
-              ? "bg-success text-success-foreground"
-              : "bg-success text-success-foreground hover:bg-success/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed",
+              ? "bg-emerald-600 text-white shadow-emerald-500/25"
+              : "bg-emerald-600 text-white hover:bg-emerald-500 hover:shadow-emerald-500/40 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed disabled:shadow-none",
           )}
         >
           {loading ? (
@@ -155,7 +169,9 @@ export function ApprovalDrawer({
               <CheckCircle2 className="size-5" /> Posted to Xero
             </>
           ) : (
-            <>Approve &amp; Post to Xero</>
+            <>
+              <CheckCircle2 className="size-5" /> Approve &amp; Post to Xero
+            </>
           )}
         </button>
       </div>
@@ -166,19 +182,41 @@ export function ApprovalDrawer({
 function SummaryCell({
   label,
   value,
-  highlight,
+  icon,
+  tone,
 }: {
   label: string;
   value: string;
-  highlight?: boolean;
+  icon?: React.ReactNode;
+  tone?: "blue" | "amber" | "rose" | "emerald";
 }) {
+  const toneClasses = {
+    blue: "text-blue-500",
+    amber: "text-amber-500",
+    rose: "text-rose-500",
+    emerald: "text-emerald-500",
+  };
+  const bgClasses = {
+    blue: "bg-blue-500/10",
+    amber: "bg-amber-500/10",
+    rose: "bg-rose-500/10",
+    emerald: "bg-emerald-500/10",
+  };
+
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dt className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+        {tone && icon ? (
+          <span className={cn("flex size-5 items-center justify-center rounded-md", bgClasses[tone], toneClasses[tone])}>
+            {icon}
+          </span>
+        ) : null}
+        {label}
+      </dt>
       <dd
         className={cn(
-          "mt-1 text-lg font-semibold",
-          highlight ? "text-primary" : "text-foreground",
+          "mt-1.5 text-lg font-semibold",
+          tone ? toneClasses[tone] : "text-foreground",
         )}
       >
         {value}
@@ -190,23 +228,39 @@ function SummaryCell({
 function ChecklistItem({
   children,
   approved,
+  icon,
+  tone,
 }: {
   children: React.ReactNode;
   approved?: boolean;
+  icon?: React.ReactNode;
+  tone?: "blue" | "amber" | "emerald";
 }) {
+  const toneClasses = {
+    blue: "text-blue-500 bg-blue-500/10 border-blue-500/30",
+    amber: "text-amber-500 bg-amber-500/10 border-amber-500/30",
+    emerald: "text-emerald-500 bg-emerald-500/10 border-emerald-500/30",
+  };
+
   return (
     <li className="flex items-start gap-3 rounded-md border border-border bg-background/40 p-3 text-sm">
-      <span
-        aria-hidden
-        className={cn(
-          "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border",
-          approved
-            ? "border-success bg-success text-success-foreground"
-            : "border-border bg-transparent",
-        )}
-      >
-        {approved ? "✓" : ""}
-      </span>
+      {approved ? (
+        <span
+          aria-hidden
+          className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-success bg-success text-success-foreground"
+        >
+          ✓
+        </span>
+      ) : icon ? (
+        <span className={cn("mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border", tone ? toneClasses[tone] : "border-border bg-transparent text-muted-foreground")}>
+          {icon}
+        </span>
+      ) : (
+        <span
+          aria-hidden
+          className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-border bg-transparent"
+        />
+      )}
       <span className="text-foreground">{children}</span>
     </li>
   );

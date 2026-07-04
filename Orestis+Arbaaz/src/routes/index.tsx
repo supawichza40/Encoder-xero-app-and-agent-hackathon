@@ -308,19 +308,19 @@ function Dashboard({ user }: { user: string }) {
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <ActionCard
           to="/app"
-          icon={<Upload className="size-5 text-primary" />}
+          icon={<Upload className="size-5 text-blue-500" />}
           title="Upload a payout"
           body="Drag in a CSV, review the proposal, and post to Xero."
         />
         <ActionCard
           to="/app"
-          icon={<Zap className="size-5 text-primary" />}
+          icon={<Zap className="size-5 text-amber-500" />}
           title="Run the demo"
           body="Mock mode is on — walk the full flow without a backend."
         />
         <ActionCard
           to="/app"
-          icon={<FileText className="size-5 text-primary" />}
+          icon={<FileText className="size-5 text-violet-500" />}
           title="View last audit trail"
           body="Every request and Xero ID from your most recent approval."
         />
@@ -465,7 +465,7 @@ function SignedOutHome() {
       {/* Hero */}
       <section className="flex flex-col items-start gap-6">
         <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
-          <Sparkles className="size-3.5 text-primary" aria-hidden />
+          <Sparkles className="size-3.5 text-amber-400" aria-hidden />
           Human-in-the-loop · Xero-native · Auditable
         </span>
         <h1 className="text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
@@ -519,17 +519,17 @@ function SignedOutHome() {
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <BenefitCard
-            icon={<TrendingUp className="size-5 text-primary" />}
+            icon={<TrendingUp className="size-5 text-blue-500" />}
             title="See your real turnover"
             body="A live dashboard shows reported vs real revenue and fees recovered — updated on every approval."
           />
           <BenefitCard
-            icon={<FileText className="size-5 text-primary" />}
+            icon={<FileText className="size-5 text-emerald-500" />}
             title="Keep every audit trail"
             body="Signed-in workspaces save every proposal, Xero ID, and timestamp so your accountant never has to ask twice."
           />
           <BenefitCard
-            icon={<ShieldCheck className="size-5 text-primary" />}
+            icon={<ShieldCheck className="size-5 text-violet-500" />}
             title="Post safely to Xero"
             body="Connect once and PayoutBridge is idempotent by file hash — re-uploads never double-post."
           />
@@ -563,7 +563,7 @@ function SignedOutHome() {
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2">
                   <CheckCircle2
-                    className="mt-0.5 size-4 shrink-0 text-success"
+                    className="mt-0.5 size-4 shrink-0 text-emerald-500"
                     aria-hidden
                   />
                   <span>{item}</span>
@@ -628,17 +628,17 @@ function SignedOutHome() {
         </h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <FeatureCard
-            icon={<Scale className="size-5 text-primary" />}
+            icon={<Scale className="size-5 text-blue-500" />}
             title="Accounting invariant"
             body="Gross − commission − fees − refunds must equal net. The planner refuses to propose books that don't balance."
           />
           <FeatureCard
-            icon={<ShieldCheck className="size-5 text-primary" />}
+            icon={<ShieldCheck className="size-5 text-emerald-500" />}
             title="Idempotent by file hash"
             body="Re-upload the same statement and PayoutBridge shows the existing Xero IDs instead of double-posting."
           />
           <FeatureCard
-            icon={<FileText className="size-5 text-primary" />}
+            icon={<FileText className="size-5 text-amber-500" />}
             title="Full audit trail"
             body="Every request, every Xero ID, every timestamp — exportable transaction trace for your accountant."
           />
@@ -708,7 +708,7 @@ function FeatureCard({
         <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
           {icon}
         </span>
-        <CheckCircle2 className="ml-auto size-4 text-success" aria-hidden />
+        <CheckCircle2 className="ml-auto size-4 text-emerald-500" aria-hidden />
       </div>
       <h3 className="text-base font-semibold">{title}</h3>
       <p className="text-sm text-muted-foreground">{body}</p>
