@@ -1,0 +1,226 @@
+// Mock backend for offline UI testing.
+// Mock is ON by default so the UI can be tested without a backend.
+// To hit the real API, append ?mock=0 to the URL or set VITE_PAYOUTBRIDGE_MOCK=0.
+
+import type {
+  ApprovalResponse,
+  AuditEntry,
+  PnLResponse,
+  ProposalResponse,
+  StatusResponse,
+} from "./payout-types";
+
+
+export function isMockEnabled(): boolean {
+  if (import.meta.env.VITE_PAYOUTBRIDGE_MOCK === "0") return false;
+  if (import.meta.env.VITE_PAYOUTBRIDGE_MOCK === "1") return true;
+  if (typeof window !== "undefined") {
+    try {
+      const url = new URL(window.location.href);
+      const q = url.searchParams.get("mock");
+      if (q === "0") return false;
+      if (q === "1") return true;
+      const ls = window.localStorage?.getItem("payoutbridge.mock");
+      if (ls === "0") return false;
+      if (ls === "1") return true;
+    } catch {
+      /* fall through */
+    }
+  }
+  return true; // default ON
+}
+
+
+const DEMO_PAYOUT = {
+  payout_ref: "MC-PAYOUT-0407",
+  period: "16-30 Jun 2026",
+  gross: "1340.00",
+  commission: "445.90",
+  fees: "47.10",
+  refunds: "0.00",
+  net: "847.00",
+  bookings: [
+    {
+      date: "2026-06-17",
+      client: "Alex Rivera",
+      client_type: "New" as const,
+      service: "Cut & Colour",
+      gross_amount: "180.00",
+      commission_rate: "35%",
+      commission: "63.00",
+    },
+    {
+      date: "2026-06-19",
+      client: "Priya Shah",
+      client_type: "New" as const,
+      service: "Balayage",
+      gross_amount: "260.00",
+      commission_rate: "35%",
+      commission: "91.00",
+    },
+    {
+      date: "2026-06-22",
+      client: "Jordan Lee",
+      client_type: "Repeat" as const,
+      service: "Blow-dry",
+      gross_amount: "45.00",
+      commission_rate: "15%",
+      commission: "6.75",
+    },
+    {
+      date: "2026-06-25",
+      client: "Sam Okoro",
+      client_type: "New" as const,
+      service: "Full Highlights",
+      gross_amount: "855.00",
+      commission_rate: "33.4%",
+      commission: "285.15",
+    },
+  ],
+};
+
+// In-memory idempotency store — persists across renders in a single tab.
+const posted = new Set<string>();
+
+function hashFile(file: File): string {
+  // Cheap deterministic pseudo-hash for demo idempotency.
+  const raw = `${file.name}:${file.size}:${file.lastModified}`;
+  let h = 0;
+  for (let i = 0; i < raw.length; i++) h = (h * 31 + raw.charCodeAt(i)) | 0;
+  return `mock-${(h >>> 0).toString(16).padStart(8, "0")}`;
+}
+
+function delay<T>(value: T, ms = 400): Promise<T> {
+  return new Promise((r) => setTimeout(() => r(value), ms));
+}
+
+export async function mockPropose(file: File): Promise<ProposalResponse> {
+  const file_hash = hashFile(file);
+  if (posted.has(file_hash)) {
+    return delay({
+      status: "already-posted",
+      file_hash,
+      payout: DEMO_PAYOUT,
+      plan: null,
+      existing_ids: {
+        invoice_id: "INV-0042",
+        bank_txn_id: "BT-0117",
+        payment_id: "PMT-0089",
+        completed_steps: ["create-invoice", "create-bank-transaction", "create-payment"],
+      },
+    });
+  }
+  return delay({
+    status: "new",
+    file_hash,
+    payout: DEMO_PAYOUT,
+    plan: {
+      invariant_check: true,
+      steps: [
+        {
+          kind: "create-invoice",
+          amount: "1340.00",
+          account: "Platform Clearing",
+          lines: null,
+          clears: null,
+        },
+        {
+          kind: "create-bank-transaction",
+          amount: "493.00",
+          account: "Platform Clearing",
+          lines: [
+            { description: "New-client commission", amount: "445.90" },
+            { description: "Prepayment fees", amount: "47.10" },
+          ],
+          clears: null,
+        },
+        {
+          kind: "create-payment",
+          amount: "847.00",
+          account: null,
+          lines: null,
+          clears: "MC-PAYOUT-0407",
+        },
+      ],
+    },
+    existing_ids: null,
+  });
+}
+
+export async function mockApprove(file_hash: string): Promise<ApprovalResponse> {
+  posted.add(file_hash);
+  return delay(
+    {
+      file_hash,
+      clearing_balance: "0.00",
+      verified: true,
+      results: [
+        { step: 1, kind: "create-invoice", xero_id: "INV-0042", status: "success" },
+        { step: 2, kind: "create-bank-transaction", xero_id: "BT-0117", status: "success" },
+        { step: 3, kind: "create-payment", xero_id: "PMT-0089", status: "success" },
+      ],
+    },
+    200,
+  );
+}
+
+export async function mockPnl(): Promise<PnLResponse> {
+  return delay({
+    before: {
+      revenue: "847.00",
+      commission_expense: null,
+      other_expenses: null,
+      net_profit: "847.00",
+    },
+    after: {
+      revenue: "1340.00",
+      commission_expense: "493.00",
+      other_expenses: null,
+      net_profit: "847.00",
+    },
+  });
+}
+
+export async function mockStatus(file_hash: string): Promise<StatusResponse> {
+  const now = new Date();
+  const t = (offset: number) => new Date(now.getTime() + offset * 1000).toISOString();
+  const entries: AuditEntry[] = [
+    {
+      timestamp: t(0),
+      file_hash,
+      action: "create-invoice",
+      request: { amount: "1340.00", account: "Platform Clearing" },
+      xero_id: "INV-0042",
+      status: "success",
+    },
+    {
+      timestamp: t(1),
+      file_hash,
+      action: "create-bank-transaction",
+      request: { amount: "493.00", account: "Platform Clearing" },
+      xero_id: "BT-0117",
+      status: "success",
+    },
+    {
+      timestamp: t(2),
+      file_hash,
+      action: "create-payment",
+      request: { amount: "847.00", clears: "MC-PAYOUT-0407" },
+      xero_id: "PMT-0089",
+      status: "success",
+    },
+  ];
+  return delay({
+    file_hash,
+    completed_steps: ["create-invoice", "create-bank-transaction", "create-payment"],
+    invoice_id: "INV-0042",
+    bank_txn_id: "BT-0117",
+    payment_id: "PMT-0089",
+    clearing_balance: "0.00",
+    audit_entries: entries,
+  });
+}
+
+export function resetMockState() {
+  posted.clear();
+}
