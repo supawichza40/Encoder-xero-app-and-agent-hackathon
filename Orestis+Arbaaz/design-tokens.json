@@ -1,0 +1,77 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$description": "PayoutBridge design tokens — W3C DTCG format. Source of truth for src/styles.css and docs/DESIGN.md.",
+  "color": {
+    "brand": {
+      "primary": { "$value": "#3b82f6", "$type": "color", "$description": "blue-500 — primary accent" },
+      "success": { "$value": "#22c55e", "$type": "color", "$description": "green-500 — verified / reconciled" },
+      "warning": { "$value": "#f59e0b", "$type": "color", "$description": "amber-500" },
+      "destructive": { "$value": "#ef4444", "$type": "color", "$description": "red-500 — errors" }
+    },
+    "surface": {
+      "background": { "$value": "#0f172a", "$type": "color", "$description": "slate-900 page bg (dark theme)" },
+      "card": { "$value": "#1e293b", "$type": "color", "$description": "slate-800 card bg" },
+      "muted": { "$value": "#334155", "$type": "color", "$description": "slate-700" },
+      "border": { "$value": "rgba(255,255,255,0.10)", "$type": "color" },
+      "input": { "$value": "rgba(255,255,255,0.15)", "$type": "color" }
+    },
+    "text": {
+      "foreground": { "$value": "#f8fafc", "$type": "color", "$description": "slate-50 primary text" },
+      "muted": { "$value": "#94a3b8", "$type": "color", "$description": "slate-400 secondary text" },
+      "onPrimary": { "$value": "#f8fafc", "$type": "color" }
+    },
+    "accent": {
+      "emerald": { "$value": "#34d399", "$type": "color", "$description": "positive ledger amounts" },
+      "rose": { "$value": "#fb7185", "$type": "color", "$description": "negative ledger amounts" },
+      "amber": { "$value": "#fbbf24", "$type": "color", "$description": "highlight badges" }
+    }
+  },
+  "font": {
+    "family": {
+      "sans": { "$value": "Geist, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif", "$type": "fontFamily" },
+      "display": { "$value": "'Instrument Serif', 'Iowan Old Style', Palatino, ui-serif, Georgia, serif", "$type": "fontFamily", "$description": "italic accents only" },
+      "mono": { "$value": "'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace", "$type": "fontFamily", "$description": "money amounts, IDs" }
+    },
+    "weight": {
+      "regular": { "$value": 400, "$type": "fontWeight" },
+      "medium": { "$value": 500, "$type": "fontWeight" },
+      "semibold": { "$value": 600, "$type": "fontWeight" },
+      "bold": { "$value": 700, "$type": "fontWeight" },
+      "black": { "$value": 900, "$type": "fontWeight" }
+    },
+    "tracking": {
+      "heading": { "$value": "-0.02em", "$type": "dimension" },
+      "hero": { "$value": "-0.03em", "$type": "dimension" },
+      "eyebrow": { "$value": "0.2em", "$type": "dimension" }
+    }
+  },
+  "radius": {
+    "base": { "$value": "0.625rem", "$type": "dimension" },
+    "sm": { "$value": "0.375rem", "$type": "dimension" },
+    "md": { "$value": "0.5rem", "$type": "dimension" },
+    "lg": { "$value": "0.625rem", "$type": "dimension" },
+    "xl": { "$value": "0.875rem", "$type": "dimension" },
+    "2xl": { "$value": "1rem", "$type": "dimension" },
+    "pill": { "$value": "9999px", "$type": "dimension" }
+  },
+  "spacing": {
+    "section": { "$value": "6rem", "$type": "dimension", "$description": "py-24 marketing sections" },
+    "sectionMobile": { "$value": "4rem", "$type": "dimension" },
+    "container": { "$value": "72rem", "$type": "dimension", "$description": "max-w-6xl" }
+  },
+  "shadow": {
+    "card": { "$value": "0 25px 50px -12px rgba(15,23,42,0.4)", "$type": "shadow" },
+    "innerHighlight": { "$value": "inset 0 1px 1px rgba(255,255,255,0.08)", "$type": "shadow" }
+  },
+  "motion": {
+    "easing": {
+      "reveal": { "$value": "cubic-bezier(0.16, 1, 0.3, 1)", "$type": "cubicBezier" },
+      "magnetic": { "$value": "cubic-bezier(0.32, 0.72, 0, 1)", "$type": "cubicBezier" }
+    },
+    "duration": {
+      "fast": { "$value": "180ms", "$type": "duration" },
+      "base": { "$value": "500ms", "$type": "duration" },
+      "slow": { "$value": "900ms", "$type": "duration" }
+    }
+  }
+}
