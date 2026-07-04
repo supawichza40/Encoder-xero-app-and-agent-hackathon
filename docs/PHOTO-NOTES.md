@@ -1,6 +1,6 @@
 # Photo Notes — extracted from event photos
 
-> Source: `Pictures/IMG_3679–3708.png` (30 photos of hackathon slides/screens/signage), extracted 2026-07-04 by reading each image. Slide/screen text is verbatim; `[unreadable]` / "approx" mark low-confidence reads. Image refs in `(…)`.
+> Source: `../Pictures/IMG_3679–3708.png` (30 photos of hackathon slides/screens/signage), extracted 2026-07-04 by reading each image. Slide/screen text is verbatim; `[unreadable]` / "approx" mark low-confidence reads. Image refs in `(…)`.
 > Most of this confirms the Notion Day-1 notes; **NEW / conflicting** items are flagged.
 
 ## Event identity
