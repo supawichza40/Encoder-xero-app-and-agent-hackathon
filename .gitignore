@@ -1,5 +1,4 @@
 # secrets — NEVER commit (repo is public)
-.env
 .env.local
 *.secret
 
