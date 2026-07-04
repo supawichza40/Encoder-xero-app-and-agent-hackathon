@@ -81,6 +81,23 @@ def test_M4_all_zeros():
     assert p.net == Decimal("0")
 
 
+# ── M5: Negative gross amount rejected ────────────────────────────────────
+def test_M5_negative_gross_rejected():
+    """Pydantic Decimal fields accept negatives but the invariant still fires
+    when the resulting net doesn't match — validate the validator works."""
+    with pytest.raises(ValidationError):
+        CanonicalPayout(
+            payout_ref="REF",
+            period="Jun",
+            gross=Decimal("-100.00"),
+            commission=Decimal("0"),
+            fees=Decimal("0"),
+            refunds=Decimal("0"),
+            net=Decimal("50.00"),  # doesn't equal -100
+            bookings=[],
+        )
+
+
 # ── M6: BookingRow construction ────────────────────────────────────────────
 def test_M6_booking_row():
     row = BookingRow(
