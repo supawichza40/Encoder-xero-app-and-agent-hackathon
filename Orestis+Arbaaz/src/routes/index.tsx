@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   FileText,
   PoundSterling,
-  Rocket,
   Scale,
   ShieldCheck,
   Sparkles,
@@ -28,6 +27,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Chatbot } from "@/components/Chatbot";
 import { Navbar } from "@/components/Navbar";
 import { openAuthDialog, useDemoAuth } from "@/lib/useDemoAuth";
 
@@ -102,15 +102,15 @@ function Dashboard({ user }: { user: string }) {
       <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
-            Welcome back, {user}
+            Welcome back, <span className="text-primary/80">{user}</span>
           </h1>
         </div>
         <Link
           to="/app"
           className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          <Rocket className="size-4" aria-hidden />
-          Add invoice
+          <Upload className="size-4" aria-hidden />
+          Upload payout
         </Link>
       </section>
 
@@ -165,15 +165,15 @@ function Dashboard({ user }: { user: string }) {
                   <stop offset="100%" stopColor={AREA_REPORTED} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `£${(v / 1000).toFixed(0)}k`} />
+              <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="month" stroke="var(--muted-foreground)" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
+              <YAxis stroke="var(--muted-foreground)" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} tickFormatter={(v) => `£${(v / 1000).toFixed(0)}k`} />
               <Tooltip
                 contentStyle={{
-                  background: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
-                  color: "hsl(var(--foreground))",
+                  color: "var(--foreground)",
                 }}
                 formatter={(v: number) => `£${v.toLocaleString()}`}
               />
@@ -207,7 +207,7 @@ function Dashboard({ user }: { user: string }) {
                 innerRadius={55}
                 outerRadius={90}
                 paddingAngle={3}
-                stroke="hsl(var(--card))"
+                stroke="var(--card)"
               >
                 {feeBreakdown.map((_, i) => (
                   <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
@@ -215,10 +215,10 @@ function Dashboard({ user }: { user: string }) {
               </Pie>
               <Tooltip
                 contentStyle={{
-                  background: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
-                  color: "hsl(var(--foreground))",
+                  color: "var(--foreground)",
                 }}
                 formatter={(v: number) => `£${v.toLocaleString()}`}
               />
@@ -245,15 +245,15 @@ function Dashboard({ user }: { user: string }) {
         <ChartCard title="Payouts reconciled per week" subtitle="Last 6 weeks">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={payoutsPerWeek} margin={{ top: 10, right: 12, left: -12, bottom: 0 }}>
-              <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} allowDecimals={false} />
+              <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="week" stroke="var(--muted-foreground)" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
+              <YAxis stroke="var(--muted-foreground)" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} allowDecimals={false} />
               <Tooltip
                 contentStyle={{
-                  background: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
-                  color: "hsl(var(--foreground))",
+                  color: "var(--foreground)",
                 }}
               />
               <Bar dataKey="payouts" fill="#10b981" radius={[6, 6, 0, 0]} />
@@ -304,31 +304,11 @@ function Dashboard({ user }: { user: string }) {
         </div>
       </section>
 
-      {/* Quick actions */}
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <ActionCard
-          to="/app"
-          icon={<Upload className="size-5 text-blue-500" />}
-          title="Upload a payout"
-          body="Drag in a CSV, review the proposal, and post to Xero."
-        />
-        <ActionCard
-          to="/app"
-          icon={<Zap className="size-5 text-amber-500" />}
-          title="Run the demo"
-          body="Mock mode is on — walk the full flow without a backend."
-        />
-        <ActionCard
-          to="/app"
-          icon={<FileText className="size-5 text-violet-500" />}
-          title="View last audit trail"
-          body="Every request and Xero ID from your most recent approval."
-        />
-      </section>
 
       <footer className="pt-2 text-center text-xs text-muted-foreground">
         Signed in as {user} · demo session · figures are illustrative
       </footer>
+      <Chatbot />
     </main>
   );
 }
@@ -424,36 +404,6 @@ function ActivityRow({
   );
 }
 
-function ActionCard({
-  to,
-  icon,
-  title,
-  body,
-}: {
-  to: string;
-  icon: React.ReactNode;
-  title: string;
-  body: string;
-}) {
-  return (
-    <Link
-      to={to}
-      className="group flex flex-col gap-2 rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      <div className="flex items-center gap-2">
-        <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-          {icon}
-        </span>
-        <ArrowRight
-          className="ml-auto size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground"
-          aria-hidden
-        />
-      </div>
-      <h3 className="text-base font-semibold">{title}</h3>
-      <p className="text-sm text-muted-foreground">{body}</p>
-    </Link>
-  );
-}
 
 /* -------------------------------------------------------------------------- */
 /* Signed-out marketing page                                                  */
@@ -461,52 +411,72 @@ function ActionCard({
 
 function SignedOutHome() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-16 px-4 py-10 sm:px-6 sm:py-16">
+    <main className="flex min-h-screen w-full flex-col gap-16 py-10 sm:py-16">
       {/* Hero */}
-      <section className="flex flex-col items-start gap-6">
-        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
-          <Sparkles className="size-3.5 text-amber-400" aria-hidden />
-          Human-in-the-loop · Xero-native · Auditable
-        </span>
-        <h1 className="text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-          Your bank feed has been{" "}
-          <span className="text-primary">lying</span> about your turnover.
-        </h1>
-        <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
-          When a marketplace deducts commission and fees before wiring your
-          payout, Xero only records the net deposit. PayoutBridge restores the
-          real gross revenue, books the fees, and proves it with a live
-          zero-balance clearing account — every write approved by you.
-        </p>
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={() => openAuthDialog("signup")}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-lg transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            <UserPlus className="size-4" aria-hidden />
-            Create your account
-          </button>
-          <button
-            type="button"
-            onClick={() => openAuthDialog("login")}
-            className="inline-flex items-center gap-2 rounded-lg border border-blue-500 px-6 py-3 text-sm font-medium text-blue-500 transition-colors hover:bg-blue-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          >
-            Log in
-          </button>
-          <a
-            href="#how-it-works"
-            className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            See how it works →
-          </a>
+      <section
+        className="relative isolate overflow-hidden rounded-none px-4 py-12 sm:px-6 sm:py-16"
+        style={{ backgroundSize: "200% 200%" }}
+      >
+        <div
+          className="absolute -inset-[100%] animate-gradient-shift bg-gradient-to-br from-red-600 from-40% to-blue-600 to-60%"
+          style={{ backgroundSize: "200% 200%" }}
+          aria-hidden="true"
+        />
+        <div
+          className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-white/25 blur-3xl animate-glow-pulse"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl animate-glow-pulse"
+          style={{ animationDelay: "2s" }}
+          aria-hidden="true"
+        />
+        <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-start gap-6">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/20 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur-sm">
+            <Sparkles className="size-3.5 text-amber-300" aria-hidden />
+            Human-in-the-loop · Xero-native · Auditable
+          </span>
+          <h1 className="text-4xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
+            Your bank feed has been{" "}
+            <span className="text-white/90">lying</span> about your turnover.
+          </h1>
+          <p className="max-w-2xl text-base text-white/80 sm:text-lg">
+            When a marketplace deducts commission and fees before wiring your
+            payout, Xero only records the net deposit. PayoutBridge restores the
+            real gross revenue, books the fees, and proves it with a live
+            zero-balance clearing account — every write approved by you.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => openAuthDialog("signup")}
+              className="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-base font-semibold text-red-600 shadow-lg transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-red-600"
+            >
+              <UserPlus className="size-4" aria-hidden />
+              Create your account
+            </button>
+            <button
+              type="button"
+              onClick={() => openAuthDialog("login")}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/60 bg-white/10 px-6 py-3 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              Log in
+            </button>
+            <a
+              href="#how-it-works"
+              className="text-sm font-medium text-white/80 underline-offset-4 hover:text-white hover:underline"
+            >
+              See how it works →
+            </a>
+          </div>
+          <p className="text-xs text-white/70">
+            Free while in beta · no card required · takes under a minute.
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Free while in beta · no card required · takes under a minute.
-        </p>
       </section>
 
-      {/* Why sign up */}
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-16 px-4 sm:px-6">
+        {/* Why sign up */}
       <section aria-labelledby="why-heading" className="flex flex-col gap-6">
         <div>
           <h2 id="why-heading" className="text-2xl font-bold sm:text-3xl">
@@ -676,6 +646,7 @@ function SignedOutHome() {
       <footer className="pt-4 text-center text-xs text-muted-foreground">
         3 writes · zero-balance verification · every action auditable
       </footer>
+      </div>
     </main>
   );
 }

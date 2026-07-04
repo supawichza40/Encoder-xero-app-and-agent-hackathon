@@ -30,7 +30,7 @@ export function Navbar() {
         >
           <Link
             to="/"
-            className="text-lg font-black tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+            className="text-xl font-black tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
           >
             Payout<span className="bg-gradient-to-r from-red-500 to-blue-500 bg-clip-text text-transparent">Bridge</span>
           </Link>

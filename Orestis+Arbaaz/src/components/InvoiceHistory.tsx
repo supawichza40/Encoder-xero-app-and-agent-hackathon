@@ -64,7 +64,7 @@ export function InvoiceHistory({ selectedId, onSelect }: Props) {
           <button
             type="button"
             onClick={clearHistory}
-            className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+            className="text-red-500 transition-colors hover:text-red-600"
             aria-label="Clear invoice history"
           >
             <Trash2 className="h-3.5 w-3.5" />

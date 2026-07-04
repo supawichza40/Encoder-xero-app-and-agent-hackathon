@@ -137,3 +137,19 @@ html.mono-light {
 @utility animate-reveal {
   animation: reveal-scale 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@utility animate-gradient-shift {
+  animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(1.12); }
+}
+@utility animate-glow-pulse {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
