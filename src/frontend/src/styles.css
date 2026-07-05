@@ -125,6 +125,18 @@ html.mono-light {
   --ring: oklch(0.18 0 0);
 }
 
+/* Persona accent — single source of truth for any bespoke element that
+   references var(--persona) (focus rings, ambient glows). Chrome (navbar,
+   primary CTA, semantic success/amber/destructive) NEVER reads this var —
+   see PERSONA-DESIGN.md §0. Default falls back to primary blue before a
+   persona is known (signed-out / pre-auth chrome). */
+:root {
+  --persona: var(--primary);
+}
+[data-persona="owner"]      { --persona: var(--success); }        /* emerald  */
+[data-persona="bookkeeper"] { --persona: var(--primary); }        /* blue     */
+[data-persona="freelancer"] { --persona: oklch(0.606 0.25 292.717); } /* violet-500 */
+
 @layer base {
   * {
     border-color: var(--color-border);

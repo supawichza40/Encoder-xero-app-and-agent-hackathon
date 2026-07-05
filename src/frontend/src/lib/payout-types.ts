@@ -105,6 +105,28 @@ export interface AgedReceivable {
   outstanding: string;
 }
 
+// CONTRACT.md §1 — additive persona surfaces on GET /dashboard. Both may be
+// null/absent when there is no posted history yet; consumers must degrade
+// gracefully (hide, never crash) rather than assume presence.
+export interface PersonaMetrics {
+  fees_this_month: string;
+  gross_turnover_vat_safe: string;
+  ytd_income: string;
+  ytd_deductible_fees: string;
+  new_vs_repeat: {
+    new: { count: number; commission: string };
+    repeat: { count: number; commission: string };
+  };
+}
+
+export interface RunHistoryEntry {
+  hash: string;
+  status: "posted" | "failed" | "skipped-idempotent" | "partial";
+  payout_ref: string;
+  timestamp: string;
+  net: string;
+}
+
 export interface DashboardResponse {
   trial_balance: { clearing: string; fees_expense: string; revenue: string };
   aged_receivables: AgedReceivable[];
@@ -113,6 +135,30 @@ export interface DashboardResponse {
   recent_payouts: DashboardPayout[];
   fetched_at: string;
   source?: string; // "xero" | "degraded" | "demo"
+  persona_metrics?: PersonaMetrics | null;
+  run_history?: RunHistoryEntry[] | null;
+}
+
+// CONTRACT.md §3 — GET /evidence-pack/{hash} (PRI-2).
+export interface EvidencePack {
+  payout_ref: string;
+  csv_sha256: string;
+  xero_ids: {
+    invoice_id: string;
+    bank_txn_id: string;
+    payment_id: string;
+    credit_note_id: string | null; // non-null only for refund statements
+  };
+  amounts: {
+    gross: string;
+    commission: string;
+    fees: string;
+    refunds: string;
+    net: string;
+  };
+  clearing_balance: string;
+  verified: boolean;
+  generated_at: string;
 }
 
 export interface VatCheckResponse {

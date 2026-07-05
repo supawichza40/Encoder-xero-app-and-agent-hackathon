@@ -33,10 +33,12 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import FastAPI, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, Response
 
 from . import audit as audit_module
+from . import audit_export as export_mod
 from . import idempotency as idem
 from .config import (
     ALLOW_SEED,
@@ -47,12 +49,14 @@ from .config import (
     REVENUE_ACCOUNT_CODE,
     STATE_DIR,
 )
+from .dashboard_metrics import compute_persona_metrics, compute_run_history
 from .models import (
     AgedReceivableEntry,
     ApprovalResponse,
     ApproveRequest,
     AttachmentResult,
     DashboardResponse,
+    EvidencePack,
     HealthResponse,
     JournalPlan,
     PlanStep,
@@ -69,6 +73,7 @@ from .models import (
 )
 from .parser import parse_payout_csv
 from .planner import create_plan
+from .validation import is_valid_hash
 from .xero_client import XeroClient, XeroMCPError
 
 logger = logging.getLogger(__name__)
@@ -179,6 +184,9 @@ async def propose(file: UploadFile):
         completed = existing.get("completed_steps", [])
         expected_kinds = [s.kind.value for s in plan.steps]
         if all(k in completed for k in expected_kinds):
+            audit_module.append_entry(
+                file_hash=file_hash, action="skipped-idempotent", request={}, xero_id=None, status="success",
+            )
             return ProposalResponse(
                 status=ProposalStatus.ALREADY_POSTED,
                 file_hash=file_hash,
@@ -474,6 +482,49 @@ async def pnl():
     return PnLResponse(before=before, after=after)
 
 
+# ── GET /audit/export — PRI-1 ──────────────────────────────────────────────────
+
+@app.get(
+    "/audit/export",
+    responses={
+        200: {
+            "description": "CSV (default) or JSON export of the full audit trail, "
+            "depending on `format`.",
+            "content": {"text/csv": {}, "application/json": {}},
+        }
+    },
+)
+async def audit_export(
+    format: str = Query("csv", description="csv|json; unknown values fall back to csv"),
+):
+    """
+    Export the full audit trail as CSV (default) or JSON.
+    Unknown/garbage `format` values fall back to CSV. Never 500 — an empty
+    audit trail returns a header-only CSV / an empty JSON array.
+    """
+    entries = export_mod.load_audit_entries(Path(STATE_DIR))
+    if format == "json":
+        return JSONResponse(content=entries)
+
+    csv_text = export_mod.entries_to_csv(entries, Path(STATE_DIR))
+    return Response(
+        content=csv_text,
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="payoutbridge-audit.csv"'},
+    )
+
+
+# ── GET /evidence-pack/{file_hash} — PRI-2 ─────────────────────────────────────
+
+@app.get("/evidence-pack/{file_hash}", response_model=EvidencePack)
+async def evidence_pack(file_hash: str):
+    """Return the reconciliation evidence pack for a posted statement."""
+    pack = export_mod.build_evidence_pack(Path(STATE_DIR), file_hash)
+    if pack is None:
+        raise HTTPException(status_code=404, detail="no posted statement with that hash")
+    return pack
+
+
 # ── GET /dashboard — E4 ───────────────────────────────────────────────────────
 
 @app.get("/dashboard", response_model=DashboardResponse)
@@ -514,6 +565,8 @@ async def dashboard():
     ]
 
     recent_payouts = _build_recent_payouts()
+    persona_metrics = _safe_persona_metrics()
+    run_history = _safe_run_history()
 
     data = DashboardResponse(
         trial_balance=trial_balance,
@@ -522,6 +575,8 @@ async def dashboard():
         recent_payouts=recent_payouts,
         fetched_at=datetime.now(timezone.utc).isoformat(),
         source="xero",
+        persona_metrics=persona_metrics,
+        run_history=run_history,
     )
     _dashboard_cache = (data, time.time())
     return data
@@ -544,6 +599,8 @@ def _degraded_dashboard() -> DashboardResponse:
         recent_payouts=_build_recent_payouts(),
         fetched_at=datetime.now(timezone.utc).isoformat(),
         source="degraded",
+        persona_metrics=_safe_persona_metrics(),
+        run_history=_safe_run_history(),
     )
 
 
@@ -563,6 +620,25 @@ def _build_recent_payouts() -> list[RecentPayout]:
         return list(reversed(results))
     except Exception:
         return []
+
+
+def _safe_persona_metrics():
+    """HIGH-2: dashboard_metrics already tolerates malformed proposal files,
+    but this call site must never 500 on a genuinely unexpected exception —
+    mirrors _build_recent_payouts' try/except -> fallback pattern."""
+    try:
+        return compute_persona_metrics(Path(STATE_DIR))
+    except Exception:
+        logger.warning("compute_persona_metrics failed", exc_info=True)
+        return None
+
+
+def _safe_run_history():
+    try:
+        return compute_run_history(Path(STATE_DIR))
+    except Exception:
+        logger.warning("compute_run_history failed", exc_info=True)
+        return None
 
 
 # ── GET /vat-check — E5 ───────────────────────────────────────────────────────
@@ -698,9 +774,7 @@ def _load_proposal(file_hash: str) -> tuple[Any, JournalPlan]:
     """Load proposal from in-memory cache or disk. Raises 404 if not found."""
     # Reject anything that isn't a plain hex hash: file_hash is joined into a
     # filesystem path below, so `../`, `/`, `.` etc. must never reach it.
-    if not file_hash or len(file_hash) > 64 or any(
-        c not in "0123456789abcdef" for c in file_hash
-    ):
+    if not is_valid_hash(file_hash):
         raise HTTPException(status_code=404, detail=f"No proposal found for hash: {file_hash}")
 
     if file_hash in _proposals:

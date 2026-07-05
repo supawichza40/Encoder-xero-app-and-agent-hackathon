@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Download } from "lucide-react";
 import { Reveal } from "@/components/motion";
 import { Navbar } from "@/components/Navbar";
 
-import { usePayoutBridge } from "@/lib/usePayoutBridge";
-import { useDemoAuth } from "@/lib/useDemoAuth";
+import { fetchEvidencePack, usePayoutBridge } from "@/lib/usePayoutBridge";
+import { useDemoAuth, type Persona } from "@/lib/useDemoAuth";
+import { PERSONA_COPY } from "@/lib/personaTheme";
+import type { EvidencePack } from "@/lib/payout-types";
+import { cn } from "@/lib/utils";
 import { FileUpload } from "@/components/FileUpload";
 import { ApprovalDrawer } from "@/components/ApprovalDrawer";
 import { IdempotencyBanner } from "@/components/IdempotencyBanner";
@@ -12,9 +16,110 @@ import { StepProgress } from "@/components/StepProgress";
 import { ClearingReconciliation } from "@/components/ClearingReconciliation";
 import { PnLComparison } from "@/components/PnLComparison";
 import { AuditTrail } from "@/components/AuditTrail";
+import { TaxSummaryCard } from "@/components/TaxSummaryCard";
 import { InvoiceHistory, saveHistoryEntry, type HistoryEntry } from "@/components/InvoiceHistory";
 import { InvoiceDetails } from "@/components/InvoiceDetails";
 import { makeSampleFile } from "@/lib/sample-csv";
+
+// §3.5 — per-persona section order + auto-expand on the verified /app state.
+// Exported (pure) so ordering/expansion is unit-testable without mounting the
+// full route. Reordering this array reorders the DOM, not just CSS.
+export type VerifiedSection = "tax" | "clearing" | "pnl" | "audit";
+
+export function personaSectionOrder(persona: Persona): VerifiedSection[] {
+  switch (persona) {
+    case "bookkeeper":
+      return ["clearing", "audit", "pnl"];
+    case "freelancer":
+      return ["tax", "clearing", "pnl", "audit"];
+    default:
+      return ["clearing", "pnl", "audit"];
+  }
+}
+
+// PRI-2 evidence pack (§3.4, §6 Bookkeeper hero) — CSV hash + Xero IDs + £0.00
+// proof in one exportable card. Null-safe: an unknown/not-yet-posted hash
+// resolves to null (contract 404 equivalent) and is handled, never crashes.
+export function EvidencePackCard({ fileHash, persona }: { fileHash: string; persona: Persona }) {
+  const [pack, setPack] = useState<EvidencePack | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const promoted = persona === "bookkeeper";
+
+  const handleFetch = async () => {
+    setLoading(true);
+    setNotFound(false);
+    const result = await fetchEvidencePack(fileHash);
+    setLoading(false);
+    if (!result) {
+      setNotFound(true);
+      setPack(null);
+      return;
+    }
+    setPack(result);
+  };
+
+  return (
+    <section
+      aria-labelledby="evidence-pack-heading"
+      className={cn(
+        "w-full rounded-xl border p-4",
+        promoted ? "border-primary/40 bg-primary/5" : "border-border bg-card/40",
+      )}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <h2
+          id="evidence-pack-heading"
+          className="text-xs uppercase tracking-widest text-muted-foreground"
+        >
+          Evidence pack
+        </h2>
+        <button
+          type="button"
+          onClick={() => void handleFetch()}
+          aria-label="Download evidence pack"
+          disabled={loading}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-transform duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            promoted
+              ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+              : "border-border bg-transparent text-muted-foreground hover:bg-muted",
+          )}
+        >
+          <Download className="size-3.5" aria-hidden />
+          {loading ? "Loading…" : "Evidence pack"}
+        </button>
+      </div>
+      {notFound ? (
+        <p className="mt-3 text-xs text-muted-foreground">
+          No evidence pack on file for this run yet.
+        </p>
+      ) : null}
+      {pack ? (
+        <dl className="tabular mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-4">
+          <div>
+            <dt className="text-muted-foreground">CSV hash</dt>
+            <dd className="font-mono">{pack.csv_sha256.slice(0, 12)}…</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Invoice</dt>
+            <dd className="font-mono">{pack.xero_ids.invoice_id}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Bank txn</dt>
+            <dd className="font-mono">{pack.xero_ids.bank_txn_id}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Clearing</dt>
+            <dd className={cn("font-mono", pack.verified ? "text-success" : "text-destructive")}>
+              £{pack.clearing_balance}
+            </dd>
+          </div>
+        </dl>
+      ) : null}
+    </section>
+  );
+}
 
 export const Route = createFileRoute("/app")({
   head: () => ({
@@ -99,17 +204,17 @@ function Index() {
     ? (Number(bridge.proposal.payout.commission) + Number(bridge.proposal.payout.fees)).toFixed(2)
     : "0.00";
 
-  const approvalHeading =
-    persona === "bookkeeper"
-      ? "Writes with Xero IDs"
-      : persona === "freelancer"
-        ? "What we'll record"
-        : "What Xero will do";
+  // §3.5 note: identical strings to the previous inline ternary — now sourced
+  // from the single-source-of-truth copy map (PERSONA-DESIGN.md §4).
+  const approvalHeading = PERSONA_COPY[persona].checklistHeading;
 
   return (
     <>
       <Navbar />
-      <main className="relative mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 gap-6 overflow-hidden px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[260px_1fr]">
+      <main
+        data-persona={persona}
+        className="relative mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 gap-6 overflow-hidden px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[260px_1fr]"
+      >
         <div
           aria-hidden
           className="pointer-events-none absolute right-0 top-1/3 h-64 w-64 rounded-full bg-primary/8 blur-3xl animate-glow-pulse"
@@ -201,6 +306,7 @@ function Index() {
                   <IdempotencyBanner
                     existingIds={bridge.proposal.existing_ids}
                     onReset={bridge.reset}
+                    persona={persona}
                   />
                 </Reveal>
               ) : null}
@@ -220,6 +326,7 @@ function Index() {
                     loading={bridge.phase === "approving"}
                     approved={bridge.phase === "verified"}
                     headingLabel={approvalHeading}
+                    persona={persona}
                   />
                 </Reveal>
               ) : null}
@@ -232,6 +339,8 @@ function Index() {
                   <StepProgress
                     results={bridge.approval.results}
                     steps={bridge.proposal?.plan?.steps}
+                    persona={persona}
+                    onRetry={() => void bridge.approve()}
                   />
                 </Reveal>
               ) : null}
@@ -247,25 +356,61 @@ function Index() {
 
               {bridge.phase === "verified" && bridge.approval ? (
                 <>
-                  <Reveal delay={260}>
-                    <div ref={clearingRef}>
-                      <ClearingReconciliation
-                        gross={bridge.proposal!.payout.gross}
-                        feesTotal={feesTotal}
-                        net={bridge.proposal!.payout.net}
-                        clearingBalance={bridge.approval.clearing_balance}
-                        verified={bridge.approval.verified}
-                      />
-                    </div>
-                  </Reveal>
-                  <Reveal delay={300}>
-                    <PnLComparison
-                      before={bridge.pnl?.before ?? null}
-                      after={bridge.pnl?.after ?? null}
-                    />
-                  </Reveal>
-                  <Reveal delay={340}>
-                    <AuditTrail entries={bridge.audit} defaultOpen={persona === "bookkeeper"} />
+                  {personaSectionOrder(persona).map((section, i) => {
+                    const delay = 260 + i * 40;
+                    switch (section) {
+                      case "tax":
+                        return (
+                          <Reveal key="tax" delay={delay}>
+                            <TaxSummaryCard
+                              income={bridge.proposal!.payout.gross}
+                              costs={feesTotal}
+                              takeHome={bridge.proposal!.payout.net}
+                            />
+                          </Reveal>
+                        );
+                      case "clearing":
+                        return (
+                          <Reveal key="clearing" delay={delay}>
+                            <div ref={clearingRef}>
+                              <ClearingReconciliation
+                                gross={bridge.proposal!.payout.gross}
+                                feesTotal={feesTotal}
+                                net={bridge.proposal!.payout.net}
+                                clearingBalance={bridge.approval!.clearing_balance}
+                                verified={bridge.approval!.verified}
+                                persona={persona}
+                              />
+                            </div>
+                          </Reveal>
+                        );
+                      case "pnl":
+                        return (
+                          <Reveal key="pnl" delay={delay}>
+                            <PnLComparison
+                              before={bridge.pnl?.before ?? null}
+                              after={bridge.pnl?.after ?? null}
+                              defaultOpen={persona === "owner"}
+                              persona={persona}
+                            />
+                          </Reveal>
+                        );
+                      case "audit":
+                        return (
+                          <Reveal key="audit" delay={delay}>
+                            <AuditTrail
+                              entries={bridge.audit}
+                              defaultOpen={persona === "bookkeeper"}
+                              persona={persona}
+                            />
+                          </Reveal>
+                        );
+                      default:
+                        return null;
+                    }
+                  })}
+                  <Reveal delay={260 + personaSectionOrder(persona).length * 40}>
+                    <EvidencePackCard fileHash={bridge.proposal!.file_hash} persona={persona} />
                   </Reveal>
                   {bridge.approval.attachment && bridge.approval.attachment.status === "success" ? (
                     <p className="inline-flex items-center gap-1.5 self-start rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-500">

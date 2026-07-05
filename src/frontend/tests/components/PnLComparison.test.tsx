@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { PnLComparison } from "@/components/PnLComparison";
 import { mockPnlBefore, mockPnlAfter } from "../mocks/data";
 import type { PnLSnapshot } from "@/lib/payout-types";
@@ -36,5 +37,37 @@ describe("PnLComparison", () => {
     expect(cards[0]).toHaveTextContent("Before");
     const beforeCard = cards[0].parentElement!;
     expect(beforeCard).not.toHaveTextContent("New");
+  });
+
+  // §3.5 — defaultOpen drives the owner auto-expand / bookkeeper+freelancer
+  // collapsed-by-default behaviour, mirroring AuditTrail's existing pattern.
+  it("is open by default when defaultOpen is omitted (backward compatible)", () => {
+    render(<PnLComparison before={before} after={after} />);
+    expect(screen.getByText("£1,340.00")).toBeInTheDocument();
+  });
+
+  it("starts collapsed when defaultOpen is false, and expands on click", async () => {
+    render(<PnLComparison before={before} after={after} defaultOpen={false} />);
+    expect(screen.queryByText("£1,340.00")).not.toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("button", { name: /profit & loss · before vs after/i }),
+    );
+    expect(screen.getByText("£1,340.00")).toBeInTheDocument();
+  });
+
+  // ALX-2 — jargon-free reskin for freelancer: same figures, reworded labels only.
+  it("swaps to jargon-free row labels for the freelancer persona, same figures", () => {
+    render(<PnLComparison before={before} after={after} persona="freelancer" />);
+    expect(screen.getByText("£1,340.00")).toBeInTheDocument();
+    expect(screen.getByText(/your income vs your costs/i)).toBeInTheDocument();
+    expect(screen.getAllByText("Income").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/^Revenue$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Commission & fees$/)).not.toBeInTheDocument();
+  });
+
+  it("keeps accounting labels for owner/bookkeeper (no persona regression)", () => {
+    render(<PnLComparison before={before} after={after} />);
+    expect(screen.getByText(/profit & loss · before vs after/i)).toBeInTheDocument();
+    expect(screen.getAllByText("Revenue").length).toBeGreaterThan(0);
   });
 });

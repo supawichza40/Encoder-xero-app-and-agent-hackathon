@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApprovalDrawer } from "@/components/ApprovalDrawer";
+import { PERSONA_COPY } from "@/lib/personaTheme";
+import type { Persona } from "@/lib/useDemoAuth";
 import { mockPayout, mockPlan } from "../mocks/data";
 import type { CanonicalPayout, JournalPlan } from "@/lib/payout-types";
 
@@ -139,5 +141,83 @@ describe("ApprovalDrawer", () => {
       />,
     );
     expect(screen.getByText("Writes with Xero IDs")).toBeInTheDocument();
+  });
+
+  // ALX-4 — plain-English approve confirmation, one exact string per persona.
+  (["owner", "bookkeeper", "freelancer"] as Persona[]).forEach((persona) => {
+    it(`shows the ${persona} approve confirmation verbatim before the write fires`, () => {
+      render(
+        <ApprovalDrawer
+          payout={payout}
+          plan={plan}
+          fileHash="abc123"
+          onApprove={vi.fn()}
+          persona={persona}
+        />,
+      );
+      const status = screen.getByRole("status");
+      expect(status).toHaveTextContent(PERSONA_COPY[persona].approveConfirmation);
+    });
+  });
+
+  it("hides the approve confirmation once the write has been approved", () => {
+    render(
+      <ApprovalDrawer
+        payout={payout}
+        plan={plan}
+        fileHash="abc123"
+        onApprove={vi.fn()}
+        persona="owner"
+        approved
+      />,
+    );
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  // PRI-6 — sha256 dedupe badge, always present before approval.
+  it("shows a SHA-256 new-statement badge with a truncated hash", () => {
+    render(
+      <ApprovalDrawer payout={payout} plan={plan} fileHash="abc123def456" onApprove={vi.fn()} />,
+    );
+    expect(screen.getByText(/SHA-256 abc123def4… · New statement/)).toBeInTheDocument();
+  });
+
+  // ALX-2 — freelancer invariant relabel (jargon-free).
+  it("relabels the invariant badge to plain English for the freelancer persona", () => {
+    render(
+      <ApprovalDrawer
+        payout={payout}
+        plan={plan}
+        fileHash="abc123"
+        onApprove={vi.fn()}
+        persona="freelancer"
+      />,
+    );
+    expect(screen.getByText(/everything checks out/i)).toBeInTheDocument();
+    expect(screen.queryByText(/^balanced$/i)).not.toBeInTheDocument();
+  });
+
+  it("keeps 'invariant failed' wording for owner/bookkeeper but relabels for freelancer", () => {
+    const failedPlan = { ...plan, invariant_check: false };
+    const { rerender } = render(
+      <ApprovalDrawer
+        payout={payout}
+        plan={failedPlan}
+        fileHash="abc123"
+        onApprove={vi.fn()}
+        persona="owner"
+      />,
+    );
+    expect(screen.getByText(/invariant failed/i)).toBeInTheDocument();
+    rerender(
+      <ApprovalDrawer
+        payout={payout}
+        plan={failedPlan}
+        fileHash="abc123"
+        onApprove={vi.fn()}
+        persona="freelancer"
+      />,
+    );
+    expect(screen.getByText(/the numbers don't add up yet/i)).toBeInTheDocument();
   });
 });

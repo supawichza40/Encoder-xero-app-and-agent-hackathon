@@ -331,7 +331,7 @@ GET /health
 
 ### 2.6 `GET /dashboard` — Live Xero Dashboard Data *(expansion `11` E4)*
 
-Aggregates three cached MCP reads (trial balance, aged receivables, balance sheet) plus local state, so the frontend dashboard shows real Demo Company data.
+Aggregates three cached MCP reads (trial balance, aged receivables, balance sheet) plus local state, so the frontend dashboard shows real Demo Company data. Additionally surfaces persona-oriented metrics and posting run history derived from local state (`state/posted.json` + `state/audit.json`) — no extra Xero calls.
 
 **Response (200):**
 
@@ -341,14 +341,47 @@ Aggregates three cached MCP reads (trial balance, aged receivables, balance shee
   "aged_receivables": [ { "contact": "MarketplaceCo (Marketplace)", "outstanding": "0.00" } ],
   "balance_sheet": { "bank": "1234.00", "current_assets": "1234.00" },
   "recent_payouts": [
-    { "payout_ref": "MC-PAYOUT-0407", "net": "847.00", "status": "verified", "posted_at": "2026-07-05T00:00:00Z" }
+    {
+      "file_hash": "a1b2c3d4e5f6...",
+      "completed_steps": ["create-invoice", "create-bank-transaction", "create-payment"],
+      "clearing_balance": "0.00"
+    }
   ],
-  "fetched_at": "2026-07-05T00:00:00Z"
+  "fetched_at": "2026-07-05T00:00:00Z",
+  "source": "xero",
+  "persona_metrics": {
+    "fees_this_month": "493.00",
+    "gross_turnover_vat_safe": "1340.00",
+    "ytd_income": "1340.00",
+    "ytd_deductible_fees": "493.00",
+    "new_vs_repeat": {
+      "new": { "count": 3, "commission": "334.43" },
+      "repeat": { "count": 2, "commission": "111.47" }
+    }
+  },
+  "run_history": [
+    {
+      "hash": "a1b2c3d4e5f6",
+      "status": "posted",
+      "payout_ref": "MC-PAYOUT-0407",
+      "timestamp": "2026-07-05T08:00:00Z",
+      "net": "847.00"
+    }
+  ]
 }
 ```
 
-- Reads cached 60 s in-process (rate-limit rule: never live-loop).
+- Reads cached 60 s in-process (rate-limit rule: never live-loop). `source` is `"xero"` on a live read, `"degraded"` when Xero is unreachable (still 200 — never 503).
+- **`persona_metrics`** (additive, PayoutBridge persona use cases): computed from fully-posted statements only (all plan steps completed).
+  - `fees_this_month` — commission + fees for statements posted in the current calendar month.
+  - `gross_turnover_vat_safe` — rolling 12-month gross turnover (VAT-threshold-relevant), computed over the trailing 12 months from `now` (Europe/London dates) across fully-posted statements — mirrors HMRC's rolling VAT-registration-threshold monitoring, not an all-time sum.
+  - `ytd_income` / `ytd_deductible_fees` — gross / (commission + fees) for statements posted within the **UK tax year to date** (6 Apr–5 Apr; a statement posted 5 Apr belongs to the prior tax year, 6 Apr belongs to the new one).
+  - `new_vs_repeat` — per-booking count + commission split by `client_type` ("New" vs anything else), aggregated across all fully-posted statements.
+  - `null` when no statement has been fully posted yet — the frontend must handle both `persona_metrics` and its absence.
+- **`run_history`** — one entry per file hash with write activity, from `posted.json` + `audit.json`. `status` is one of `"posted"` (all plan steps completed), `"partial"` (some but not all steps completed), `"failed"` (a step errored, none completed), or `"skipped-idempotent"` (a re-upload of an already-fully-posted file — appears as a separate entry alongside that hash's `"posted"` entry). `hash` is the first 12 hex characters of the file's sha256. Sorted by `timestamp` descending. `null` when there is no posted/audit data at all.
 - 503 when Xero disconnected — frontend falls back to illustrative figures and keeps the "figures are illustrative" footer; live data replaces footer with "Live from Xero · fetched HH:MM".
+
+---
 
 ### 2.7 `GET /vat-check` — VAT Rate Consistency Read *(expansion `11` E5)*
 
@@ -363,6 +396,97 @@ Backs the assistant's "Check my VAT" answer with a real `list-tax-rates` read. *
   "consistent": true
 }
 ```
+
+---
+
+### 2.8 `GET /audit/export?format=csv|json` — Full Audit Trail Export *(expansion `11` PRI-1)*
+
+Exports the complete audit trail (all file hashes, not just one). Read-only, no Xero calls.
+
+**Request:**
+
+```
+GET /audit/export?format=csv
+GET /audit/export?format=json
+```
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `format` | query string | No | `csv` | `"csv"` or `"json"`. Any other value (including missing/garbage) falls back to `csv` — never a 422. |
+
+**Response (200 — `format=csv`, default):**
+
+```
+Content-Type: text/csv; charset=utf-8
+Content-Disposition: attachment; filename="payoutbridge-audit.csv"
+
+timestamp,action,payout_ref,xero_id,status,summary
+2026-07-04T15:30:00Z,create-invoice,MC-PAYOUT-0407,INV-0042,success,"amount=1340.00, reference=MC-PAYOUT-0407"
+```
+
+- Columns exactly: `timestamp,action,payout_ref,xero_id,status,summary`. `payout_ref` is looked up via `state/proposals/<hash>.json`; empty string if the proposal is missing. `summary` is the entry's `request` dict flattened as `key=value, key=value`.
+- No audit data → 200 with a header-only CSV. Never 500.
+
+**Response (200 — `format=json`):**
+
+```json
+[
+  {
+    "timestamp": "2026-07-04T15:30:00Z",
+    "file_hash": "a1b2c3d4e5f6...",
+    "action": "create-invoice",
+    "request": { "amount": "1340.00", "reference": "MC-PAYOUT-0407" },
+    "xero_id": "INV-0042",
+    "status": "success"
+  }
+]
+```
+
+- Full audit entries array, same shape as `state/audit.json` / `GET /status/{hash}`'s `audit_entries`. No audit data → 200 `[]`. Never 500.
+
+---
+
+### 2.9 `GET /evidence-pack/{file_hash}` — Reconciliation Evidence Pack *(expansion `11` PRI-2)*
+
+Returns a single-document reconciliation record for a posted statement — payout reference, all created Xero object IDs, the four/five amounts, the verified clearing balance, and a generated timestamp.
+
+**Request:**
+
+```
+GET /evidence-pack/{file_hash}
+```
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `file_hash` | path string | Yes | sha256 hash from `/propose`, of a statement that has been (at least partially) posted via `/approve` |
+
+**Response (200):**
+
+```json
+{
+  "payout_ref": "MC-PAYOUT-0407",
+  "csv_sha256": "a1b2c3d4e5f6...",
+  "xero_ids": {
+    "invoice_id": "INV-0042",
+    "bank_txn_id": "BT-0117",
+    "payment_id": "PMT-0089",
+    "credit_note_id": null
+  },
+  "amounts": { "gross": "1340.00", "commission": "445.90", "fees": "47.10", "refunds": "0.00", "net": "847.00" },
+  "clearing_balance": "0.00",
+  "verified": true,
+  "generated_at": "2026-07-05T08:00:00Z"
+}
+```
+
+- `credit_note_id` is non-null only for refund statements (4-step plan).
+- `verified` is `true` only when a clearing balance was actually recorded for this hash AND it equals `"0.00"` — `false` (never an error) when the balance is nonzero or was never recorded (e.g. approve crashed before the verification read).
+
+**Error responses:**
+
+| Status | Condition | Body |
+|---|---|---|
+| 404 | Unknown hash, malformed hash (path-traversal guard), or no posted/proposal record for the hash | `{"detail": "no posted statement with that hash"}` |
 
 ---
 

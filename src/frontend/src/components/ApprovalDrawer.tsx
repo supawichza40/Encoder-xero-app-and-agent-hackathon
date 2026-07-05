@@ -11,6 +11,8 @@ import {
   XCircle,
 } from "lucide-react";
 import type { CanonicalPayout, JournalPlan, PlanStep } from "@/lib/payout-types";
+import { PERSONA_COPY, PERSONA_TONE } from "@/lib/personaTheme";
+import type { Persona } from "@/lib/useDemoAuth";
 import { cn } from "@/lib/utils";
 
 interface ApprovalDrawerProps {
@@ -22,6 +24,9 @@ interface ApprovalDrawerProps {
   loading?: boolean;
   approved?: boolean;
   headingLabel?: string;
+  /** Drives the ALX-4 plain-English confirmation, the PRI-6 dedupe badge size,
+   * and the freelancer invariant relabel (PERSONA-DESIGN.md §3.1, §3.3). */
+  persona?: Persona;
 }
 
 function money(v: string) {
@@ -37,9 +42,11 @@ export function ApprovalDrawer({
   loading,
   approved,
   headingLabel,
+  persona = "owner",
 }: ApprovalDrawerProps) {
   const [openDetail, setOpenDetail] = useState(false);
   const hasRefunds = payout.refunds && Number(payout.refunds) > 0;
+  const plain = persona === "freelancer";
 
   return (
     <section
@@ -54,6 +61,17 @@ export function ApprovalDrawer({
           <p className="text-sm text-muted-foreground">
             {payout.period} · file <span className="font-mono">{fileHash.slice(0, 10)}…</span>
           </p>
+          {/* PRI-6 dedupe/file-hash badge — always present; promoted (larger) for
+              bookkeeper, subtle for owner/freelancer (PERSONA-DESIGN.md §3.3). */}
+          <span
+            aria-label={`New statement — SHA-256 ${fileHash}`}
+            className={cn(
+              "mt-2 inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/5 font-mono text-emerald-400",
+              persona === "bookkeeper" ? "px-3 py-1.5 text-sm" : "px-2 py-0.5 text-[11px]",
+            )}
+          >
+            SHA-256 {fileHash.slice(0, 10)}… · New statement
+          </span>
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-[11px] font-medium text-blue-500">
           <span className="size-1.5 rounded-full bg-blue-500" /> Channel · MarketplaceCo
@@ -108,11 +126,12 @@ export function ApprovalDrawer({
         <span className="font-semibold text-emerald-500">{money(payout.net)}</span>
         {plan.invariant_check ? (
           <span className="inline-flex items-center gap-1 text-emerald-500">
-            <CheckCircle2 className="size-4" /> balanced
+            <CheckCircle2 className="size-4" /> {plain ? "everything checks out" : "balanced"}
           </span>
         ) : (
           <span className="inline-flex items-center gap-1 text-red-500">
-            <XCircle className="size-4" /> invariant failed
+            <XCircle className="size-4" />{" "}
+            {plain ? "the numbers don't add up yet" : "invariant failed"}
           </span>
         )}
       </p>
@@ -181,6 +200,19 @@ export function ApprovalDrawer({
       </div>
 
       <div className="mt-6">
+        {!approved ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className={cn(
+              "animate-slide-in mb-3 rounded-lg border p-3 text-sm text-foreground",
+              PERSONA_TONE[persona].accentBorder,
+              PERSONA_TONE[persona].accentBg,
+            )}
+          >
+            {PERSONA_COPY[persona].approveConfirmation}
+          </div>
+        ) : null}
         <button
           type="button"
           onClick={onApprove}

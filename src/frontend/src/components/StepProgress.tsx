@@ -1,11 +1,17 @@
 import { Check, Loader2 } from "lucide-react";
 import type { PlanStep, StepResult } from "@/lib/payout-types";
+import type { Persona } from "@/lib/useDemoAuth";
 import { cn } from "@/lib/utils";
 
 interface StepProgressProps {
   results: StepResult[];
   totalSteps?: number;
   steps?: PlanStep[];
+  /** Persona-conditional framing on the GEN-4 failure message (PERSONA-DESIGN.md §3.2) */
+  persona?: Persona;
+  /** Re-invokes the approve flow from the top — per-step idempotency resumes only the
+   * failed + later writes (PREFLIGHT §2), so this is safe to call again. */
+  onRetry?: () => void;
 }
 
 function labelFor(kind: string): string {
@@ -23,14 +29,15 @@ function labelFor(kind: string): string {
   }
 }
 
-export function StepProgress({ results, totalSteps, steps }: StepProgressProps) {
+export function StepProgress({ results, totalSteps, steps, persona, onRetry }: StepProgressProps) {
   const total = steps?.length ?? totalSteps ?? 3;
   const labels =
     steps?.map((s) => labelFor(s.kind)) ??
     ["Invoice", "Fees", "Payment"].slice(0, total);
   const done = results.length;
   const allDone = done >= total && results.every((r) => r.status === "success");
-  const anyError = results.some((r) => r.status === "error");
+  const failedStep = results.find((r) => r.status === "error");
+  const anyError = Boolean(failedStep);
 
   return (
     <section aria-labelledby="progress-heading" className="w-full">
@@ -97,6 +104,26 @@ export function StepProgress({ results, totalSteps, steps }: StepProgressProps) 
           );
         })}
       </ol>
+      {failedStep ? (
+        <div
+          role="alert"
+          className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive-foreground"
+        >
+          <p>
+            {persona === "freelancer" ? "That step didn't go through: " : `Write ${failedStep.step} failed: `}
+            <span className="font-mono">{failedStep.message ?? "Unknown error — see the audit trail."}</span>
+          </p>
+          {onRetry ? (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="mt-3 inline-flex items-center gap-2 rounded-md border border-destructive/40 bg-transparent px-3 py-1.5 text-xs font-medium text-destructive-foreground transition-[background-color,transform] duration-150 hover:bg-destructive/20 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Retry from this step
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </section>
   );
 }

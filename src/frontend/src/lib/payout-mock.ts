@@ -6,6 +6,7 @@ import type {
   ApprovalResponse,
   AuditEntry,
   DashboardResponse,
+  EvidencePack,
   PnLResponse,
   ProposalResponse,
   StatusResponse,
@@ -494,6 +495,40 @@ export async function mockDashboard(): Promise<DashboardResponse> {
     ],
     fetched_at: new Date().toISOString(),
     source: "demo",
+    // CONTRACT.md §1 — persona_metrics + run_history, demo figures frozen in the contract.
+    persona_metrics: {
+      fees_this_month: "493.00",
+      gross_turnover_vat_safe: "1340.00",
+      ytd_income: "1340.00",
+      ytd_deductible_fees: "493.00",
+      new_vs_repeat: {
+        new: { count: 3, commission: "334.43" },
+        repeat: { count: 2, commission: "111.47" },
+      },
+    },
+    run_history: [
+      {
+        hash: "a1b2c3d4e5f6",
+        status: "posted",
+        payout_ref: "MC-PAYOUT-0407",
+        timestamp: "2026-07-05T08:00:00Z",
+        net: "847.00",
+      },
+      {
+        hash: "f6e5d4c3b2a1",
+        status: "posted",
+        payout_ref: "MC-PAYOUT-2107",
+        timestamp: "2026-07-16T09:15:00Z",
+        net: "695.00",
+      },
+      {
+        hash: "112233445566",
+        status: "skipped-idempotent",
+        payout_ref: "MC-PAYOUT-0407",
+        timestamp: "2026-07-06T10:00:00Z",
+        net: "847.00",
+      },
+    ],
   });
 }
 
@@ -522,4 +557,86 @@ export async function mockHealth(): Promise<{
 export function resetMockState() {
   posted.clear();
   refundHashes.clear();
+}
+
+// CONTRACT.md §2 — GET /audit/export?format=csv|json (PRI-1). Columns fixed by
+// the contract: timestamp,action,payout_ref,xero_id,status,summary.
+export interface AuditExportResult {
+  content: string;
+  contentType: string;
+  filename: string;
+}
+
+const AUDIT_EXPORT_ROWS = [
+  {
+    timestamp: "2026-07-05T08:00:00Z",
+    action: "create-invoice",
+    payout_ref: "MC-PAYOUT-0407",
+    xero_id: "INV-0042",
+    status: "success",
+    summary: "Gross invoice £1340.00 into Platform Clearing",
+  },
+  {
+    timestamp: "2026-07-05T08:00:01Z",
+    action: "create-bank-transaction",
+    payout_ref: "MC-PAYOUT-0407",
+    xero_id: "BT-0117",
+    status: "success",
+    summary: "Commission £445.90 + fees £47.10 out of Platform Clearing",
+  },
+  {
+    timestamp: "2026-07-05T08:00:02Z",
+    action: "create-payment",
+    payout_ref: "MC-PAYOUT-0407",
+    xero_id: "PMT-0089",
+    status: "success",
+    summary: "£847.00 cleared against the bank deposit",
+  },
+];
+
+export async function mockAuditExport(format: "csv" | "json" = "csv"): Promise<AuditExportResult> {
+  if (format === "json") {
+    return delay({
+      content: JSON.stringify(AUDIT_EXPORT_ROWS, null, 2),
+      contentType: "application/json",
+      filename: "payoutbridge-audit.json",
+    });
+  }
+  const header = "timestamp,action,payout_ref,xero_id,status,summary";
+  const lines = [
+    header,
+    ...AUDIT_EXPORT_ROWS.map(
+      (r) => `${r.timestamp},${r.action},${r.payout_ref},${r.xero_id},${r.status},"${r.summary}"`,
+    ),
+  ];
+  return delay({ content: lines.join("\n"), contentType: "text/csv", filename: "payoutbridge-audit.csv" });
+}
+
+// CONTRACT.md §3 — GET /evidence-pack/{hash} (PRI-2). Looks up the in-memory
+// `posted` set from THIS session's propose/approve calls (not the static
+// illustrative run_history above) — unknown hash resolves to null (404 equivalent).
+export async function mockEvidencePack(file_hash: string): Promise<EvidencePack | null> {
+  if (!posted.has(file_hash)) return delay(null);
+  const isRefund = refundHashes.has(file_hash);
+  const payout = isRefund ? REFUND_PAYOUT : DEMO_PAYOUT;
+  return delay({
+    payout_ref: payout.payout_ref,
+    csv_sha256: file_hash.replace(/^mock-/, "").padEnd(64, "0"),
+    xero_ids: {
+      invoice_id: isRefund ? "INV-0051" : "INV-0042",
+      bank_txn_id: isRefund ? "BT-0128" : "BT-0117",
+      payment_id: isRefund ? "PMT-0094" : "PMT-0089",
+      credit_note_id: isRefund ? "CN-0007" : null,
+    },
+    amounts: {
+      gross: payout.gross,
+      commission: payout.commission,
+      fees: payout.fees,
+      refunds: payout.refunds,
+      net: payout.net,
+    },
+    clearing_balance: "0.00",
+    verified: true,
+    generated_at: new Date().toISOString(),
+  });
 }

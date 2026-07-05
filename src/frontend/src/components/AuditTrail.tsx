@@ -1,11 +1,40 @@
 import { useState } from "react";
-import { AlertTriangle, ChevronDown, ChevronRight, Check, Info, Paperclip, X } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronRight,
+  Check,
+  Download,
+  Info,
+  Paperclip,
+  X,
+} from "lucide-react";
 import type { AuditEntry } from "@/lib/payout-types";
+import type { Persona } from "@/lib/useDemoAuth";
+import { fetchAuditExport } from "@/lib/usePayoutBridge";
 import { cn } from "@/lib/utils";
 
 interface AuditTrailProps {
   entries: AuditEntry[];
   defaultOpen?: boolean;
+  /** Prominent (primary-outline) export button for bookkeeper; ghost for others (PRI-1). */
+  persona?: Persona;
+}
+
+// PRI-1 audit-trail export (CONTRACT.md §2). Never throws — fetchAuditExport
+// resolves null on failure, in which case we simply skip the download.
+async function downloadAuditExport() {
+  const result = await fetchAuditExport("csv");
+  if (!result) return;
+  const blob = new Blob([result.content], { type: result.contentType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = result.filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 function formatTime(iso: string) {
@@ -30,26 +59,46 @@ function summarise(req: Record<string, unknown>): string {
   return parts.join(" · ") || "—";
 }
 
-export function AuditTrail({ entries, defaultOpen = false }: AuditTrailProps) {
+export function AuditTrail({ entries, defaultOpen = false, persona }: AuditTrailProps) {
   const [open, setOpen] = useState(defaultOpen);
+  const promoted = persona === "bookkeeper";
   return (
     <section aria-labelledby="audit-heading" className="w-full rounded-xl border border-border bg-card">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-controls="audit-panel"
-        className="flex w-full items-center justify-between rounded-xl p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <span id="audit-heading" className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-          Transaction trace
-        </span>
-        {open ? (
-          <ChevronDown className="size-4 text-muted-foreground" />
-        ) : (
-          <ChevronRight className="size-4 text-muted-foreground" />
-        )}
-      </button>
+      <div className="flex w-full items-center justify-between gap-2 p-4">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-controls="audit-panel"
+          className="flex flex-1 items-center justify-between text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+        >
+          <span
+            id="audit-heading"
+            className="text-sm font-semibold uppercase tracking-widest text-muted-foreground"
+          >
+            Transaction trace
+          </span>
+          {open ? (
+            <ChevronDown className="size-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="size-4 text-muted-foreground" />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => void downloadAuditExport()}
+          aria-label="Export audit trail as CSV"
+          className={cn(
+            "inline-flex shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-[background-color,transform] duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            promoted
+              ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+              : "border-border bg-transparent text-muted-foreground hover:bg-muted",
+          )}
+        >
+          <Download className="size-3.5" aria-hidden />
+          Export
+        </button>
+      </div>
       {open ? (
         <div id="audit-panel" className="border-t border-border p-4">
           {entries.length === 0 ? (

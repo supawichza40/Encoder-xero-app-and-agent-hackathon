@@ -1,4 +1,5 @@
 import { CheckCircle2, AlertTriangle } from "lucide-react";
+import type { Persona } from "@/lib/useDemoAuth";
 import { cn } from "@/lib/utils";
 
 interface ClearingReconciliationProps {
@@ -7,6 +8,9 @@ interface ClearingReconciliationProps {
   net: string;
   clearingBalance: string;
   verified: boolean;
+  /** When "freelancer", swaps labels to plain English per the ALX-2 jargon map
+   * (PERSONA-DESIGN.md §3.6) — same figures, same layout, reworded labels only. */
+  persona?: Persona;
 }
 
 function money(v: string) {
@@ -19,7 +23,20 @@ export function ClearingReconciliation({
   net,
   clearingBalance,
   verified,
+  persona,
 }: ClearingReconciliationProps) {
+  const plain = persona === "freelancer";
+  const heading = plain ? "Money moving through — verified" : "Live verification · Platform Clearing";
+  const feesLabel = plain ? "Platform fees you can claim" : "Commission & fees";
+  const netLabel = plain ? "Take-home" : "Net";
+  const balanceLabel = plain ? "Money moving through" : "Platform Clearing balance";
+  const verifiedText = plain
+    ? "Everything's accounted for — nothing left in limbo."
+    : "Clearing account is fully reconciled.";
+  const unverifiedText = plain
+    ? "The numbers don't add up yet — take a look at what's been posted."
+    : "Clearing account is not zero — investigate posted journals.";
+
   return (
     <section
       aria-labelledby="clearing-heading"
@@ -32,21 +49,21 @@ export function ClearingReconciliation({
         id="clearing-heading"
         className="text-xs uppercase tracking-widest text-muted-foreground"
       >
-        Live verification · Platform Clearing
+        {heading}
       </h2>
 
       <p className="tabular mt-4 text-center text-xl font-medium text-foreground sm:text-2xl">
         <span className="text-muted-foreground">Gross</span> {money(gross)}{" "}
         <span className="text-muted-foreground">−</span>{" "}
-        <span className="text-muted-foreground">Commission &amp; fees</span> {money(feesTotal)}{" "}
+        <span className="text-muted-foreground">{feesLabel}</span> {money(feesTotal)}{" "}
         <span className="text-muted-foreground">=</span>{" "}
-        <span className="text-primary">Net {money(net)}</span>
+        <span className="text-primary">
+          {netLabel} {money(net)}
+        </span>
       </p>
 
       <div className="mt-8 flex flex-col items-center gap-3">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">
-          Platform Clearing balance
-        </p>
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">{balanceLabel}</p>
         <div
           className={cn(
             "tabular flex items-center gap-4 text-6xl font-black sm:text-7xl lg:text-8xl",
@@ -66,9 +83,7 @@ export function ClearingReconciliation({
             verified ? "text-success" : "text-destructive",
           )}
         >
-          {verified
-            ? "Clearing account is fully reconciled."
-            : "Clearing account is not zero — investigate posted journals."}
+          {verified ? verifiedText : unverifiedText}
         </p>
       </div>
     </section>

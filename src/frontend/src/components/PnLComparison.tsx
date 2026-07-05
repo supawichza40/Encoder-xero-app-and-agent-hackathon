@@ -1,9 +1,21 @@
+import { useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import type { PnLSnapshot } from "@/lib/payout-types";
+import { FREELANCER_JARGON } from "@/lib/personaTheme";
+import type { Persona } from "@/lib/useDemoAuth";
 import { cn } from "@/lib/utils";
 
 interface PnLComparisonProps {
   before: PnLSnapshot | null;
   after: PnLSnapshot | null;
+  /** Starts expanded/collapsed — owner auto-expands this section (PERSONA-DESIGN.md §3.5). */
+  defaultOpen?: boolean;
+  /** When "freelancer", swaps row labels to plain English via the ALX-2 jargon map. */
+  persona?: Persona;
+}
+
+function cap(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 function money(v: string | null | undefined) {
@@ -24,16 +36,35 @@ function delta(before: string | null | undefined, after: string | null | undefin
   return { sign, abs, positive: d > 0 };
 }
 
-export function PnLComparison({ before, after }: PnLComparisonProps) {
+export function PnLComparison({ before, after, defaultOpen = true, persona }: PnLComparisonProps) {
+  const [open, setOpen] = useState(defaultOpen);
+  const plain = persona === "freelancer";
+  const heading = plain ? cap(FREELANCER_JARGON["P&L"]) : "Profit & Loss · Before vs After";
+
   return (
-    <section aria-labelledby="pnl-heading" className="w-full">
-      <h2 id="pnl-heading" className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
-        Profit &amp; Loss · Before vs After
-      </h2>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <PnLCard title="Before" snapshot={before} muted />
-        <PnLCard title="After" snapshot={after} deltaFrom={before} highlight />
-      </div>
+    <section aria-labelledby="pnl-heading" className="w-full rounded-xl border border-border bg-card">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-controls="pnl-panel"
+        className="flex w-full items-center justify-between rounded-xl p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span id="pnl-heading" className="text-xs uppercase tracking-widest text-muted-foreground">
+          {heading}
+        </span>
+        {open ? (
+          <ChevronDown className="size-4 text-muted-foreground" />
+        ) : (
+          <ChevronRight className="size-4 text-muted-foreground" />
+        )}
+      </button>
+      {open ? (
+        <div id="pnl-panel" className="grid grid-cols-1 gap-4 border-t border-border p-4 md:grid-cols-2">
+          <PnLCard title="Before" snapshot={before} muted plain={plain} />
+          <PnLCard title="After" snapshot={after} deltaFrom={before} highlight plain={plain} />
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -44,12 +75,14 @@ function PnLCard({
   deltaFrom,
   muted,
   highlight,
+  plain,
 }: {
   title: string;
   snapshot: PnLSnapshot | null;
   deltaFrom?: PnLSnapshot | null;
   muted?: boolean;
   highlight?: boolean;
+  plain?: boolean;
 }) {
   if (!snapshot) {
     return (
@@ -80,7 +113,7 @@ function PnLCard({
     >
       <p className="text-xs uppercase tracking-widest text-muted-foreground">{title}</p>
       <dl className="tabular mt-4 space-y-3">
-        <Row label="Revenue">
+        <Row label={plain ? cap(FREELANCER_JARGON.revenue) : "Revenue"}>
           <span className={cn(highlight && "text-primary font-semibold")}>
             {money(snapshot.revenue)}
           </span>
@@ -97,7 +130,7 @@ function PnLCard({
             </span>
           ) : null}
         </Row>
-        <Row label="Commission &amp; fees">
+        <Row label={plain ? cap(FREELANCER_JARGON["commission + fees"]) : "Commission & fees"}>
           {showsCommission ? (
             <>
               <span>{money(snapshot.commission_expense)}</span>
@@ -112,7 +145,7 @@ function PnLCard({
           )}
         </Row>
         <div className="my-2 border-t border-border" />
-        <Row label="Net profit" strong>
+        <Row label={plain ? cap(FREELANCER_JARGON.net) : "Net profit"} strong>
           {money(snapshot.net_profit)}
         </Row>
       </dl>

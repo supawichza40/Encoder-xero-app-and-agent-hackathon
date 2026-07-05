@@ -4,6 +4,7 @@ import type {
   ApprovalResponse,
   AuditEntry,
   DashboardResponse,
+  EvidencePack,
   Phase,
   PnLResponse,
   ProposalResponse,
@@ -14,13 +15,16 @@ import type {
 import {
   isMockEnabled,
   mockApprove,
+  mockAuditExport,
   mockDashboard,
+  mockEvidencePack,
   mockHealth,
   mockPnl,
   mockPropose,
   mockStatus,
   mockVatCheck,
   resetMockState,
+  type AuditExportResult,
 } from "./payout-mock";
 
 // API base honors VITE_API_URL (default local FastAPI). Trailing slash is
@@ -267,6 +271,10 @@ function normalizeDashboard(raw: RawDashboard): DashboardResponse {
     recent_payouts,
     fetched_at: raw.fetched_at,
     source: raw.source,
+    // CONTRACT.md §1 — additive persona surfaces; absent on a pre-upgrade
+    // backend payload, so default to null and let consumers hide gracefully.
+    persona_metrics: raw.persona_metrics ?? null,
+    run_history: raw.run_history ?? null,
   };
 }
 
@@ -289,6 +297,37 @@ export async function fetchPnlSnapshot(): Promise<PnLResponse | null> {
     const res = await fetch(`${API_BASE}/pnl`);
     if (!res.ok) return null;
     return (await res.json()) as PnLResponse;
+  } catch {
+    return null;
+  }
+}
+
+// CONTRACT.md §2 — GET /audit/export?format=csv|json (PRI-1). Never throws;
+// returns null on failure so the export button can disable/toast instead of crash.
+export async function fetchAuditExport(
+  format: "csv" | "json" = "csv",
+): Promise<AuditExportResult | null> {
+  try {
+    if (isMockEnabled()) return await mockAuditExport(format);
+    const res = await fetch(`${API_BASE}/audit/export?format=${format}`);
+    if (!res.ok) return null;
+    const content = await res.text();
+    const contentType =
+      res.headers.get("Content-Type") ?? (format === "csv" ? "text/csv" : "application/json");
+    return { content, contentType, filename: `payoutbridge-audit.${format}` };
+  } catch {
+    return null;
+  }
+}
+
+// CONTRACT.md §3 — GET /evidence-pack/{hash} (PRI-2). Unknown hash / any
+// failure resolves to null (backend returns 404) — never throws.
+export async function fetchEvidencePack(file_hash: string): Promise<EvidencePack | null> {
+  try {
+    if (isMockEnabled()) return await mockEvidencePack(file_hash);
+    const res = await fetch(`${API_BASE}/evidence-pack/${encodeURIComponent(file_hash)}`);
+    if (!res.ok) return null;
+    return (await res.json()) as EvidencePack;
   } catch {
     return null;
   }

@@ -187,11 +187,17 @@ export function LiveDot({
   tone = "success",
   className,
 }: {
-  tone?: "success" | "primary" | "warning";
+  tone?: "success" | "primary" | "warning" | "violet";
   className?: string;
 }) {
   const colors =
-    tone === "primary" ? "bg-primary" : tone === "warning" ? "bg-amber-400" : "bg-emerald-500";
+    tone === "primary"
+      ? "bg-primary"
+      : tone === "warning"
+        ? "bg-amber-400"
+        : tone === "violet"
+          ? "bg-violet-500"
+          : "bg-emerald-500";
   return (
     <span className={cn("relative inline-flex size-2", className)}>
       <span

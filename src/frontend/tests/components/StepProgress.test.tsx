@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { StepProgress } from "@/components/StepProgress";
 import type { PlanStep, StepResult } from "@/lib/payout-types";
 
@@ -54,5 +55,61 @@ describe("StepProgress", () => {
     ];
     render(<StepProgress results={results} steps={threeSteps} />);
     expect(screen.getByText(/xero write failed/i)).toBeInTheDocument();
+  });
+
+  // GEN-4 — StepResult.message is rendered verbatim, with a persona-conditional
+  // prefix, plus a working "Retry from this step" affordance.
+  it("renders the failed step's message verbatim with an owner/bookkeeper prefix", () => {
+    const results: StepResult[] = [
+      { step: 1, kind: "create-invoice", xero_id: "INV-1", status: "success" },
+      {
+        step: 2,
+        kind: "create-bank-transaction",
+        xero_id: "",
+        status: "error",
+        message: "Xero rate limit exceeded",
+      },
+    ];
+    render(<StepProgress results={results} steps={threeSteps} persona="owner" />);
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("Write 2 failed:");
+    expect(alert).toHaveTextContent("Xero rate limit exceeded");
+  });
+
+  it("uses a plain-English prefix for freelancer, not 'Write N failed'", () => {
+    const results: StepResult[] = [
+      { step: 1, kind: "create-invoice", xero_id: "INV-1", status: "success" },
+      {
+        step: 2,
+        kind: "create-bank-transaction",
+        xero_id: "",
+        status: "error",
+        message: "Xero rate limit exceeded",
+      },
+    ];
+    render(<StepProgress results={results} steps={threeSteps} persona="freelancer" />);
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("That step didn't go through:");
+    expect(alert).not.toHaveTextContent(/write 2 failed/i);
+  });
+
+  it("calls onRetry when 'Retry from this step' is clicked", async () => {
+    const onRetry = vi.fn();
+    const results: StepResult[] = [
+      { step: 1, kind: "create-invoice", xero_id: "INV-1", status: "success" },
+      { step: 2, kind: "create-bank-transaction", xero_id: "", status: "error", message: "boom" },
+    ];
+    render(<StepProgress results={results} steps={threeSteps} onRetry={onRetry} />);
+    await userEvent.click(screen.getByRole("button", { name: /retry from this step/i }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("omits the retry button when no onRetry handler is given", () => {
+    const results: StepResult[] = [
+      { step: 1, kind: "create-invoice", xero_id: "INV-1", status: "success" },
+      { step: 2, kind: "create-bank-transaction", xero_id: "", status: "error", message: "boom" },
+    ];
+    render(<StepProgress results={results} steps={threeSteps} />);
+    expect(screen.queryByRole("button", { name: /retry from this step/i })).not.toBeInTheDocument();
   });
 });

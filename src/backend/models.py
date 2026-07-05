@@ -153,6 +153,32 @@ class RecentPayout(BaseModel):
     clearing_balance: str | None = None
 
 
+class NewVsRepeatBucket(BaseModel):
+    count: int
+    commission: str
+
+
+class NewVsRepeat(BaseModel):
+    new: NewVsRepeatBucket
+    repeat: NewVsRepeatBucket
+
+
+class PersonaMetrics(BaseModel):
+    fees_this_month: str
+    gross_turnover_vat_safe: str
+    ytd_income: str
+    ytd_deductible_fees: str
+    new_vs_repeat: NewVsRepeat
+
+
+class RunHistoryEntry(BaseModel):
+    hash: str
+    status: str  # "posted" | "failed" | "skipped-idempotent" | "partial"
+    payout_ref: str | None = None
+    timestamp: str | None = None
+    net: str | None = None
+
+
 class DashboardResponse(BaseModel):
     trial_balance: dict[str, str]
     aged_receivables: list[AgedReceivableEntry]
@@ -160,6 +186,8 @@ class DashboardResponse(BaseModel):
     recent_payouts: list[RecentPayout]
     fetched_at: str
     source: str   # "xero" | "degraded"
+    persona_metrics: PersonaMetrics | None = None
+    run_history: list[RunHistoryEntry] | None = None
 
 
 class VatRateEntry(BaseModel):
@@ -174,3 +202,30 @@ class VatCheckResponse(BaseModel):
     note: str
     fetched_at: str
     source: str   # "xero" | "degraded"
+
+
+# ── Evidence pack (PRI-2, CONTRACT.md §3) ──────────────────────────────────
+
+class EvidencePackXeroIds(BaseModel):
+    invoice_id: str | None = None
+    bank_txn_id: str | None = None
+    payment_id: str | None = None
+    credit_note_id: str | None = None   # non-null only for refund statements
+
+
+class EvidencePackAmounts(BaseModel):
+    gross: str
+    commission: str
+    fees: str
+    refunds: str
+    net: str
+
+
+class EvidencePack(BaseModel):
+    payout_ref: str
+    csv_sha256: str
+    xero_ids: EvidencePackXeroIds
+    amounts: EvidencePackAmounts
+    clearing_balance: str | None = None
+    verified: bool
+    generated_at: str
