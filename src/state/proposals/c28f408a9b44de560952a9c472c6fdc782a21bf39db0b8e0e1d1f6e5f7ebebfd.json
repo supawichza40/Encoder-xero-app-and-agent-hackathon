@@ -1,0 +1,129 @@
+{
+  "payout": {
+    "payout_ref": "MC-PAYOUT-0407",
+    "period": "16-30 Jun 2026",
+    "gross": "1340.00",
+    "commission": "445.90",
+    "fees": "47.10",
+    "refunds": "0.00",
+    "net": "847.00",
+    "bookings": [
+      {
+        "date": "2026-06-17",
+        "client": "Client A",
+        "client_type": "New",
+        "service": "Cut & Colour",
+        "gross_amount": "180.00",
+        "commission_rate": "35%",
+        "commission": "63.00"
+      },
+      {
+        "date": "2026-06-18",
+        "client": "Client B",
+        "client_type": "New",
+        "service": "Full Head Highlights",
+        "gross_amount": "260.00",
+        "commission_rate": "35%",
+        "commission": "91.00"
+      },
+      {
+        "date": "2026-06-19",
+        "client": "Client C",
+        "client_type": "New",
+        "service": "Balayage",
+        "gross_amount": "240.00",
+        "commission_rate": "35%",
+        "commission": "84.00"
+      },
+      {
+        "date": "2026-06-20",
+        "client": "Client D",
+        "client_type": "Repeat",
+        "service": "Blow Dry",
+        "gross_amount": "26.00",
+        "commission_rate": "0%",
+        "commission": "0.00"
+      },
+      {
+        "date": "2026-06-21",
+        "client": "Client E",
+        "client_type": "New",
+        "service": "Colour Correction",
+        "gross_amount": "220.00",
+        "commission_rate": "35%",
+        "commission": "77.00"
+      },
+      {
+        "date": "2026-06-24",
+        "client": "Client F",
+        "client_type": "New",
+        "service": "Cut & Colour",
+        "gross_amount": "200.00",
+        "commission_rate": "35%",
+        "commission": "70.00"
+      },
+      {
+        "date": "2026-06-25",
+        "client": "Client G",
+        "client_type": "Repeat",
+        "service": "Cut & Finish",
+        "gross_amount": "22.00",
+        "commission_rate": "0%",
+        "commission": "0.00"
+      },
+      {
+        "date": "2026-06-26",
+        "client": "Client H",
+        "client_type": "New",
+        "service": "Highlights",
+        "gross_amount": "174.00",
+        "commission_rate": "35%",
+        "commission": "60.90"
+      },
+      {
+        "date": "2026-06-28",
+        "client": "Client I",
+        "client_type": "Repeat",
+        "service": "Fringe Trim",
+        "gross_amount": "18.00",
+        "commission_rate": "0%",
+        "commission": "0.00"
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      {
+        "kind": "create-invoice",
+        "amount": "1340.00",
+        "account": "Sales",
+        "lines": null,
+        "clears": null
+      },
+      {
+        "kind": "create-bank-transaction",
+        "amount": "493.00",
+        "account": "Platform Clearing",
+        "lines": [
+          {
+            "description": "New-client commission",
+            "amount": "445.90"
+          },
+          {
+            "description": "Prepayment fees",
+            "amount": "47.10"
+          }
+        ],
+        "clears": null
+      },
+      {
+        "kind": "create-payment",
+        "amount": "1340.00",
+        "account": "Platform Clearing",
+        "lines": null,
+        "clears": "MC-PAYOUT-0407"
+      }
+    ],
+    "invariant_check": true
+  }
+}
