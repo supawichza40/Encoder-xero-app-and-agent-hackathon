@@ -122,6 +122,9 @@ const REFUND_PAYOUT = {
 
 // In-memory idempotency store — persists across renders in a single tab.
 const posted = new Set<string>();
+// Track which hashes correspond to refund payouts, so /approve + /status
+// can return the 4-step credit-note flow.
+const refundHashes = new Set<string>();
 
 function hashFile(file: File): string {
   // Cheap deterministic pseudo-hash for demo idempotency.
@@ -138,6 +141,7 @@ function delay<T>(value: T, ms = 400): Promise<T> {
 export async function mockPropose(file: File): Promise<ProposalResponse> {
   const file_hash = hashFile(file);
   const isRefund = file.name.toLowerCase().includes("2107");
+  if (isRefund) refundHashes.add(file_hash);
   const payout = isRefund ? REFUND_PAYOUT : DEMO_PAYOUT;
   if (posted.has(file_hash)) {
     return delay({
@@ -196,6 +200,24 @@ export async function mockPropose(file: File): Promise<ProposalResponse> {
 
 export async function mockApprove(file_hash: string): Promise<ApprovalResponse> {
   posted.add(file_hash);
+  const isRefund = refundHashes.has(file_hash);
+  if (isRefund) {
+    return delay(
+      {
+        file_hash,
+        clearing_balance: "0.00",
+        verified: true,
+        results: [
+          { step: 1, kind: "create-invoice", xero_id: "INV-0051", status: "success" },
+          { step: 2, kind: "create-credit-note", xero_id: "CN-0007", status: "success" },
+          { step: 3, kind: "create-bank-transaction", xero_id: "BT-0128", status: "success" },
+          { step: 4, kind: "create-payment", xero_id: "PMT-0094", status: "success" },
+        ],
+        attachment: { invoice_id: "INV-0051", filename: "settlement.csv", status: "success" },
+      },
+      200,
+    );
+  }
   return delay(
     {
       file_hash,
@@ -232,12 +254,22 @@ export async function mockPnl(): Promise<PnLResponse> {
 export async function mockStatus(file_hash: string): Promise<StatusResponse> {
   const now = new Date();
   const t = (offset: number) => new Date(now.getTime() + offset * 1000).toISOString();
-  const entries: AuditEntry[] = [
+  const isRefund = refundHashes.has(file_hash);
+  const entries: AuditEntry[] = isRefund
+    ? [
+        { timestamp: t(0), file_hash, action: "create-invoice", request: { amount: "1180.00", account: "Platform Clearing", tracking: "Channel:MarketplaceCo" }, xero_id: "INV-0051", status: "success" },
+        { timestamp: t(1), file_hash, action: "create-credit-note", request: { amount: "60.00", account: "Platform Clearing" }, xero_id: "CN-0007", status: "success" },
+        { timestamp: t(2), file_hash, action: "create-bank-transaction", request: { amount: "425.00", account: "Platform Clearing" }, xero_id: "BT-0128", status: "success" },
+        { timestamp: t(3), file_hash, action: "create-payment", request: { amount: "695.00", clears: "MC-PAYOUT-2107" }, xero_id: "PMT-0094", status: "success" },
+        { timestamp: t(4), file_hash, action: "attach-source", request: { filename: "settlement.csv", invoice_id: "INV-0051" }, xero_id: "INV-0051", status: "success" },
+        { timestamp: t(5), file_hash, action: "history-note", request: { note: "Verified zero-balance clearing (refund path)" }, xero_id: null, status: "info" },
+      ]
+    : [
     {
       timestamp: t(0),
       file_hash,
       action: "create-invoice",
-      request: { amount: "1340.00", account: "Platform Clearing" },
+      request: { amount: "1340.00", account: "Platform Clearing", tracking: "Channel:MarketplaceCo" },
       xero_id: "INV-0042",
       status: "success",
     },
@@ -276,10 +308,12 @@ export async function mockStatus(file_hash: string): Promise<StatusResponse> {
   ];
   return delay({
     file_hash,
-    completed_steps: ["create-invoice", "create-bank-transaction", "create-payment"],
-    invoice_id: "INV-0042",
-    bank_txn_id: "BT-0117",
-    payment_id: "PMT-0089",
+    completed_steps: isRefund
+      ? ["create-invoice", "create-credit-note", "create-bank-transaction", "create-payment"]
+      : ["create-invoice", "create-bank-transaction", "create-payment"],
+    invoice_id: isRefund ? "INV-0051" : "INV-0042",
+    bank_txn_id: isRefund ? "BT-0128" : "BT-0117",
+    payment_id: isRefund ? "PMT-0094" : "PMT-0089",
     clearing_balance: "0.00",
     audit_entries: entries,
   });
@@ -317,4 +351,5 @@ export async function mockHealth(): Promise<{ status: string; xero_connected: bo
 
 export function resetMockState() {
   posted.clear();
+  refundHashes.clear();
 }

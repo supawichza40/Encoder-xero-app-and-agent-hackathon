@@ -47,6 +47,7 @@ function Index() {
   const persona = user?.persona ?? "owner";
   const clearingRef = useRef<HTMLDivElement>(null);
   const [lastFileName, setLastFileName] = useState<string | null>(null);
+  const lastFileRef = useRef<File | null>(null);
   const [selected, setSelected] = useState<HistoryEntry | null>(null);
   const savedHashRef = useRef<string | null>(null);
 
@@ -75,8 +76,27 @@ function Index() {
 
   const handleFile = (f: File) => {
     setLastFileName(f.name);
+    lastFileRef.current = f;
     setSelected(null);
     void bridge.uploadFile(f);
+  };
+
+  const loadSample = (kind: "golden" | "refund") => {
+    const name = kind === "refund" ? "MC-Payout-2107-refunds.csv" : "MC-Payout-0407.csv";
+    // Synthesise a File so the mock proposer routes on filename.
+    const f = new File([`sample:${name}`], name, { type: "text/csv" });
+    handleFile(f);
+  };
+
+  const reuploadLast = () => {
+    const f = lastFileRef.current;
+    if (!f) return;
+    // Re-instantiate with the same name/size/lastModified for identical hash.
+    const clone = new File([`sample:${f.name}`], f.name, {
+      type: f.type || "text/csv",
+      lastModified: f.lastModified,
+    });
+    handleFile(clone);
   };
 
   const uploadDisabled =
@@ -148,6 +168,46 @@ function Index() {
                 compact={Boolean(bridge.proposal)}
               />
               </Reveal>
+
+              {bridge.phase === "idle" ||
+              bridge.phase === "error" ||
+              bridge.phase === "verified" ||
+              bridge.phase === "idempotent" ||
+              bridge.phase === "partial_error" ? (
+                <div className="flex flex-col gap-2 rounded-lg border border-border bg-card/40 p-3">
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                    Try a sample
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => loadSample("golden")}
+                      disabled={uploadDisabled}
+                      className="inline-flex items-center gap-2 rounded-md border border-blue-500/40 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-500 transition-colors hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      MarketplaceCo payout · 3 writes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => loadSample("refund")}
+                      disabled={uploadDisabled}
+                      className="inline-flex items-center gap-2 rounded-md border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-500 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      Payout with refunds · 4 writes
+                    </button>
+                    {lastFileRef.current ? (
+                      <button
+                        type="button"
+                        onClick={reuploadLast}
+                        disabled={uploadDisabled}
+                        className="inline-flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-500 transition-colors hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        Re-upload last file (idempotent)
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
 
               {bridge.phase === "idempotent" && bridge.proposal?.existing_ids ? (
                 <Reveal delay={160}>

@@ -1296,12 +1296,12 @@ function Eyebrow({
 }) {
   const toneClass =
     tone === "rose"
-      ? "border-rose-400/60 bg-rose-500/20 text-rose-100"
+      ? "border-rose-400/60 bg-rose-500/20 text-rose-700 dark:text-rose-100"
       : tone === "amber"
-        ? "border-amber-400/60 bg-amber-500/20 text-amber-100"
+        ? "border-amber-400/60 bg-amber-500/20 text-amber-700 dark:text-amber-100"
         : tone === "emerald"
-          ? "border-emerald-400/60 bg-emerald-500/20 text-emerald-100"
-          : "border-primary/60 bg-primary/25 text-white";
+          ? "border-emerald-400/60 bg-emerald-500/20 text-emerald-700 dark:text-emerald-100"
+          : "border-primary/60 bg-primary/25 text-primary-foreground";
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${toneClass}`}
