@@ -1,7 +1,7 @@
 """
 Idempotency manager: sha256(file_bytes) → step-map in state/posted.json.
 
-Step-map structure per hash:
+Step-map structure per hash (3-step plan):
 {
     "invoice_id": "INV-0042",
     "bank_txn_id": "BT-0117",
@@ -10,7 +10,11 @@ Step-map structure per hash:
     "clearing_balance": "0.00"
 }
 
-A crash after write 1 → re-run skips write 1 and executes writes 2-3 only.
+4-step plan (refunds > 0) additionally stores:
+    "credit_note_id": "CN-0003"
+
+Step-map keys are dynamic: derived from StepKind, not hardcoded count.
+Crash after step 2 of 4 → re-run skips steps 1-2 and executes steps 3-4 only.
 """
 
 import hashlib
@@ -20,8 +24,10 @@ from typing import Any
 
 from .models import JournalPlan, PlanStep, StepKind
 
-_STEP_ID_MAP = {
+# Map each StepKind to its idempotency storage key
+_STEP_ID_MAP: dict[StepKind, str] = {
     StepKind.CREATE_INVOICE: "invoice_id",
+    StepKind.CREATE_CREDIT_NOTE: "credit_note_id",
     StepKind.CREATE_BANK_TRANSACTION: "bank_txn_id",
     StepKind.CREATE_PAYMENT: "payment_id",
 }
@@ -96,11 +102,12 @@ def all_steps_complete(file_hash: str, plan: JournalPlan) -> bool:
     return len(get_remaining_steps(file_hash, plan)) == 0
 
 
-def get_step_ids(file_hash: str) -> dict[str, str | None]:
-    """Return the stored Xero IDs for all three steps."""
+def get_step_ids(file_hash: str) -> dict[str, Any]:
+    """Return all stored Xero IDs and metadata for a file hash."""
     entry = check_already_posted(file_hash) or {}
     return {
         "invoice_id": entry.get("invoice_id"),
+        "credit_note_id": entry.get("credit_note_id"),
         "bank_txn_id": entry.get("bank_txn_id"),
         "payment_id": entry.get("payment_id"),
         "clearing_balance": entry.get("clearing_balance"),

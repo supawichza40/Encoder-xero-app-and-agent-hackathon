@@ -1,15 +1,17 @@
 """
 Idempotent seed script for the Xero Demo Company.
 
-Sets up everything the golden path needs, then captures the BEFORE P&L
-snapshot. Safe to run multiple times — re-run creates nothing new.
+Sets up everything both CSVs need, then captures the BEFORE P&L snapshot.
+Safe to run multiple times — re-run creates nothing new.
 
-What it creates (once):
+What it creates (once each):
   1. Account: Platform Clearing (code 810, BANK type, enable payments)
   2. Account: Platform Commission & Fees (code 418, expense)
   3. Contact: MarketplaceCo (Marketplace)
   4. RECEIVE bank transaction: £847.00 into Platform Clearing, ref MC-PAYOUT-0407
-  5. P&L BEFORE snapshot → state/pnl-before.json
+  5. RECEIVE bank transaction: £695.00 into Platform Clearing, ref MC-PAYOUT-2107  [E1]
+  6. Tracking category "Channel" + option "MarketplaceCo"                          [E3]
+  7. P&L BEFORE snapshot → state/pnl-before.json
 
 Usage:
   python -m backend.seed          # standalone run
@@ -38,6 +40,10 @@ async def seed_demo_company(client: "XeroClient") -> dict:  # type: ignore[name-
         CONTACT_NAME,
         PAYOUT_REFERENCE,
         NET_DEPOSIT_AMOUNT,
+        REFUND_PAYOUT_REFERENCE,
+        REFUND_NET_DEPOSIT_AMOUNT,
+        TRACKING_CATEGORY,
+        TRACKING_OPTION,
         STATE_DIR,
     )
 
@@ -46,6 +52,8 @@ async def seed_demo_company(client: "XeroClient") -> dict:  # type: ignore[name-
         "fees_account": None,
         "contact_id": None,
         "receive_txn_id": None,
+        "refund_receive_txn_id": None,
+        "tracking_category": None,
         "pnl_before_captured": False,
         "warnings": [],
     }
@@ -84,43 +92,60 @@ async def seed_demo_company(client: "XeroClient") -> dict:  # type: ignore[name-
     contact_id = await client.create_contact(CONTACT_NAME)
     summary["contact_id"] = contact_id
 
-    # ── 4. Check / create RECEIVE bank transaction ────────────────────────
-    logger.info("Checking for seeded RECEIVE bank transaction (ref %s)…", PAYOUT_REFERENCE)
+    # ── 4. Check / create RECEIVE bank transaction — golden path £847 ─────
+    logger.info(
+        "Checking for seeded RECEIVE bank transaction (ref %s)…", PAYOUT_REFERENCE
+    )
     existing_txns = await client.list_bank_transactions()
-    seeded_txn_id: str | None = None
-    for txn in existing_txns:
-        ref = txn.get("Reference") or txn.get("reference") or ""
-        txn_type = txn.get("Type") or txn.get("type") or ""
-        bank_code = (
-            (txn.get("BankAccount") or txn.get("bankAccount") or {}).get("Code")
-            or (txn.get("BankAccount") or txn.get("bankAccount") or {}).get("code")
-            or ""
-        )
-        if ref == PAYOUT_REFERENCE and txn_type == "RECEIVE" and str(bank_code) == CLEARING_ACCOUNT_CODE:
-            seeded_txn_id = (
-                txn.get("BankTransactionID")
-                or txn.get("bankTransactionID")
-                or txn.get("id")
-                or "FOUND"
-            )
-            logger.info("Seeded RECEIVE transaction already exists: %s", seeded_txn_id)
-            break
+    summary["receive_txn_id"] = _find_receive_txn(
+        existing_txns, PAYOUT_REFERENCE, CLEARING_ACCOUNT_CODE
+    )
 
-    if not seeded_txn_id:
-        logger.info(
-            "Creating seeded RECEIVE £%s in Platform Clearing…", NET_DEPOSIT_AMOUNT
-        )
-        seeded_txn_id = await client.create_receive_transaction(
+    if not summary["receive_txn_id"]:
+        logger.info("Creating seeded RECEIVE £%s in Platform Clearing…", NET_DEPOSIT_AMOUNT)
+        summary["receive_txn_id"] = await client.create_receive_transaction(
             amount=Decimal(NET_DEPOSIT_AMOUNT),
             reference=PAYOUT_REFERENCE,
             account_code=CLEARING_ACCOUNT_CODE,
             contact_name=CONTACT_NAME,
         )
-        logger.info("Created seeded RECEIVE transaction: %s", seeded_txn_id)
+        logger.info("Created seeded RECEIVE transaction: %s", summary["receive_txn_id"])
 
-    summary["receive_txn_id"] = seeded_txn_id
+    # ── 5. Check / create RECEIVE bank transaction — refund path £695 ─────
+    logger.info(
+        "Checking for seeded RECEIVE bank transaction (ref %s)…", REFUND_PAYOUT_REFERENCE
+    )
+    summary["refund_receive_txn_id"] = _find_receive_txn(
+        existing_txns, REFUND_PAYOUT_REFERENCE, CLEARING_ACCOUNT_CODE
+    )
 
-    # ── 5. Capture BEFORE P&L snapshot ───────────────────────────────────
+    if not summary["refund_receive_txn_id"]:
+        logger.info(
+            "Creating seeded RECEIVE £%s in Platform Clearing…", REFUND_NET_DEPOSIT_AMOUNT
+        )
+        summary["refund_receive_txn_id"] = await client.create_receive_transaction(
+            amount=Decimal(REFUND_NET_DEPOSIT_AMOUNT),
+            reference=REFUND_PAYOUT_REFERENCE,
+            account_code=CLEARING_ACCOUNT_CODE,
+            contact_name=CONTACT_NAME,
+        )
+        logger.info(
+            "Created refund seeded RECEIVE transaction: %s",
+            summary["refund_receive_txn_id"],
+        )
+
+    # ── 6. Tracking category "Channel" + option "MarketplaceCo" ──────────
+    logger.info(
+        "Ensuring tracking category '%s' / '%s'…", TRACKING_CATEGORY, TRACKING_OPTION
+    )
+    try:
+        await client.ensure_tracking_category(TRACKING_CATEGORY, TRACKING_OPTION)
+        summary["tracking_category"] = f"{TRACKING_CATEGORY}/{TRACKING_OPTION}"
+    except Exception as exc:
+        logger.warning("Tracking category setup failed (non-fatal): %s", exc)
+        summary["warnings"].append(f"Tracking category setup failed: {exc}")
+
+    # ── 7. Capture BEFORE P&L snapshot ───────────────────────────────────
     pnl_before_path = Path(STATE_DIR) / "pnl-before.json"
     if pnl_before_path.exists() and pnl_before_path.stat().st_size > 2:
         logger.info("pnl-before.json already exists — skipping recapture")
@@ -141,6 +166,32 @@ async def seed_demo_company(client: "XeroClient") -> dict:  # type: ignore[name-
             summary["warnings"].append(f"BEFORE P&L capture failed: {exc}")
 
     return summary
+
+
+def _find_receive_txn(
+    txns: list[dict],
+    reference: str,
+    bank_code: str,
+) -> str | None:
+    """Return the ID of a matching RECEIVE transaction if found, else None."""
+    for txn in txns:
+        ref = txn.get("Reference") or txn.get("reference") or ""
+        txn_type = txn.get("Type") or txn.get("type") or ""
+        b_code = (
+            (txn.get("BankAccount") or txn.get("bankAccount") or {}).get("Code")
+            or (txn.get("BankAccount") or txn.get("bankAccount") or {}).get("code")
+            or ""
+        )
+        if ref == reference and txn_type == "RECEIVE" and str(b_code) == bank_code:
+            txn_id = (
+                txn.get("BankTransactionID")
+                or txn.get("bankTransactionID")
+                or txn.get("id")
+                or "FOUND"
+            )
+            logger.info("Seeded RECEIVE transaction already exists: %s", txn_id)
+            return txn_id
+    return None
 
 
 if __name__ == "__main__":

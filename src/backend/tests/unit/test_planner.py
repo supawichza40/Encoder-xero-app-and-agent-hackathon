@@ -105,8 +105,14 @@ def test_PL8_zero_refund():
     assert len(plan.steps[1].lines) == 2
 
 
-# ── PL9: Non-zero refund included in bank txn ─────────────────────────────
+# ── PL9: Non-zero refund produces 4-step plan with credit-note (E1) ───────
 def test_PL9_nonzero_refund():
+    """When refunds > 0 the planner emits 4 steps:
+    invoice → credit-note → bank-txn → payment.
+    Bank-txn amount is commission + fees only (refunds handled by credit-note).
+    """
+    from backend.models import StepKind
+
     payout = CanonicalPayout(
         payout_ref="REF",
         period="Jun",
@@ -118,9 +124,25 @@ def test_PL9_nonzero_refund():
         bookings=[],
     )
     plan = create_plan(payout)
-    assert plan.steps[2].amount == Decimal("550.00")
-    # Refund is included as a fee line
-    assert len(plan.steps[1].lines) == 3
+
+    # Must be 4 steps
+    assert len(plan.steps) == 4
+
+    # Step order: invoice → credit-note → bank-txn → payment
+    assert plan.steps[0].kind == StepKind.CREATE_INVOICE
+    assert plan.steps[1].kind == StepKind.CREATE_CREDIT_NOTE
+    assert plan.steps[2].kind == StepKind.CREATE_BANK_TRANSACTION
+    assert plan.steps[3].kind == StepKind.CREATE_PAYMENT
+
+    # Credit-note carries refund amount
+    assert plan.steps[1].amount == Decimal("100.00")
+
+    # Bank-txn is commission + fees only (NOT including refunds)
+    assert plan.steps[2].amount == Decimal("350.00")
+    assert len(plan.steps[2].lines) == 2  # commission + fees, no refund line
+
+    # Payment carries net
+    assert plan.steps[3].amount == Decimal("550.00")
 
 
 # ── PL10: Planner refuses when invariant is broken ────────────────────────

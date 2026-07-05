@@ -42,6 +42,7 @@ class CanonicalPayout(BaseModel):
 
 class StepKind(str, Enum):
     CREATE_INVOICE = "create-invoice"
+    CREATE_CREDIT_NOTE = "create-credit-note"   # E1: refund step
     CREATE_BANK_TRANSACTION = "create-bank-transaction"
     CREATE_PAYMENT = "create-payment"
 
@@ -87,17 +88,25 @@ class StepResult(BaseModel):
     message: str | None = None
 
 
+class AttachmentResult(BaseModel):
+    invoice_id: str
+    filename: str
+    status: str   # "success" | "failed"
+
+
 class ApprovalResponse(BaseModel):
     file_hash: str
     results: list[StepResult]
     clearing_balance: Decimal
     verified: bool  # True when clearing_balance == 0.00
+    attachment: AttachmentResult | None = None
 
 
 class StatusResponse(BaseModel):
     file_hash: str
     completed_steps: list[str]
     invoice_id: str | None = None
+    credit_note_id: str | None = None   # E1
     bank_txn_id: str | None = None
     payment_id: str | None = None
     clearing_balance: Decimal | None = None
@@ -124,3 +133,44 @@ class HealthResponse(BaseModel):
     status: str
     xero_connected: bool
     organisation: str | None = None
+
+
+# ── Dashboard / VAT models (E4, E5) ───────────────────────────────────────
+
+class TrialBalanceEntry(BaseModel):
+    account: str
+    balance: str
+
+
+class AgedReceivableEntry(BaseModel):
+    contact: str
+    outstanding: str
+
+
+class RecentPayout(BaseModel):
+    file_hash: str
+    completed_steps: list[str]
+    clearing_balance: str | None = None
+
+
+class DashboardResponse(BaseModel):
+    trial_balance: dict[str, str]
+    aged_receivables: list[AgedReceivableEntry]
+    balance_sheet: dict[str, str]
+    recent_payouts: list[RecentPayout]
+    fetched_at: str
+    source: str   # "xero" | "degraded"
+
+
+class VatRateEntry(BaseModel):
+    name: str
+    rate: str
+
+
+class VatCheckResponse(BaseModel):
+    org_rates: list[VatRateEntry]
+    golden_path_tax_type: str
+    consistent: bool
+    note: str
+    fetched_at: str
+    source: str   # "xero" | "degraded"
