@@ -33,9 +33,11 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, Response
 
 from . import audit as audit_module
 from . import idempotency as idem
+from . import audit_export as export_mod
 from .config import (
     ALLOW_SEED,
     CLEARING_ACCOUNT_CODE,
@@ -67,6 +69,7 @@ from .models import (
 from .parser import parse_payout_csv
 from .planner import create_plan
 from .xero_client import XeroClient, XeroMCPError
+from .dashboard_metrics import compute_persona_metrics, compute_run_history
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +179,9 @@ async def propose(file: UploadFile):
         completed = existing.get("completed_steps", [])
         expected_kinds = [s.kind.value for s in plan.steps]
         if all(k in completed for k in expected_kinds):
+            audit_module.append_entry(
+                file_hash=file_hash, action="skipped-idempotent", request={}, xero_id=None, status="success",
+            )
             return ProposalResponse(
                 status=ProposalStatus.ALREADY_POSTED,
                 file_hash=file_hash,
@@ -499,6 +505,8 @@ async def dashboard():
     ]
 
     recent_payouts = _build_recent_payouts()
+    persona_metrics = compute_persona_metrics(Path(STATE_DIR))
+    run_history = compute_run_history(Path(STATE_DIR))
 
     data = DashboardResponse(
         trial_balance=trial_balance,
@@ -507,6 +515,8 @@ async def dashboard():
         recent_payouts=recent_payouts,
         fetched_at=datetime.now(timezone.utc).isoformat(),
         source="xero",
+        persona_metrics=persona_metrics,
+        run_history=run_history,
     )
     _dashboard_cache = (data, time.time())
     return data
@@ -529,6 +539,8 @@ def _degraded_dashboard() -> DashboardResponse:
         recent_payouts=_build_recent_payouts(),
         fetched_at=datetime.now(timezone.utc).isoformat(),
         source="degraded",
+        persona_metrics=compute_persona_metrics(Path(STATE_DIR)),
+        run_history=compute_run_history(Path(STATE_DIR)),
     )
 
 

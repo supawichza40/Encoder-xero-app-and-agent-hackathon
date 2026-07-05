@@ -153,6 +153,32 @@ class RecentPayout(BaseModel):
     clearing_balance: str | None = None
 
 
+class NewVsRepeatBucket(BaseModel):
+    count: int
+    commission: str
+
+
+class NewVsRepeat(BaseModel):
+    new: NewVsRepeatBucket
+    repeat: NewVsRepeatBucket
+
+
+class PersonaMetrics(BaseModel):
+    fees_this_month: str
+    gross_turnover_vat_safe: str
+    ytd_income: str
+    ytd_deductible_fees: str
+    new_vs_repeat: NewVsRepeat
+
+
+class RunHistoryEntry(BaseModel):
+    hash: str
+    status: str  # "posted" | "failed" | "skipped-idempotent" | "partial"
+    payout_ref: str | None = None
+    timestamp: str | None = None
+    net: str | None = None
+
+
 class DashboardResponse(BaseModel):
     trial_balance: dict[str, str]
     aged_receivables: list[AgedReceivableEntry]
@@ -160,6 +186,8 @@ class DashboardResponse(BaseModel):
     recent_payouts: list[RecentPayout]
     fetched_at: str
     source: str   # "xero" | "degraded"
+    persona_metrics: PersonaMetrics | None = None
+    run_history: list[RunHistoryEntry] | None = None
 
 
 class VatRateEntry(BaseModel):
