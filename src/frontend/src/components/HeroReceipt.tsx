@@ -6,10 +6,7 @@ import { Check, FileText, MinusCircle, Wallet } from "lucide-react";
  */
 export function HeroReceipt() {
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none relative w-full max-w-md select-none"
-    >
+    <div aria-hidden className="pointer-events-none relative w-full max-w-md select-none">
       {/* soft ambient glow */}
       <div className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-white/10 blur-2xl" />
 
@@ -25,9 +22,7 @@ export function HeroReceipt() {
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-white/60">
                   Settlement
                 </p>
-                <p className="font-mono text-xs text-white/80">
-                  PAY-2087 · 04 Jul
-                </p>
+                <p className="font-mono text-xs text-white/80">PAY-2087 · 04 Jul</p>
               </div>
             </div>
             <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-300 ring-1 ring-emerald-400/30">
@@ -73,21 +68,15 @@ export function HeroReceipt() {
               <span className="grid size-6 place-items-center rounded-full bg-emerald-400/25 ring-1 ring-emerald-300/40">
                 <Check className="size-3.5 text-emerald-200" />
               </span>
-              <span className="text-xs font-medium text-emerald-100">
-                Clearing balance
-              </span>
+              <span className="text-xs font-medium text-emerald-100">Clearing balance</span>
             </div>
-            <span className="font-mono text-sm font-bold text-emerald-200 tabular-nums">
-              £0.00
-            </span>
+            <span className="font-mono text-sm font-bold text-emerald-200 tabular-nums">£0.00</span>
           </div>
 
           {/* revenue recovered badge */}
           <div className="mt-3 flex items-center justify-between text-[11px] text-white/60">
             <span>Hidden revenue recovered</span>
-            <span className="font-mono font-semibold text-white tabular-nums">
-              +£493.00
-            </span>
+            <span className="font-mono font-semibold text-white tabular-nums">+£493.00</span>
           </div>
         </div>
       </div>
@@ -125,9 +114,7 @@ function ReceiptRow({
           <p className="truncate text-[10px] text-white/50">{sub}</p>
         </div>
       </div>
-      <span
-        className={`shrink-0 font-mono text-xs font-semibold tabular-nums ${amountClass}`}
-      >
+      <span className={`shrink-0 font-mono text-xs font-semibold tabular-nums ${amountClass}`}>
         {amount}
       </span>
     </li>

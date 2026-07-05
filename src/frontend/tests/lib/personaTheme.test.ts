@@ -110,7 +110,14 @@ describe("personaTheme — PERSONA_COPY", () => {
 
 describe("personaTheme — FREELANCER_JARGON map", () => {
   it("maps every accounting term from the design spec to plain English", () => {
-    const requiredKeys = ["clearing balance", "invariant", "gross-up", "reconciled", "net", "revenue"];
+    const requiredKeys = [
+      "clearing balance",
+      "invariant",
+      "gross-up",
+      "reconciled",
+      "net",
+      "revenue",
+    ];
     for (const key of requiredKeys) {
       expect(FREELANCER_JARGON[key]).toBeTruthy();
     }

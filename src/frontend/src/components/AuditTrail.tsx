@@ -63,7 +63,10 @@ export function AuditTrail({ entries, defaultOpen = false, persona }: AuditTrail
   const [open, setOpen] = useState(defaultOpen);
   const promoted = persona === "bookkeeper";
   return (
-    <section aria-labelledby="audit-heading" className="w-full rounded-xl border border-border bg-card">
+    <section
+      aria-labelledby="audit-heading"
+      className="w-full rounded-xl border border-border bg-card"
+    >
       <div className="flex w-full items-center justify-between gap-2 p-4">
         <button
           type="button"

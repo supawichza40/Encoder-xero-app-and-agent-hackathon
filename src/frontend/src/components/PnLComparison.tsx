@@ -42,7 +42,10 @@ export function PnLComparison({ before, after, defaultOpen = true, persona }: Pn
   const heading = plain ? cap(FREELANCER_JARGON["P&L"]) : "Profit & Loss · Before vs After";
 
   return (
-    <section aria-labelledby="pnl-heading" className="w-full rounded-xl border border-border bg-card">
+    <section
+      aria-labelledby="pnl-heading"
+      className="w-full rounded-xl border border-border bg-card"
+    >
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -60,7 +63,10 @@ export function PnLComparison({ before, after, defaultOpen = true, persona }: Pn
         )}
       </button>
       {open ? (
-        <div id="pnl-panel" className="grid grid-cols-1 gap-4 border-t border-border p-4 md:grid-cols-2">
+        <div
+          id="pnl-panel"
+          className="grid grid-cols-1 gap-4 border-t border-border p-4 md:grid-cols-2"
+        >
           <PnLCard title="Before" snapshot={before} muted plain={plain} />
           <PnLCard title="After" snapshot={after} deltaFrom={before} highlight plain={plain} />
         </div>

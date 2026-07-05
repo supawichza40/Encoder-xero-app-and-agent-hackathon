@@ -32,8 +32,7 @@ function labelFor(kind: string): string {
 export function StepProgress({ results, totalSteps, steps, persona, onRetry }: StepProgressProps) {
   const total = steps?.length ?? totalSteps ?? 3;
   const labels =
-    steps?.map((s) => labelFor(s.kind)) ??
-    ["Invoice", "Fees", "Payment"].slice(0, total);
+    steps?.map((s) => labelFor(s.kind)) ?? ["Invoice", "Fees", "Payment"].slice(0, total);
   const done = results.length;
   const allDone = done >= total && results.every((r) => r.status === "success");
   const failedStep = results.find((r) => r.status === "error");
@@ -71,7 +70,8 @@ export function StepProgress({ results, totalSteps, steps, persona, onRetry }: S
                     state === "pending" && "border-border bg-muted text-muted-foreground",
                     state === "in-progress" && "border-primary bg-primary/10 text-primary",
                     state === "complete" && "border-success bg-success text-success-foreground",
-                    state === "error" && "border-destructive bg-destructive text-destructive-foreground",
+                    state === "error" &&
+                      "border-destructive bg-destructive text-destructive-foreground",
                   )}
                 >
                   {state === "in-progress" ? (
@@ -110,8 +110,12 @@ export function StepProgress({ results, totalSteps, steps, persona, onRetry }: S
           className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive-foreground"
         >
           <p>
-            {persona === "freelancer" ? "That step didn't go through: " : `Write ${failedStep.step} failed: `}
-            <span className="font-mono">{failedStep.message ?? "Unknown error — see the audit trail."}</span>
+            {persona === "freelancer"
+              ? "That step didn't go through: "
+              : `Write ${failedStep.step} failed: `}
+            <span className="font-mono">
+              {failedStep.message ?? "Unknown error — see the audit trail."}
+            </span>
           </p>
           {onRetry ? (
             <button

@@ -44,7 +44,9 @@ describe("EvidencePackCard (PRI-2)", () => {
     const { container: bookkeeperContainer } = render(
       <EvidencePackCard fileHash="h1" persona="bookkeeper" />,
     );
-    const { container: ownerContainer } = render(<EvidencePackCard fileHash="h2" persona="owner" />);
+    const { container: ownerContainer } = render(
+      <EvidencePackCard fileHash="h2" persona="owner" />,
+    );
     expect(bookkeeperContainer.querySelector("section")?.className).toMatch(/border-primary/);
     expect(ownerContainer.querySelector("section")?.className).not.toMatch(/border-primary/);
   });

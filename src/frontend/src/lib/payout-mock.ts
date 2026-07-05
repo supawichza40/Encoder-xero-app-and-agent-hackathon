@@ -609,7 +609,11 @@ export async function mockAuditExport(format: "csv" | "json" = "csv"): Promise<A
       (r) => `${r.timestamp},${r.action},${r.payout_ref},${r.xero_id},${r.status},"${r.summary}"`,
     ),
   ];
-  return delay({ content: lines.join("\n"), contentType: "text/csv", filename: "payoutbridge-audit.csv" });
+  return delay({
+    content: lines.join("\n"),
+    contentType: "text/csv",
+    filename: "payoutbridge-audit.csv",
+  });
 }
 
 // CONTRACT.md §3 — GET /evidence-pack/{hash} (PRI-2). Looks up the in-memory
