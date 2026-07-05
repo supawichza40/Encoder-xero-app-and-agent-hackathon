@@ -12,10 +12,14 @@ The core accounting invariant: `gross - commission - fees - refunds === net` (13
 
 ### Backend (Python/FastAPI)
 
+`backend` is a package (modules use relative imports), so run uvicorn from `src/` with the
+package-qualified path — `uvicorn main:app` from inside `src/backend` fails with a relative-import error.
+
 ```bash
 cd src/backend
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+cd ..                                   # back to src/
+uvicorn backend.main:app --reload --port 8000
 ```
 
 ### Frontend (React / Vite / TanStack Router / Tailwind — Bun)

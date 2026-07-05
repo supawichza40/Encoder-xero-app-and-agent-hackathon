@@ -8,3 +8,9 @@ dist/
 npm-debug.log*
 .DS_Store
 __pycache__/
+
+# backend runtime + local env
+src/backend/.venv/
+src/state/uploads/
+**/__pycache__/
+*.pyc

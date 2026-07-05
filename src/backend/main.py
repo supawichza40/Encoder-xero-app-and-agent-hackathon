@@ -370,13 +370,18 @@ async def approve(request: ApproveRequest):
             )
 
     # ── Verification read ─────────────────────────────────────────────────
+    # A failed read must never be silently reported as a passed verification —
+    # defaulting clearing_balance to 0 on error previously made `verified`
+    # evaluate True even though the balance was never actually confirmed.
     try:
         clearing_balance = await client.get_clearing_balance()
+        balance_read_succeeded = True
     except Exception as exc:
         logger.warning("Clearing balance check failed: %s", exc)
         clearing_balance = Decimal("0")
+        balance_read_succeeded = False
 
-    verified = clearing_balance == Decimal("0.00")
+    verified = balance_read_succeeded and clearing_balance == Decimal("0.00")
     idem.record_clearing_balance(file_hash, str(clearing_balance))
 
     # ── P&L AFTER snapshot ────────────────────────────────────────────────

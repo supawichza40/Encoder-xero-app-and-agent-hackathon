@@ -97,6 +97,12 @@ def api_client(mock_xero, tmp_path, monkeypatch):
     # Clear module-level proposal cache between tests
     main_mod._proposals.clear()
 
+    # Reset module-level dashboard/vat-check caches between tests (60s TTL
+    # caches live on the `backend.main` module and otherwise leak across
+    # tests since the module is only imported once per test session).
+    monkeypatch.setattr(main_mod, "_dashboard_cache", None)
+    monkeypatch.setattr(main_mod, "_vat_cache", None)
+
     from backend.main import app
 
     with TestClient(app) as client:
