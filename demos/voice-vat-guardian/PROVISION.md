@@ -2,11 +2,26 @@
 
 Recorded 2026-07-05. All ids below are non-secret. The API key is never stored here.
 
-## Status: BLOCKED at agent creation (plan limit). Everything else is built and ready.
+## Status: LIVE ✅ (resolved 2026-07-05 — see "Resolution" below)
 
-The agent could **not** be created. The account is at its plan's agent cap, and the
-guardrails forbid deleting or reusing any existing agent, so provisioning cannot proceed
-without a business decision (upgrade the plan or free a slot).
+> Historical: the original bring-up was BLOCKED at agent creation (plan limit). The
+> owner approved a two-step unblock the same day; the agent is now live. The sections
+> below are kept as the honest record of the original attempt.
+
+## Resolution (2026-07-05, owner-approved at each step)
+
+| Step | Call | Result |
+|---|---|---|
+| Delete throwaway `test` agent (owner approved) | `DELETE /agents/cmqtu6qnk00qqpc6e4gn8nauo` | **HTTP 200** — but `POST /agents` still returned 400 "Agent limit reached": the free-plan cap is **2** (the prior 3 were grandfathered), so deletion did not open a slot. |
+| Repurpose `Supavich Aussawaauschariyakul's Agent` (owner approved; original prompt+name backed up in `RESTORE-ORIGINAL-AGENT.md`) | `PATCH /workflows/cmqtu456000q7pc6eotmnt8d5` with the §2 prompt (7,417 chars) | **HTTP 200** "Workflow updated successfully". |
+| Rename agent → **"VAT Guardian — demo"** | `PATCH /agents/cmqtsuvcu008npc6e1j25ehrf` | **HTTP 200** "Agent updated successfully". |
+| Verify prompt stuck | `GET /workflows/{id}` | len 7,417; contains `[[APPROVE_CORRECTION]]` ✓ and "thirteen hundred and forty" ✓. |
+| Smoke test | `POST /agents/{id}/conversations/messages` "Hello?" (webchat, test channel) | **HTTP 201**, conversation `cmr7dm0p7000qoc6dgli5ch9t` — reply is the designed proactive Sarah warning **verbatim** (£1,340 / £847 / 37% / £90k trend, hedged). |
+
+**Live ids:** agent `cmqtsuvcu008npc6e1j25ehrf` · workflow `cmqtu456000q7pc6eotmnt8d5`.
+`export VAT_GUARDIAN_AGENT_ID=cmqtsuvcu008npc6e1j25ehrf` for `server.mjs`.
+Remaining manual step: activate **Web Voice** in the dashboard (may be Pro/Team-gated)
+and paste the client id into `config.js`. Full adversarial run: see `VERIFICATION.md`.
 
 ## Receipts (HTTP codes only — no key printed, ever)
 
