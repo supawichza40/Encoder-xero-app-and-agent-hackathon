@@ -46,7 +46,7 @@ Optional second question: **"So what would the correction actually do?"**
 
 **Expect:** books the full thirteen-forty as a sale, logs the four-ninety-three as
 costs, clears the eight-forty-seven against the deposit — clearing account back to
-zero. It will say nothing about her tax is being decided.
+zero. It will say nothing about their tax is being decided.
 
 ### Beat 3 — The hedge check (~1:00) — say this ONE, it's the trust moment
 
@@ -73,7 +73,7 @@ production that same token triggers the real Xero posting).
 
 Say: **"Thanks. Anything I should do next?"**
 
-**Expect:** suggestion to confirm the threshold picture with her accountant;
+**Expect:** suggestion to confirm the threshold picture with their accountant;
 numbers stay visible either way.
 
 Done. **~90 seconds.**
