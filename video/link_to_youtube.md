@@ -2,6 +2,6 @@
 
 Watch the demo on YouTube:
 
-**▶️ [PayoutBridge Demo Video](PASTE_YOUTUBE_LINK_HERE)**
+**▶️ [PayoutBridge Demo Video](https://youtu.be/1sMyRDWpGU8)**
 
-<!-- Replace PASTE_YOUTUBE_LINK_HERE with the YouTube URL, e.g. https://youtu.be/XXXXXXXXXXX -->
+https://youtu.be/1sMyRDWpGU8
