@@ -168,3 +168,310 @@ html.mono-light {
 @utility animate-glow-pulse {
   animation: glow-pulse 4s ease-in-out infinite;
 }
+
+/* Gentle vertical float for hero artefacts */
+@keyframes float-y {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50% { transform: translateY(-12px) rotate(-1deg); }
+}
+@utility animate-float {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+/* Expanding ring behind live/verified indicators */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@utility animate-pulse-ring {
+  animation: pulse-ring 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* Bars that grow up from the baseline when they enter the viewport */
+@keyframes bar-grow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+@utility animate-bar-grow {
+  transform-origin: bottom;
+  animation: bar-grow 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Sheen sweep across buttons on hover */
+@keyframes shimmer {
+  from { transform: translateX(-150%) skewX(-18deg); }
+  to   { transform: translateX(250%) skewX(-18deg); }
+}
+@utility animate-shimmer {
+  animation: shimmer 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@utility animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+
+@keyframes dash-draw {
+  from { stroke-dashoffset: 120; }
+  to { stroke-dashoffset: 0; }
+}
+@utility animate-dash-draw {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: dash-draw 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes subtle-tilt {
+  0%, 100% { transform: rotate(-1.5deg) translateY(0); }
+  50% { transform: rotate(-0.5deg) translateY(-8px); }
+}
+@utility animate-subtle-tilt {
+  animation: subtle-tilt 7s ease-in-out infinite;
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@utility animate-slide-in {
+  animation: slide-in-right 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes mesh-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(4%, -3%) scale(1.05); }
+  66% { transform: translate(-3%, 2%) scale(0.98); }
+}
+@utility animate-mesh-drift {
+  animation: mesh-drift 14s ease-in-out infinite;
+}
+
+@keyframes spark-draw {
+  from { stroke-dashoffset: 200; }
+  to { stroke-dashoffset: 0; }
+}
+.dashboard-sparkline polyline {
+  stroke-dasharray: 200;
+  animation: spark-draw 1.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.dashboard-sparkline-live polyline {
+  stroke-dasharray: 200;
+  animation: spark-loop 4s ease-in-out infinite;
+}
+@keyframes spark-loop {
+  0%, 100% { stroke-dashoffset: 200; opacity: 0.55; }
+  45%, 55% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes donut-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@utility animate-donut-orbit {
+  animation: donut-orbit 22s linear infinite;
+}
+@keyframes donut-orbit-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+@utility animate-donut-orbit-reverse {
+  animation: donut-orbit-reverse 16s linear infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@utility animate-breathe {
+  animation: breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes chart-scan {
+  0% { transform: translateX(-120%); opacity: 0; }
+  12% { opacity: 0.35; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+.chart-live .chart-scan-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 8% 0;
+  width: 40%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    oklch(1 0 0 / 6%),
+    oklch(1 0 0 / 12%),
+    oklch(1 0 0 / 6%),
+    transparent
+  );
+  animation: chart-scan 5.5s ease-in-out infinite;
+}
+
+@keyframes kpi-shimmer {
+  0%, 100% { background-position: 200% center; }
+  50% { background-position: -200% center; }
+}
+.kpi-live-shimmer {
+  background-image: linear-gradient(
+    105deg,
+    transparent 40%,
+    oklch(1 0 0 / 8%) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: kpi-shimmer 6s ease-in-out infinite;
+}
+
+@keyframes activity-pulse {
+  0%, 100% { border-left-color: oklch(0.723 0.19 149.579 / 30%); }
+  50% { border-left-color: oklch(0.723 0.19 149.579 / 90%); }
+}
+.activity-live-verified {
+  animation: activity-pulse 3s ease-in-out infinite;
+}
+
+@keyframes grid-pan {
+  from { background-position: 0 0; }
+  to { background-position: 32px 32px; }
+}
+.dashboard-grid-bg {
+  background-image:
+    linear-gradient(oklch(1 0 0 / 4%) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(1 0 0 / 4%) 1px, transparent 1px);
+  background-size: 32px 32px;
+  animation: grid-pan 24s linear infinite;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent);
+}
+
+@keyframes gap-fill {
+  0%, 100% { width: 42%; }
+  50% { width: 48%; }
+}
+@keyframes gap-fill-real {
+  0%, 100% { width: 100%; }
+  50% { width: 96%; }
+}
+.gap-bar-reported {
+  animation: gap-fill 4s ease-in-out infinite;
+}
+.gap-bar-real {
+  animation: gap-fill-real 4s ease-in-out infinite;
+}
+
+@keyframes insight-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.insight-rotate {
+  animation: insight-in 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes upload-ring {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.723 0.19 149.579 / 0.35); }
+  50% { box-shadow: 0 0 0 10px oklch(0.723 0.19 149.579 / 0); }
+}
+.upload-pulse-ring {
+  animation: upload-ring 2.8s ease-out infinite;
+}
+
+@utility dashboard-kpi {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 450ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 450ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 450ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dashboard-kpi::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 450ms ease;
+  pointer-events: none;
+}
+.dashboard-kpi:hover {
+  transform: translateY(-6px);
+}
+.dashboard-kpi:hover::before {
+  opacity: 1;
+}
+.dashboard-kpi-blue::before { background: radial-gradient(circle at 80% 20%, oklch(0.623 0.214 259.815 / 18%), transparent 55%); }
+.dashboard-kpi-blue:hover { box-shadow: 0 24px 48px -20px oklch(0.623 0.214 259.815 / 45%); }
+.dashboard-kpi-amber::before { background: radial-gradient(circle at 80% 20%, oklch(0.769 0.188 70.08 / 18%), transparent 55%); }
+.dashboard-kpi-amber:hover { box-shadow: 0 24px 48px -20px oklch(0.769 0.188 70.08 / 40%); }
+.dashboard-kpi-violet::before { background: radial-gradient(circle at 80% 20%, oklch(0.606 0.25 292.717 / 18%), transparent 55%); }
+.dashboard-kpi-violet:hover { box-shadow: 0 24px 48px -20px oklch(0.606 0.25 292.717 / 40%); }
+.dashboard-kpi-emerald::before { background: radial-gradient(circle at 80% 20%, oklch(0.723 0.19 149.579 / 20%), transparent 55%); }
+.dashboard-kpi-emerald:hover { box-shadow: 0 24px 48px -20px oklch(0.723 0.19 149.579 / 45%); }
+
+@utility hover-lift {
+  transition:
+    transform 400ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 400ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -24px oklch(0 0 0 / 45%);
+}
+
+@utility btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    oklch(1 0 0 / 22%) 50%,
+    transparent 65%
+  );
+  transform: translateX(-150%) skewX(-18deg);
+  pointer-events: none;
+}
+.btn-shimmer:hover::after {
+  animation: shimmer 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scroll-reveal helper — <Reveal> toggles .revealed; stagger with --reveal-delay */
+.reveal-init {
+  opacity: 0;
+  transform: translateY(24px);
+  filter: blur(4px);
+  transition:
+    opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform, filter;
+}
+.reveal-init.revealed {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.reveal-init .animate-bar-grow {
+  animation: none;
+  transform: scaleY(0);
+}
+.reveal-init.revealed .animate-bar-grow {
+  animation: bar-grow 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal-init { opacity: 1; transform: none; filter: none; }
+}

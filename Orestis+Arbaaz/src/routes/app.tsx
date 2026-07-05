@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Reveal } from "@/components/motion";
 import { Navbar } from "@/components/Navbar";
 
 import { usePayoutBridge } from "@/lib/usePayoutBridge";
@@ -98,16 +99,20 @@ function Index() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 gap-6 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[260px_1fr]">
-        <div className="lg:sticky lg:top-6 lg:self-start">
+      <main className="relative mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 gap-6 overflow-hidden px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[260px_1fr]">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-0 top-1/3 h-64 w-64 rounded-full bg-primary/8 blur-3xl animate-glow-pulse"
+        />
+        <Reveal className="lg:sticky lg:top-6 lg:self-start" delay={0}>
           <InvoiceHistory
             selectedId={selected?.id ?? null}
             onSelect={(e) => setSelected(e)}
           />
-        </div>
+        </Reveal>
 
         <div className="flex flex-col gap-6">
-          <header className="flex flex-col gap-3">
+          <Reveal as="header" className="flex flex-col gap-3" delay={80}>
             <Link
               to="/"
               className="w-fit text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
@@ -120,9 +125,10 @@ function Index() {
             <p className="text-sm text-muted-foreground sm:text-base">
               Your bank feed has been lying about your turnover.
             </p>
-          </header>
+          </Reveal>
 
           {selected ? (
+            <Reveal delay={120}>
             <InvoiceDetails
               fileName={selected.fileName}
               uploadedAt={selected.uploadedAt}
@@ -130,8 +136,10 @@ function Index() {
               onClose={() => setSelected(null)}
               attachment={bridge.approval?.attachment ?? null}
             />
+            </Reveal>
           ) : (
             <>
+              <Reveal delay={140}>
               <FileUpload
                 onFileSelected={handleFile}
                 disabled={uploadDisabled}
@@ -139,12 +147,15 @@ function Index() {
                 error={bridge.phase === "error" ? bridge.error : null}
                 compact={Boolean(bridge.proposal)}
               />
+              </Reveal>
 
               {bridge.phase === "idempotent" && bridge.proposal?.existing_ids ? (
+                <Reveal delay={160}>
                 <IdempotencyBanner
                   existingIds={bridge.proposal.existing_ids}
                   onReset={bridge.reset}
                 />
+                </Reveal>
               ) : null}
 
               {(bridge.phase === "proposed" ||
@@ -152,6 +163,7 @@ function Index() {
                 bridge.phase === "verified") &&
               bridge.proposal &&
               bridge.proposal.plan ? (
+                <Reveal delay={180}>
                 <ApprovalDrawer
                   payout={bridge.proposal.payout}
                   plan={bridge.proposal.plan}
@@ -162,16 +174,19 @@ function Index() {
                   approved={bridge.phase === "verified"}
                   headingLabel={approvalHeading}
                 />
+                </Reveal>
               ) : null}
 
               {(bridge.phase === "approving" ||
                 bridge.phase === "verified" ||
                 bridge.phase === "partial_error") &&
               bridge.approval ? (
-                <StepProgress
-                  results={bridge.approval.results}
-                  steps={bridge.proposal?.plan?.steps}
-                />
+                <Reveal delay={220}>
+                  <StepProgress
+                    results={bridge.approval.results}
+                    steps={bridge.proposal?.plan?.steps}
+                  />
+                </Reveal>
               ) : null}
 
               {bridge.phase === "partial_error" && bridge.error ? (
@@ -185,6 +200,7 @@ function Index() {
 
               {bridge.phase === "verified" && bridge.approval ? (
                 <>
+                  <Reveal delay={260}>
                   <div ref={clearingRef}>
                     <ClearingReconciliation
                       gross={bridge.proposal!.payout.gross}
@@ -194,8 +210,13 @@ function Index() {
                       verified={bridge.approval.verified}
                     />
                   </div>
-                  <PnLComparison before={bridge.pnl?.before ?? null} after={bridge.pnl?.after ?? null} />
-                  <AuditTrail entries={bridge.audit} defaultOpen={persona === "bookkeeper"} />
+                  </Reveal>
+                  <Reveal delay={300}>
+                    <PnLComparison before={bridge.pnl?.before ?? null} after={bridge.pnl?.after ?? null} />
+                  </Reveal>
+                  <Reveal delay={340}>
+                    <AuditTrail entries={bridge.audit} defaultOpen={persona === "bookkeeper"} />
+                  </Reveal>
                   {bridge.approval.attachment && bridge.approval.attachment.status === "success" ? (
                     <p className="inline-flex items-center gap-1.5 self-start rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-500">
                       📎 Source CSV attached to invoice {bridge.approval.attachment.invoice_id}
