@@ -18,13 +18,17 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-### Frontend (React/Vite/Tailwind)
+### Frontend (React / Vite / TanStack Router / Tailwind — Bun)
+
+Built with Lovable; package manager is **Bun** (`bun.lock`). A `package-lock.json` also exists, so `npm` works as a fallback.
 
 ```bash
 cd src/frontend
-npm install
-npm run dev          # Vite dev server with proxy to :8000
-npm run build        # production build
+bun install
+bun dev              # vite dev server (talks to backend at VITE_API_URL, default :8000)
+bun run build        # production build (vite build)
+bun run preview      # preview the production build
+bun run lint         # eslint
 ```
 
 ### Root-level (legacy TypeScript scaffold — not the main app)
@@ -55,10 +59,11 @@ pytest tests/integration/ -m live  # Tier 3: live Xero (manual only)
 pytest -k "test_parser"       # single test file/pattern
 
 # Frontend
-cd src/frontend
-npx vitest                     # all tests
-npx vitest run                 # CI mode (no watch)
-npx vitest src/components/FileUpload.test.tsx  # single file
+# No automated test runner is wired yet (the Lovable app has no vitest config).
+# The frontend runs against a built-in mock layer by default (src/lib/payout-mock.ts):
+#   bun dev                       # opens with mock data, no backend needed
+#   open the app with ?mock=0     # hit the real backend at VITE_API_URL instead
+# tests/mocks/data.ts holds shared fixtures for when a vitest suite is added.
 ```
 
 ## Architecture
@@ -77,7 +82,7 @@ Two independent codebases under `src/`:
 - `models.py` — Pydantic models (`CanonicalPayout`, `JournalPlan`, etc.)
 - `config.py` — env vars and constants
 
-**Frontend** (`src/frontend/`) — React 18+ / Vite / Tailwind / TypeScript. Key pieces:
+**Frontend** (`src/frontend/`) — React / Vite / TanStack Router / Tailwind / TypeScript, built with Lovable and run with Bun. Routes live in `src/routes/` (`index.tsx` landing+dashboard, `app.tsx` golden path, `chat.tsx` assistant); the API hook + mock layer are in `src/lib/` (`usePayoutBridge.ts`, `payout-mock.ts`, `payout-types.ts`). Key pieces:
 
 - `src/hooks/usePayoutBridge.ts` — central state machine hook (IDLE → UPLOADING → PROPOSED → APPROVING → VERIFIED)
 - `src/components/` — 7 components: FileUpload, ApprovalDrawer, ClearingReconciliation, PnLComparison, StepProgress, AuditTrail, IdempotencyBanner
