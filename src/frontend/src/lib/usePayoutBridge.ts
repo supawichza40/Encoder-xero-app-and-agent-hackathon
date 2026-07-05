@@ -141,18 +141,8 @@ export function usePayoutBridge(): PayoutBridgeApi {
   }, [proposal]);
 
   const fetchPnl = useCallback(async () => {
-    try {
-      if (isMockEnabled()) {
-        setPnl(await mockPnl());
-        return;
-      }
-      const res = await fetch(`${API_BASE}/pnl`);
-      if (!res.ok) return;
-      const data = (await res.json()) as PnLResponse;
-      setPnl(data);
-    } catch {
-      /* non-fatal */
-    }
+    const data = await fetchPnlSnapshot();
+    if (data) setPnl(data);
   }, []);
 
   const approve = useCallback(async () => {
@@ -286,6 +276,19 @@ export async function fetchDashboard(): Promise<DashboardResponse | null> {
     const res = await fetch(`${API_BASE}/dashboard`);
     if (!res.ok) return null;
     return normalizeDashboard((await res.json()) as RawDashboard);
+  } catch {
+    return null;
+  }
+}
+
+/** Standalone /pnl fetch — reused by usePayoutBridge() and by the chatbot's
+ * data-aware system prompt, so both read the identical mock/live source. */
+export async function fetchPnlSnapshot(): Promise<PnLResponse | null> {
+  try {
+    if (isMockEnabled()) return await mockPnl();
+    const res = await fetch(`${API_BASE}/pnl`);
+    if (!res.ok) return null;
+    return (await res.json()) as PnLResponse;
   } catch {
     return null;
   }

@@ -11,7 +11,22 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 const basePath = process.env.PUBLIC_BASE_PATH || "/";
 
 export default defineConfig({
-  vite: { base: basePath },
+  vite: {
+    base: basePath,
+    // Dev-only proxy so the chatbot (src/lib/ollama.ts) can call Ollama Cloud
+    // same-origin — the browser can never reach ollama.com directly (no CORS
+    // support, probe-verified in PREFLIGHT.md §9). Stripped by the Lovable
+    // sandbox wrapper (isSandboxEnvironment()) but active for local `bun dev`.
+    server: {
+      proxy: {
+        "/api/ollama": {
+          target: "https://ollama.com",
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/api\/ollama/, ""),
+        },
+      },
+    },
+  },
   // Disable the Cloudflare-worker nitro preset for the static Demo build. It relocates the
   // server bundle to .output/server, which breaks SPA prerender (it expects dist/server/server.js).
   // With nitro off, TanStack Start uses its native output layout and prerenders the shell cleanly.

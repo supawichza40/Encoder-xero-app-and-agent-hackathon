@@ -56,6 +56,13 @@ PUBLIC_BASE_PATH="/Encoder-xero-app-and-agent-hackathon/" bun run build
 (`src/lib/payout-mock.ts`) unless `VITE_API_URL`/`VITE_PAYOUTBRIDGE_MOCK=0`/`?mock=0`
 points it at a live backend, and it auto-falls-back to Demo if `/health` is unreachable.
 
+**Chatbot LLM keys:** the assistant (see `PREFLIGHT.md` §9) reads
+`VITE_OLLAMA_API_KEY` / `VITE_OPENROUTER_API_KEY` at build time from the git-ignored
+`src/frontend/.env.local` (Vite loads it automatically for both `bun dev` and
+`bun run build`). Build from a machine that has that file, or the hosted chatbot
+silently degrades to the scripted offline fallback. Never commit the keys; rotate
+them after the event (they ship inside the built JS bundle by owner decision).
+
 ## 2. Backend → Render (best-effort, Docker)
 
 `src/backend/Dockerfile` bundles Python 3.12 + Node 22 (the Xero MCP server runs as an

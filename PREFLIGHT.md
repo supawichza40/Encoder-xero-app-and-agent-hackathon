@@ -71,3 +71,32 @@ violate them, do not "improve" past them, do not rebuild what already works.
 ## 8. Shared-state note
 - `docs/`, `DESIGN.md`, `PREFLIGHT.md`, `src/data/SAMPLES.md`, and the research fact sheets
   are SHARED pipeline state — not any worker's temp files. Never delete them to "clean up".
+
+## 9. Chatbot / LLM contract (added 2026-07-05, chatbot dispatch — probe-verified)
+- **Provider: Ollama Cloud** (`https://ollama.com/v1/chat/completions`, OpenAI-compatible).
+  PROBED FACTS: **no CORS support** (OPTIONS→405, no ACAO on any response) → browser can
+  NEVER call ollama.com directly. Latency: `gpt-oss:120b` 1.36s, `glm-5.2` 2.19s
+  (stream TTFB 1.46s), `qwen3.5:397b` 7.5s (rejected). `glm-5.2` returns a `reasoning`
+  field on /v1 and honors `reasoning_effort`.
+- **Transport chain (decided, user-approved):**
+  1. DEV (`import.meta.env.DEV`): Vite `server.proxy` `/api/ollama/*` → `https://ollama.com/*`
+     (same-origin from browser; key in Authorization header passes through).
+  2. HOSTED: try `https://corsproxy.io/?url=` wrap (unverified from real browser — curl got
+     CF-walled 403; short timeout, fail fast), then →
+  3. HOSTED fallback: **OpenRouter** direct — CORS PROBE-VERIFIED (OPTIONS 204, `ACAO: *`,
+     Authorization in allow-list). Free arms: fast=`openai/gpt-oss-20b:free`,
+     thinking=`openai/gpt-oss-120b:free` (+ reasoning effort). User's OR key on machine.
+  4. Everything failed → existing scripted replies + visible "offline" notice. UI never hangs.
+- **Modes:** Fast = ollama `gpt-oss:120b` / OR `gpt-oss-20b:free`. Thinking = ollama
+  `glm-5.2` `reasoning_effort:"high"` / OR `gpt-oss-120b:free`. Toggle in chat UI, persisted.
+- **Keys ship in the BUILT bundle BY EXPLICIT USER DECISION** (hackathon demo; user rotates
+  both keys after event) but are NEVER committed to source: env-only
+  (`VITE_OLLAMA_API_KEY` / `VITE_OPENROUTER_API_KEY`), loaded from git-ignored
+  `src/frontend/.env.local` for dev and Pages builds (see docs/DEPLOY.md). A missing key
+  disables that provider's endpoints; the chain falls through to the scripted fallback.
+- **Data-awareness:** system prompt assembled per message from live app state — persona,
+  latest payout breakdown (gross/commission/fees/net), VAT check result, P&L before/after,
+  step/audit status. Numbers come FROM STATE, never hardcoded in the prompt template.
+- **Streaming SSE** rendered incrementally; `reasoning`/`reasoning_content` deltas shown as
+  a collapsed "Thinking…" affordance, never dumped into the answer bubble.
+- **Lovable rule: NEVER move/rename existing files under `src/frontend/`.** New files OK.
