@@ -1,5 +1,9 @@
 # PayoutBridge
 
+[![Demo Video](https://img.shields.io/badge/YouTube-Demo%20Video-red?logo=youtube&logoColor=white&style=for-the-badge)](https://youtu.be/1sMyRDWpGU8)
+
+[![Watch the PayoutBridge demo](https://img.youtube.com/vi/1sMyRDWpGU8/maxresdefault.jpg)](https://youtu.be/1sMyRDWpGU8)
+
 > **▶️ Demo video: https://youtu.be/1sMyRDWpGU8**
 >
 > If you arrived here from a broken `/video/link_to_youtube.md` link in our submission, the file lives at [video/link_to_youtube.md](video/link_to_youtube.md) — and the video itself is the YouTube link above.

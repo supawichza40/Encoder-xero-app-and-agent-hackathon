@@ -1215,6 +1215,17 @@ function SignedOutHome() {
               className="animate-fade-up flex flex-wrap items-center gap-3"
               style={{ animationDelay: "400ms" }}
             >
+              <a
+                href="https://youtu.be/1sMyRDWpGU8"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-shimmer group inline-flex items-center gap-2.5 rounded-full bg-[#FF0000] px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-blue-950/30 ring-1 ring-white/40 transition-transform hover:scale-[1.03] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" className="size-5" aria-hidden>
+                  <path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5A3.02 3.02 0 0 0 .5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 0 0 2.12 2.14c1.88.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 0 0 2.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81zM9.55 15.57V8.43L15.82 12l-6.27 3.57z" />
+                </svg>
+                Demo video
+              </a>
               <button
                 type="button"
                 onClick={() => openAuthDialog("signup")}
