@@ -25,8 +25,7 @@ import {
   type Persona,
 } from "@/lib/useDemoAuth";
 import { useTheme } from "@/lib/useTheme";
-import { fetchHealth, type HealthResponse } from "@/lib/usePayoutBridge";
-import { isMockEnabled } from "@/lib/payout-mock";
+import { useDataMode } from "@/lib/useDataMode";
 
 export function Navbar() {
   const { user, login, logout, setPersona } = useDemoAuth();
@@ -36,19 +35,14 @@ export function Navbar() {
   const [authMode, setAuthMode] = useState<AuthDialog | null>(null);
   const [nameInput, setNameInput] = useState("");
   const [signupPersona, setSignupPersona] = useState<Persona>("owner");
-  const [health, setHealth] = useState<HealthResponse | null>(null);
   const [personaOpen, setPersonaOpen] = useState(false);
-  const mock = isMockEnabled();
+  const { mock, fallback, health, setMode } = useDataMode();
 
   const openAuth = useCallback((detail: AuthOpenDetail) => {
     setAuthMode(detail.kind);
     if (detail.persona) setSignupPersona(detail.persona);
   }, []);
   useAuthDialogRequests(openAuth);
-
-  useEffect(() => {
-    void fetchHealth().then(setHealth);
-  }, []);
 
   return (
     <>
@@ -64,26 +58,60 @@ export function Navbar() {
             Payout<span className="bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">Bridge</span>
           </Link>
 
-          {/* Status badges */}
-          <div className="hidden items-center gap-2 md:flex">
-            {health?.xero_connected ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-500">
-                <span className="size-1.5 rounded-full bg-emerald-500" /> Xero · {health.organisation} ✓
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-500">
-                <span className="size-1.5 rounded-full bg-amber-500" /> Xero offline
-              </span>
-            )}
-            <span
-              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
-                mock
-                  ? "border-blue-500/30 bg-blue-500/10 text-blue-500"
-                  : "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
-              }`}
-            >
-              {mock ? "Demo data" : "Live"}
+          {/* Status badges + Real/Demo data-source toggle */}
+          <div className="flex items-center gap-2">
+            <span className="hidden md:inline-flex">
+              {health?.xero_connected ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-500">
+                  <span className="size-1.5 rounded-full bg-emerald-500" /> Xero · {health.organisation} ✓
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-500">
+                  <span className="size-1.5 rounded-full bg-amber-500" /> Xero offline
+                </span>
+              )}
             </span>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!mock}
+              aria-label={mock ? "Data source: Demo. Switch to Live" : "Data source: Live. Switch to Demo"}
+              title={
+                fallback
+                  ? "Backend unreachable — auto-fell-back to Demo data"
+                  : mock
+                    ? "Showing Demo data. Click for Live (real backend)"
+                    : "Showing Live data. Click for Demo"
+              }
+              onClick={() => setMode(!mock)}
+              className="relative inline-flex h-7 select-none items-center rounded-full border border-border bg-card p-0.5 text-[11px] font-semibold transition-colors duration-200 hover:bg-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <span
+                aria-hidden
+                className={`absolute inset-y-0.5 left-0.5 w-[calc(50%-2px)] rounded-full border transition-transform duration-200 ease-out ${
+                  mock
+                    ? "translate-x-0 border-blue-500/40 bg-blue-500/15"
+                    : "translate-x-full border-emerald-500/40 bg-emerald-500/15"
+                }`}
+              />
+              <span className={`relative z-10 px-2.5 transition-colors duration-200 ${mock ? "text-blue-500" : "text-muted-foreground"}`}>
+                Demo
+              </span>
+              <span className={`relative z-10 inline-flex items-center gap-1 px-2.5 transition-colors duration-200 ${!mock ? "text-emerald-500" : "text-muted-foreground"}`}>
+                <span
+                  aria-hidden
+                  className={`size-1.5 rounded-full ${!mock ? "bg-emerald-500" : "bg-muted-foreground/50"}`}
+                />
+                Live
+              </span>
+            </button>
+
+            {fallback ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-500">
+                <span className="size-1.5 rounded-full bg-amber-500" aria-hidden /> Demo data · backend offline
+              </span>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2">

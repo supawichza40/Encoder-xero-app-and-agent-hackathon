@@ -18,6 +18,7 @@ import {
   type HistoryEntry,
 } from "@/components/InvoiceHistory";
 import { InvoiceDetails } from "@/components/InvoiceDetails";
+import { makeSampleFile } from "@/lib/sample-csv";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
@@ -82,21 +83,18 @@ function Index() {
   };
 
   const loadSample = (kind: "golden" | "refund") => {
-    const name = kind === "refund" ? "MC-Payout-2107-refunds.csv" : "MC-Payout-0407.csv";
-    // Synthesise a File so the mock proposer routes on filename.
-    const f = new File([`sample:${name}`], name, { type: "text/csv" });
-    handleFile(f);
+    // Real CSV bytes (fixture copies) so Live mode's /propose parses them;
+    // the Demo-mode mock still routes on the filename.
+    handleFile(makeSampleFile(kind));
   };
 
   const reuploadLast = () => {
     const f = lastFileRef.current;
     if (!f) return;
-    // Re-instantiate with the same name/size/lastModified for identical hash.
-    const clone = new File([`sample:${f.name}`], f.name, {
-      type: f.type || "text/csv",
-      lastModified: f.lastModified,
-    });
-    handleFile(clone);
+    // Re-submit the ORIGINAL File object: identical bytes give the same
+    // sha256 in Live mode and the same name/size/lastModified mock hash in
+    // Demo mode — both are required for the idempotency showcase.
+    handleFile(f);
   };
 
   const uploadDisabled =
@@ -183,7 +181,7 @@ function Index() {
                       type="button"
                       onClick={() => loadSample("golden")}
                       disabled={uploadDisabled}
-                      className="inline-flex items-center gap-2 rounded-md border border-blue-500/40 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-500 transition-colors hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="inline-flex items-center gap-2 rounded-md border border-blue-500/40 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-500 transition-[color,background-color,transform] duration-150 hover:bg-blue-500/20 active:scale-95 disabled:active:scale-100 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       MarketplaceCo payout · 3 writes
                     </button>
@@ -191,7 +189,7 @@ function Index() {
                       type="button"
                       onClick={() => loadSample("refund")}
                       disabled={uploadDisabled}
-                      className="inline-flex items-center gap-2 rounded-md border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-500 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="inline-flex items-center gap-2 rounded-md border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-500 transition-[color,background-color,transform] duration-150 hover:bg-rose-500/20 active:scale-95 disabled:active:scale-100 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       Payout with refunds · 4 writes
                     </button>
@@ -200,7 +198,7 @@ function Index() {
                         type="button"
                         onClick={reuploadLast}
                         disabled={uploadDisabled}
-                        className="inline-flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-500 transition-colors hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="inline-flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-500 transition-[color,background-color,transform] duration-150 hover:bg-amber-500/20 active:scale-95 disabled:active:scale-100 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         Re-upload last file (idempotent)
                       </button>

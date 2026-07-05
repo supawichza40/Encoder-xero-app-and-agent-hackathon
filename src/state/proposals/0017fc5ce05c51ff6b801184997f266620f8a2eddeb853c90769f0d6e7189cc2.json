@@ -1,0 +1,100 @@
+{
+  "payout": {
+    "payout_ref": "MC-PAYOUT-0921",
+    "period": "1-15 Sep 2026",
+    "gross": "900.00",
+    "commission": "280.00",
+    "fees": "35.00",
+    "refunds": "45.00",
+    "net": "540.00",
+    "bookings": [
+      {
+        "date": "2026-09-01",
+        "client": "Client A",
+        "client_type": "New",
+        "service": "Cut & Colour",
+        "gross_amount": "200.00",
+        "commission_rate": "35%",
+        "commission": "70.00"
+      },
+      {
+        "date": "2026-09-02",
+        "client": "Client B",
+        "client_type": "New",
+        "service": "Full Head Highlights",
+        "gross_amount": "220.00",
+        "commission_rate": "35%",
+        "commission": "77.00"
+      },
+      {
+        "date": "2026-09-03",
+        "client": "Client C",
+        "client_type": "New",
+        "service": "Balayage",
+        "gross_amount": "180.00",
+        "commission_rate": "35%",
+        "commission": "63.00"
+      },
+      {
+        "date": "2026-09-04",
+        "client": "Client D",
+        "client_type": "New",
+        "service": "Colour Correction",
+        "gross_amount": "200.00",
+        "commission_rate": "35%",
+        "commission": "70.00"
+      },
+      {
+        "date": "2026-09-05",
+        "client": "Client E",
+        "client_type": "Repeat",
+        "service": "Blow Dry",
+        "gross_amount": "100.00",
+        "commission_rate": "0%",
+        "commission": "0.00"
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      {
+        "kind": "create-invoice",
+        "amount": "900.00",
+        "account": "Platform Clearing",
+        "lines": null,
+        "clears": null
+      },
+      {
+        "kind": "create-credit-note",
+        "amount": "45.00",
+        "account": "Platform Clearing",
+        "lines": null,
+        "clears": null
+      },
+      {
+        "kind": "create-bank-transaction",
+        "amount": "315.00",
+        "account": "Platform Clearing",
+        "lines": [
+          {
+            "description": "New-client commission",
+            "amount": "280.00"
+          },
+          {
+            "description": "Prepayment fees",
+            "amount": "35.00"
+          }
+        ],
+        "clears": null
+      },
+      {
+        "kind": "create-payment",
+        "amount": "540.00",
+        "account": null,
+        "lines": null,
+        "clears": "MC-PAYOUT-0921"
+      }
+    ],
+    "invariant_check": true
+  }
+}

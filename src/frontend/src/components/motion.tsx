@@ -18,12 +18,16 @@ export function Reveal({
   delay = 0,
   className,
   as: Tag = "div",
+  id,
+  "aria-labelledby": ariaLabelledBy,
 }: {
   children: ReactNode;
   /** stagger offset in ms */
   delay?: number;
   className?: string;
   as?: "div" | "section" | "li" | "span" | "header";
+  id?: string;
+  "aria-labelledby"?: string;
 }) {
   const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(false);
@@ -52,6 +56,8 @@ export function Reveal({
     <Tag
       // biome-ignore lint/suspicious/noExplicitAny: polymorphic ref
       ref={ref as any}
+      id={id}
+      aria-labelledby={ariaLabelledBy}
       className={cn("reveal-init", visible && "revealed", className)}
       style={{ "--reveal-delay": `${delay}ms` } as CSSProperties}
     >
@@ -82,10 +88,17 @@ export function CountUp({
   const ref = useRef<HTMLSpanElement>(null);
   const [display, setDisplay] = useState(0);
   const startedRef = useRef(false);
+  const reduced = usePrefersReducedMotion();
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // Reduced motion: snap straight to the final value, no rAF loop.
+    if (reduced) {
+      setDisplay(value);
+      return;
+    }
 
     const run = () => {
       if (startedRef.current) return;
@@ -114,7 +127,7 @@ export function CountUp({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [value, duration]);
+  }, [value, duration, reduced]);
 
   return (
     <span ref={ref} className={cn("tabular-nums", className)}>

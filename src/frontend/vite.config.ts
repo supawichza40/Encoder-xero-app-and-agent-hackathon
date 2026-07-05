@@ -6,10 +6,23 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// Static Demo deploy (GitHub Pages): set PUBLIC_BASE_PATH to the repo subpath, e.g.
+// "/Encoder-xero-app-and-agent-hackathon/". Empty/unset keeps root base "/" for local dev.
+const basePath = process.env.PUBLIC_BASE_PATH || "/";
+
 export default defineConfig({
+  vite: { base: basePath },
+  // Disable the Cloudflare-worker nitro preset for the static Demo build. It relocates the
+  // server bundle to .output/server, which breaks SPA prerender (it expects dist/server/server.js).
+  // With nitro off, TanStack Start uses its native output layout and prerenders the shell cleanly.
+  nitro: false,
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    // SPA mode prerenders just the root shell to a static index.html so the app can be
+    // hosted as fully client-side static files (no SSR runtime needed) — Demo mode is
+    // 100% client-side mock, so this is the GitHub Pages target.
+    spa: { enabled: true },
   },
 });

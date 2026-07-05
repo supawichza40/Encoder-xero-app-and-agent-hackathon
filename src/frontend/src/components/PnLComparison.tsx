@@ -65,8 +65,13 @@ function PnLCard({
 
   const revenueDelta = deltaFrom ? delta(deltaFrom.revenue, snapshot.revenue) : null;
   const showsCommission = snapshot.commission_expense !== null;
+  // Only the "After" card is ever given a deltaFrom (the "Before" card isn't
+  // compared against anything) — gate on that so "Before" never wrongly
+  // flags its own commission line as "New".
   const commissionIsNew =
-    showsCommission && (!deltaFrom || deltaFrom.commission_expense === null);
+    showsCommission &&
+    deltaFrom !== undefined &&
+    (deltaFrom === null || deltaFrom.commission_expense === null);
 
   return (
     <div

@@ -18,10 +18,11 @@ export function FileUpload({ onFileSelected, disabled, loading, error, compact }
     (files: FileList | null) => {
       if (!files || files.length === 0) return;
       const file = files[0];
-      if (!file.name.toLowerCase().endsWith(".csv")) {
-        onFileSelected(new File([], file.name)); // parent decides — but validate here
-        return;
-      }
+      // Pass the real file through even on a bad extension — the parent's
+      // uploadFile validates the name and surfaces the error. (A previous
+      // version substituted a zero-byte File here, which defeated the
+      // parent's `file.size > 0` guard and silently let invalid files
+      // through as if they were valid CSVs.)
       onFileSelected(file);
     },
     [onFileSelected],
@@ -40,7 +41,7 @@ export function FileUpload({ onFileSelected, disabled, loading, error, compact }
           disabled={busy}
           onClick={() => !busy && inputRef.current?.click()}
           className={cn(
-            "inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/60 bg-primary/5 px-6 py-4 text-base font-medium text-primary transition-colors",
+            "inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/60 bg-primary/5 px-6 py-4 text-base font-medium text-primary transition-[color,background-color,border-color,transform] duration-150 active:scale-[0.99]",
             "hover:bg-primary/10 hover:border-primary",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             busy && "cursor-not-allowed opacity-60",
@@ -105,8 +106,9 @@ export function FileUpload({ onFileSelected, disabled, loading, error, compact }
           }
         }}
         className={cn(
-          "flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-10 text-center transition-colors outline-none",
+          "flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-10 text-center transition-[color,background-color,border-color,transform] duration-150 outline-none",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          !busy && "active:scale-[0.995]",
           dragging && !busy
             ? "border-primary bg-primary/10"
             : "border-border bg-card hover:border-primary/60",

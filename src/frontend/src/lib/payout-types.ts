@@ -73,7 +73,8 @@ export interface StepResult {
   kind: string;
   xero_id: string;
   status: "success" | "error";
-  error?: string;
+  // Backend (models.StepResult) reports step failures in `message`.
+  message?: string | null;
 }
 
 export interface ApprovalResponse {
@@ -87,29 +88,44 @@ export interface ApprovalResponse {
 export interface AttachmentResult {
   invoice_id: string;
   filename: string;
-  status: "success" | "error";
+  // Backend uses "failed" (not "error") for a failed attachment.
+  status: "success" | "error" | "failed";
 }
 
+// UI-friendly payout row. In Live mode the backend returns
+// {file_hash, completed_steps, clearing_balance} rows — usePayoutBridge
+// normalizes them into this shape (gross/net unknown → null).
 export interface DashboardPayout {
   date: string;
   source: string;
-  gross: string;
-  net: string;
+  gross: string | null;
+  net: string | null;
   status: "verified" | "idempotent";
+  file_hash?: string;
+}
+
+export interface AgedReceivable {
+  contact: string;
+  outstanding: string;
 }
 
 export interface DashboardResponse {
   trial_balance: { clearing: string; fees_expense: string; revenue: string };
-  aged_receivables: { name: string; amount: string; days: number }[];
-  balance_sheet: { assets: string; liabilities: string; equity: string };
+  aged_receivables: AgedReceivable[];
+  // Key set differs between Xero and degraded mode — treat as a string map.
+  balance_sheet: Record<string, string>;
   recent_payouts: DashboardPayout[];
   fetched_at: string;
+  source?: string; // "xero" | "degraded" | "demo"
 }
 
 export interface VatCheckResponse {
   org_rates: { name: string; rate: string }[];
   golden_path_tax_type: string;
   consistent: boolean;
+  note?: string;
+  fetched_at?: string;
+  source?: string; // "xero" | "degraded" | "demo"
 }
 
 export interface PnLSnapshot {
@@ -137,6 +153,7 @@ export interface StatusResponse {
   file_hash: string;
   completed_steps: string[];
   invoice_id: string | null;
+  credit_note_id?: string | null; // refund path (E1) only
   bank_txn_id: string | null;
   payment_id: string | null;
   clearing_balance: string | null;

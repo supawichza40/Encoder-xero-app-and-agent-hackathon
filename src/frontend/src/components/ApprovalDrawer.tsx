@@ -147,7 +147,7 @@ export function ApprovalDrawer({
           onClick={onApprove}
           disabled={disabled || loading || approved || !plan.invariant_check}
           className={cn(
-            "inline-flex w-full items-center justify-center gap-2 rounded-lg px-6 py-3 text-lg font-semibold shadow-lg transition-all",
+            "inline-flex w-full items-center justify-center gap-2 rounded-lg px-6 py-3 text-lg font-semibold shadow-lg transition-all duration-150 active:scale-[0.99] disabled:active:scale-100",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             approved
               ? "bg-emerald-600 text-white shadow-emerald-500/25"

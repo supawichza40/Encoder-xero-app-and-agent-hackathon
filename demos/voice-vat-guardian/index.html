@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VAT Guardian — PayoutBridge voice assistant</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%F0%9F%9B%A1%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%F0%9F%9B%A1%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+  <style>
+    :root{
+      --bg:#0b1120; --panel:#111a2e; --panel2:#0f1728; --line:#1e2b45;
+      --ink:#e8eef7; --muted:#9fb0c9; --teal:#14b8a6; --teal-d:#0f766e;
+      --amber:#f59e0b; --red:#ef4444; --green:#22c55e; --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+      color:var(--ink); background:
+        radial-gradient(1200px 600px at 80% -10%, rgba(20,184,166,.14), transparent 60%),
+        radial-gradient(900px 500px at 0% 110%, rgba(245,158,11,.10), transparent 55%),
+        var(--bg);
+      min-height:100vh;
+    }
+    .wrap{max-width:960px;margin:0 auto;padding:32px 20px 96px}
+    header.top{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+    .logo{width:44px;height:44px;border-radius:12px;flex:0 0 auto;
+      background:linear-gradient(135deg,var(--teal),var(--teal-d));
+      display:grid;place-items:center;font-size:22px;box-shadow:0 6px 20px rgba(20,184,166,.35)}
+    .title h1{margin:0;font-size:22px;letter-spacing:.2px}
+    .title p{margin:2px 0 0;color:var(--muted);font-size:13px}
+    .tag{margin-left:auto;font-size:12px;color:var(--muted);border:1px solid var(--line);
+      padding:6px 10px;border-radius:999px;white-space:nowrap}
+
+    .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;margin-top:22px}
+    @media (max-width:760px){.grid{grid-template-columns:1fr}}
+    .card{background:linear-gradient(180deg,var(--panel),var(--panel2));
+      border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+    .card h2{margin:0 0 14px;font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
+
+    /* Scenario numbers */
+    .scenario .rows{display:flex;flex-direction:column;gap:10px}
+    .row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+      padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid var(--line)}
+    .row .k{color:var(--muted);font-size:13px}
+    .row .v{font-variant-numeric:tabular-nums;font-weight:700;font-size:20px}
+    .row.gross .v{color:var(--ink)}
+    .row.net .v{color:var(--teal)}
+    .row.hidden{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.35)}
+    .row.hidden .v{color:var(--amber)}
+    .row.hidden .k b{color:var(--amber)}
+    .thresh{margin-top:14px;padding:12px 14px;border-radius:12px;border:1px dashed var(--line);
+      color:var(--muted);font-size:13px;line-height:1.45}
+    .thresh b{color:var(--ink)}
+
+    /* Status column */
+    .statusbox{display:flex;flex-direction:column;gap:14px}
+    .badge{display:flex;align-items:center;gap:12px;border-radius:14px;padding:16px;
+      border:1px solid var(--line);background:rgba(255,255,255,.02);transition:.35s}
+    .badge .dot{width:12px;height:12px;border-radius:50%;background:var(--muted);flex:0 0 auto;transition:.35s}
+    .badge .lbl{font-weight:600}
+    .badge .sub{color:var(--muted);font-size:12px;margin-top:2px}
+    .badge.approved{border-color:var(--green);background:rgba(34,197,94,.12);
+      box-shadow:0 0 0 1px rgba(34,197,94,.25),0 10px 30px rgba(34,197,94,.18)}
+    .badge.approved .dot{background:var(--green);box-shadow:0 0 0 6px rgba(34,197,94,.18);animation:pulse 1.6s infinite}
+    .badge.approved .lbl::after{content:" ✓";color:var(--green)}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(34,197,94,.20)}50%{box-shadow:0 0 0 10px rgba(34,197,94,0)}}
+
+    .hint{font-size:12px;color:var(--muted);min-height:16px}
+    .hint.warn{color:var(--amber)}
+
+    .btnrow{display:flex;gap:10px;flex-wrap:wrap}
+    button{font:inherit;cursor:pointer;border-radius:11px;border:1px solid var(--line);
+      background:rgba(255,255,255,.03);color:var(--ink);padding:11px 14px;transition:.15s}
+    button:hover{border-color:var(--teal);transform:translateY(-1px)}
+    button.primary{background:linear-gradient(135deg,var(--teal),var(--teal-d));border:none;color:#04211d;font-weight:700}
+    button.ghost{color:var(--muted)}
+
+    /* Panels toggled by state */
+    .panel{display:none}
+    .panel.on{display:block}
+
+    /* Setup checklist */
+    ol.check{margin:0;padding-left:18px;color:var(--muted);font-size:14px;line-height:1.7}
+    ol.check b{color:var(--ink)}
+    .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);margin-left:6px}
+
+    .callout{border-left:3px solid var(--amber);padding:10px 14px;background:rgba(245,158,11,.06);
+      border-radius:0 10px 10px 0;color:var(--ink);font-size:13px;line-height:1.5}
+    .callout.err{border-color:var(--red);background:rgba(239,68,68,.07)}
+
+    /* Offline fallback transcript */
+    .transcript{display:flex;flex-direction:column;gap:10px;margin-top:12px;max-height:320px;overflow:auto}
+    .bubble{max-width:82%;padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.45;opacity:0;transform:translateY(6px);animation:rise .4s forwards}
+    .bubble.agent{align-self:flex-start;background:rgba(20,184,166,.12);border:1px solid rgba(20,184,166,.3)}
+    .bubble.user{align-self:flex-end;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+    .bubble .who{display:block;font-size:11px;color:var(--muted);margin-bottom:3px}
+    @keyframes rise{to{opacity:1;transform:none}}
+
+    footer{margin-top:26px;color:var(--muted);font-size:12px;text-align:center}
+    .sim-note{font-size:11px;color:var(--amber);margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div class="logo">🛡️</div>
+      <div class="title">
+        <h1>VAT Guardian</h1>
+        <p>PayoutBridge voice assistant — proactive VAT-threshold warning</p>
+      </div>
+      <div class="tag">Synthetic demo · Sarah @ MarketplaceCo</div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: the scenario numbers, always visible so judges see the story -->
+      <section class="card scenario">
+        <h2>The payout that just landed</h2>
+        <div class="rows">
+          <div class="row gross"><span class="k">Gross sale</span><span class="v">£1,340.00</span></div>
+          <div class="row net"><span class="k">Net that reached her books</span><span class="v">£847.00</span></div>
+          <div class="row hidden"><span class="k"><b>Hidden</b> — commission £445.90 + fees £47.10</span><span class="v">£493.00</span></div>
+        </div>
+        <div class="thresh">
+          <b>≈ 37%</b> of the sale is invisible (£493 ÷ £1,340). VAT registration keys off
+          <b>turnover</b>, not profit — so on her recent trend Sarah could edge toward the
+          <b>£90,000</b> line within a couple of months, and her own books wouldn't show it.
+        </div>
+      </section>
+
+      <!-- RIGHT: live status + controls -->
+      <section class="card statusbox">
+        <h2>Live status</h2>
+
+        <div id="badge" class="badge">
+          <span class="dot"></span>
+          <span>
+            <span id="badgeLbl" class="lbl">Awaiting approval</span>
+            <span id="badgeSub" class="sub">Nothing posts until Sarah says yes</span>
+          </span>
+        </div>
+        <div id="hint" class="hint"></div>
+
+        <div class="btnrow">
+          <button id="startBtn" class="primary" style="display:none">Start voice session</button>
+          <button id="resetBtn" class="ghost">Reset for next run</button>
+          <button id="fallbackBtn" class="ghost">Play offline walkthrough</button>
+        </div>
+
+        <!-- SETUP STATE (shown when clientId is still the placeholder) -->
+        <div id="setupPanel" class="panel">
+          <div class="callout">One-time setup before the live voice widget appears.</div>
+          <ol class="check">
+            <li>Provision the agent: <b>run <code>./provision.sh</code></b> once a plan slot is free <span class="pill">see PROVISION.md</span></li>
+            <li>In the agent dashboard: <b>Channels → Web Voice → Activate</b> <span class="pill">Pro/Team plan</span></li>
+            <li>Copy the generated <b>client id</b> into <b>config.js</b></li>
+            <li>Reload this page — the mic button appears bottom-right</li>
+          </ol>
+          <p class="sim-note">Meanwhile the <b>offline walkthrough</b> below plays the exact golden path so you can always demo.</p>
+        </div>
+
+        <!-- ERROR / FALLBACK STATE (widget failed to load) -->
+        <div id="errorPanel" class="panel">
+          <div class="callout err">
+            The voice widget didn't load. Check the network / that the client id is active,
+            or <b>play the recorded fallback video</b> from your phone. You can also press
+            <b>Play offline walkthrough</b> to run the scripted golden path on screen.
+          </div>
+        </div>
+
+        <!-- OFFLINE WALKTHROUGH (labeled simulation) -->
+        <div id="simPanel" class="panel">
+          <div class="callout">Offline walkthrough — <b>simulated transcript, not the live agent</b>. For rehearsal / fallback only.</div>
+          <div id="transcript" class="transcript"></div>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      Human-in-the-loop by design · the correction posts only on a spoken “yes”.
+      Synthetic data — Sarah &amp; MarketplaceCo are fictional.
+    </footer>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+  (function(){
+    "use strict";
+    var CFG = (window.VAT_GUARDIAN_CONFIG || {});
+    var clientId = CFG.clientId || "";
+    var PLACEHOLDER = "PASTE_CLIENT_ID_HERE";
+    var configured = clientId && clientId !== PLACEHOLDER;
+
+    var el = function(id){ return document.getElementById(id); };
+    var badge = el("badge"), hint = el("hint");
+    var setupPanel = el("setupPanel"), errorPanel = el("errorPanel"), simPanel = el("simPanel");
+
+    function show(panel, on){ panel.classList.toggle("on", !!on); }
+    function setHint(t, warn){ hint.textContent = t || ""; hint.classList.toggle("warn", !!warn); }
+
+    var approved = false;
+    function lightBadge(){
+      approved = true;
+      badge.classList.add("approved");
+      el("badgeLbl").textContent = "Correction approved";
+      el("badgeSub").textContent = "The approval token fired — in production this triggers the Xero posting";
+    }
+    function resetBadge(){
+      approved = false;
+      badge.classList.remove("approved");
+      el("badgeLbl").textContent = "Awaiting approval";
+      el("badgeSub").textContent = "Nothing posts until Sarah says yes";
+    }
+
+    // ---- Live badge poller (best-effort; voice works even if this errors) ----
+    var pollTimer = null;
+    function pollStatus(){
+      fetch("/api/status", {cache:"no-store"})
+        .then(function(r){ if(!r.ok) throw new Error("http "+r.status); return r.json(); })
+        .then(function(j){
+          if(j && j.status === "unconfigured"){ setHint("Agent id not set — status polling idle.", true); return; }
+          if(j && (j.status === "error" || j.status === "unavailable")){ setHint("Status unavailable — voice still works.", true); return; }
+          setHint("");
+          if(j && j.approved && !approved){ lightBadge(); }
+        })
+        .catch(function(){ setHint("Status unavailable — voice still works.", true); });
+    }
+    function startPolling(){ if(!pollTimer){ pollStatus(); pollTimer = setInterval(pollStatus, 3000); } }
+
+    // ---- Load the voice widget (only with a real client id) ----
+    function loadWidget(){
+      window.BimpeAIVoiceWidgetConfig = {
+        clientId: clientId,
+        primaryColor: "#0f766e",
+        userWaveColor: "#f59e0b",
+        position: "right"
+      };
+      var loaded = false;
+      var s = document.createElement("script");
+      s.src = "https://agent.bimpe.ai/voice-widget.js";
+      s.async = true;
+      s.onload = function(){ loaded = true; setHint("Voice ready — tap the mic bottom-right, then say “Hello?”."); };
+      s.onerror = function(){ show(errorPanel, true); setHint("Voice widget failed to load.", true); };
+      document.body.appendChild(s);
+      setHint("Loading voice…");
+      // Fallback if the script never resolves
+      setTimeout(function(){ if(!loaded){ show(errorPanel, true); setHint("Voice widget slow/blocked — use the fallback.", true); } }, 10000);
+    }
+
+    // ---- Offline walkthrough (clearly labeled simulation) ----
+    var script = [
+      {who:"agent", t:"Hi Sarah, it's your PayoutBridge assistant — quick heads-up, nothing's on fire. A MarketplaceCo payout of thirteen hundred and forty pounds just landed, but only the eight hundred and forty-seven net is in your books, so about thirty-seven percent of that sale is currently invisible. On your recent trend your real turnover could edge toward the ninety-thousand line in the next couple of months. Want me to walk you through a correction that makes your real numbers show?"},
+      {who:"user",  t:"Wait — where does the four hundred and ninety-three go?"},
+      {who:"agent", t:"That's commission of four forty-five ninety plus fees of forty-seven ten — MarketplaceCo kept it before paying out, so right now both that cost and that turnover are invisible."},
+      {who:"user",  t:"Hang on — is this tax advice? Are you telling me I have to register for VAT?"},
+      {who:"agent", t:"No — I'm flagging a bookkeeping discrepancy and estimating a trend, not giving tax advice. The correction is just accurate accounting; the registration call is one to confirm with your accountant."},
+      {who:"user",  t:"Okay — yes, post it."},
+      {who:"agent", t:"Brilliant — posting the correction now, so your turnover shows the full thirteen hundred and forty and the four hundred and ninety-three is logged as costs, with the clearing back to zero.", approve:true}
+    ];
+    var simRunning = false;
+    function playSim(){
+      if(simRunning) return;
+      simRunning = true;
+      resetBadge();
+      show(simPanel, true);
+      var box = el("transcript"); box.innerHTML = "";
+      var i = 0;
+      (function next(){
+        if(i >= script.length){ simRunning = false; return; }
+        var m = script[i++];
+        var b = document.createElement("div");
+        b.className = "bubble " + m.who;
+        b.innerHTML = '<span class="who">' + (m.who === "agent" ? "VAT Guardian" : "Sarah") + '</span>' + m.t;
+        box.appendChild(b); box.scrollTop = box.scrollHeight;
+        if(m.approve){ setTimeout(lightBadge, 700); }
+        setTimeout(next, m.who === "agent" ? 3400 : 1600);
+      })();
+    }
+
+    // ---- Wire controls ----
+    el("resetBtn").addEventListener("click", function(){
+      resetBadge(); simRunning = false; el("transcript").innerHTML = "";
+      show(simPanel, false); show(errorPanel, false);
+      setHint(configured ? "Reset — start a new voice session for a fresh run." : "");
+    });
+    el("fallbackBtn").addEventListener("click", playSim);
+    el("startBtn").addEventListener("click", function(){ this.style.display="none"; loadWidget(); });
+
+    // ---- Boot: pick the state ----
+    if(configured){
+      // Live path: show a start button (mic permission is best granted on a user gesture)
+      el("startBtn").style.display = "inline-block";
+      setHint("Press “Start voice session”, allow the mic, then say “Hello?”.");
+      startPolling();
+    } else {
+      // Idle / setup state — no broken widget, just the checklist
+      show(setupPanel, true);
+      setHint("Setup incomplete — running in offline-demo mode.", true);
+      startPolling(); // harmless; server reports 'unconfigured' and the poller stays quiet
+    }
+  })();
+  </script>
+</body>
+</html>

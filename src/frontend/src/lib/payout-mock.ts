@@ -13,23 +13,83 @@ import type {
 } from "./payout-types";
 
 
-export function isMockEnabled(): boolean {
-  if (import.meta.env.VITE_PAYOUTBRIDGE_MOCK === "0") return false;
-  if (import.meta.env.VITE_PAYOUTBRIDGE_MOCK === "1") return true;
+// localStorage key for the persisted Real/Demo choice: "0" = live, "1" = demo.
+export const MOCK_STORAGE_KEY = "payoutbridge.mock";
+// sessionStorage flag set when Live was chosen but GET /health was unreachable,
+// forcing a per-tab auto-fallback to Demo without overwriting the user's choice.
+const FALLBACK_STORAGE_KEY = "payoutbridge.fallback";
+
+/**
+ * The mode the user *chose*, ignoring any health auto-fallback.
+ * Precedence: URL ?mock= → localStorage → VITE_PAYOUTBRIDGE_MOCK env → default demo.
+ * (URL/localStorage beat env so the visible navbar toggle always wins, even on a
+ * hosted build compiled with the env var baked in.)
+ */
+export function isMockChosen(): boolean {
   if (typeof window !== "undefined") {
     try {
       const url = new URL(window.location.href);
       const q = url.searchParams.get("mock");
       if (q === "0") return false;
       if (q === "1") return true;
-      const ls = window.localStorage?.getItem("payoutbridge.mock");
+      const ls = window.localStorage?.getItem(MOCK_STORAGE_KEY);
       if (ls === "0") return false;
       if (ls === "1") return true;
     } catch {
       /* fall through */
     }
   }
+  if (import.meta.env.VITE_PAYOUTBRIDGE_MOCK === "0") return false;
+  if (import.meta.env.VITE_PAYOUTBRIDGE_MOCK === "1") return true;
   return true; // default ON
+}
+
+/** True while this tab is auto-fallen-back to Demo because /health failed. */
+export function isMockFallbackActive(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.sessionStorage?.getItem(FALLBACK_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setMockFallback(active: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (active) window.sessionStorage?.setItem(FALLBACK_STORAGE_KEY, "1");
+    else window.sessionStorage?.removeItem(FALLBACK_STORAGE_KEY);
+  } catch {
+    /* storage unavailable — fallback simply won't persist across navigations */
+  }
+}
+
+/**
+ * Persist the Real/Demo choice: writes localStorage AND syncs the ?mock= URL
+ * param (URL has top precedence, so both sources must agree), and clears any
+ * active health auto-fallback so the new choice takes effect cleanly.
+ */
+export function setMockChoice(mock: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage?.setItem(MOCK_STORAGE_KEY, mock ? "1" : "0");
+  } catch {
+    /* private mode — URL param below still carries the choice */
+  }
+  setMockFallback(false);
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set("mock", mock ? "1" : "0");
+    window.history.replaceState(null, "", url.toString());
+  } catch {
+    /* non-fatal */
+  }
+}
+
+/** Effective mode: health auto-fallback (demo) overrides a Live choice. */
+export function isMockEnabled(): boolean {
+  if (isMockFallbackActive()) return true;
+  return isMockChosen();
 }
 
 
@@ -331,6 +391,7 @@ export async function mockDashboard(): Promise<DashboardResponse> {
       { date: "2026-06-20", source: "MarketplaceCo", gross: "2110.00", net: "1368.00", status: "verified" },
     ],
     fetched_at: new Date().toISOString(),
+    source: "demo",
   });
 }
 
@@ -342,6 +403,9 @@ export async function mockVatCheck(): Promise<VatCheckResponse> {
     ],
     golden_path_tax_type: "NONE",
     consistent: true,
+    note: "Rates on file: 20% (VAT on Income), No VAT. This payout posted VAT-free — consistent. Ask your accountant to confirm treatment.",
+    fetched_at: new Date().toISOString(),
+    source: "demo",
   });
 }
 

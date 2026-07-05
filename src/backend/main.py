@@ -483,13 +483,15 @@ async def dashboard():
 
     try:
         tb_raw, ar_raw, bs_raw = await _fetch_dashboard_reads(client)
+        # Extraction must stay inside the try: when the MCP server answers with
+        # an error payload the raw values are strings, and extracting from them
+        # raised AttributeError -> 500 instead of the promised degraded fallback.
+        trial_balance = client.extract_trial_balance_summary(tb_raw)
+        aged_raw = client.extract_aged_receivables_summary(ar_raw)
+        balance_sheet = client.extract_balance_sheet_summary(bs_raw)
     except Exception as exc:
         logger.warning("Dashboard Xero reads failed: %s", exc)
         return _degraded_dashboard()
-
-    trial_balance = client.extract_trial_balance_summary(tb_raw)
-    aged_raw = client.extract_aged_receivables_summary(ar_raw)
-    balance_sheet = client.extract_balance_sheet_summary(bs_raw)
 
     aged_receivables = [
         AgedReceivableEntry(contact=r["contact"], outstanding=r["outstanding"])

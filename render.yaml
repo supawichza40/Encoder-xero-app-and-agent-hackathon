@@ -1,0 +1,57 @@
+# Render Blueprint — PayoutBridge.
+# https://render.com/docs/blueprint-spec
+#
+# Deploy: Render dashboard → New → Blueprint → connect this repo → Render finds this
+# file automatically → fill in the `sync: false` env vars below → Apply.
+#
+# NOTE: the frontend's guaranteed judge URL is the static Demo build already hosted on
+# GitHub Pages (see docs/DEPLOY.md). The "frontend" service below is an optional extra
+# host for the same static build; it defaults to Demo mode (no VITE_API_URL set).
+
+services:
+  # ── Backend — FastAPI + Xero MCP subprocess (Docker: Python + Node) ───────
+  - name: payoutbridge-backend
+    type: web
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./src/backend/Dockerfile
+    dockerContext: .
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      - key: XERO_CLIENT_ID
+        sync: false
+      - key: XERO_CLIENT_SECRET
+        sync: false
+      - key: XERO_SCOPES
+        sync: false
+      - key: CORS_ALLOW_ORIGINS
+        sync: false
+      - key: ALLOW_SEED
+        value: "false"
+
+  # ── Frontend — static Vite/TanStack build (Demo mode by default) ─────────
+  - name: payoutbridge-frontend
+    type: web
+    runtime: static
+    plan: free
+    buildCommand: >-
+      cd src/frontend &&
+      curl -fsSL https://bun.sh/install | bash &&
+      export PATH="$HOME/.bun/bin:$PATH" &&
+      bun install &&
+      bun run build &&
+      cp dist/client/_shell.html dist/client/index.html &&
+      cp dist/client/_shell.html dist/client/404.html
+    staticPublishPath: ./src/frontend/dist/client
+    autoDeploy: false
+    envVars:
+      # Left unset on purpose: no VITE_API_URL means the app boots straight into
+      # Demo/mock mode (see docs/DEPLOY.md). Set this only after the backend above
+      # is deployed and you want the Real-mode toggle to reach it.
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

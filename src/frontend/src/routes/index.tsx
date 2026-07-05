@@ -125,8 +125,8 @@ function Dashboard({ user }: { user: DemoUser }) {
   ];
 
   const tickerItems = [
-    { label: "Verified", detail: "Amazon UK · £1,340 gross · £847 net", tone: "success" as const },
-    { label: "Verified", detail: "Etsy · £980 gross · £642 net", tone: "success" as const },
+    { label: "Verified", detail: "MarketplaceCo · £1,340 gross · £847 net", tone: "success" as const },
+    { label: "Verified", detail: "MarketplaceCo · £980 gross · £642 net", tone: "success" as const },
     { label: "Gap closed", detail: "+54.9% vs reported turnover", tone: "primary" as const },
     { label: "Fees visible", detail: `£${feesTotal.toLocaleString()} recovered this month`, tone: "warning" as const },
     { label: "Idempotent", detail: "Duplicate upload blocked · Jun 24", tone: "warning" as const },
@@ -375,7 +375,7 @@ function Dashboard({ user }: { user: DemoUser }) {
           <ul className="mt-4 divide-y divide-border">
             {activityRows.map((p, i) => (
               <ActivityRow
-                key={p.date}
+                key={"file_hash" in p && p.file_hash ? p.file_hash : `${p.date}-${i}`}
                 delay={i * 70}
                 liveHighlight={i === 0}
                 status={p.status}
@@ -383,7 +383,9 @@ function Dashboard({ user }: { user: DemoUser }) {
                 detail={
                   p.status === "idempotent"
                     ? `settlement-${p.date}.csv already posted`
-                    : `${p.source} · £${p.gross} gross · £${p.net} net`
+                    : p.gross != null && p.net != null
+                      ? `${p.source} · £${p.gross} gross · £${p.net} net`
+                      : `${p.source} · posted to Xero · clearing £0.00`
                 }
                 time={p.date}
               />
@@ -811,19 +813,19 @@ function SignedOutHome() {
       <div className="relative z-10 border-y border-white/10 bg-background/80 py-3 backdrop-blur-sm">
         <Marquee className="opacity-70" speed="slow">
           <span className="inline-flex items-center gap-2 px-4 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            <LiveDot tone="primary" /> Amazon UK
+            <LiveDot tone="primary" /> Marketplace settlements
           </span>
           <span className="inline-flex items-center gap-2 px-4 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            <LiveDot tone="success" /> Etsy
+            <LiveDot tone="success" /> Commission &amp; fees
           </span>
           <span className="inline-flex items-center gap-2 px-4 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            <LiveDot tone="warning" /> Shopify
+            <LiveDot tone="warning" /> Refund credits
           </span>
           <span className="inline-flex items-center gap-2 px-4 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            <LiveDot tone="primary" /> eBay
+            <LiveDot tone="primary" /> Zero-balance clearing
           </span>
           <span className="inline-flex items-center gap-2 px-4 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            <LiveDot tone="success" /> Stripe Connect
+            <LiveDot tone="success" /> Gross-up journals
           </span>
           <span className="inline-flex items-center gap-2 px-4 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
             <LiveDot tone="primary" /> Xero Demo Company

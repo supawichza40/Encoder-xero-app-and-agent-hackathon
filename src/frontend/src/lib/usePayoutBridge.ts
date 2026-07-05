@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import type {
   ApprovalResponse,
   AuditEntry,
@@ -22,8 +23,11 @@ import {
   resetMockState,
 } from "./payout-mock";
 
-export const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
+// API base honors VITE_API_URL (default local FastAPI). Trailing slash is
+// stripped so `${API_BASE}/propose` never produces a `//propose` path.
+export const API_BASE = (
+  (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000"
+).replace(/\/+$/, "");
 
 // Minimum on-screen time per step during /approve, so the pitch audience can
 // see progress even if the backend returns before the animation catches up.
@@ -95,10 +99,25 @@ export function usePayoutBridge(): PayoutBridgeApi {
         data = (await res.json()) as ProposalResponse;
       }
       setProposal(data);
-      setPhase(data.status === "already-posted" ? "idempotent" : "proposed");
+      if (data.status === "already-posted") {
+        setPhase("idempotent");
+        toast.info("Already posted — skipped (idempotent)", {
+          description: "This statement matches a prior run. No duplicate writes.",
+        });
+      } else {
+        setPhase("proposed");
+        toast.success("Proposal ready", {
+          description: `Net £${Number(data.payout.net).toLocaleString("en-GB", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })} · review before posting`,
+        });
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed");
+      const msg = e instanceof Error ? e.message : "Upload failed";
+      setError(msg);
       setPhase("error");
+      toast.error("Couldn't parse statement", { description: msg });
     }
   }, []);
 
@@ -111,6 +130,9 @@ export function usePayoutBridge(): PayoutBridgeApi {
         setAudit(data.audit_entries ?? []);
         return;
       }
+      // REGRESSION GUARD: the backend route is GET /status/{file_hash} — the
+      // hash is a PATH param, never a query string (?file_hash=). Keep the
+      // hash inside the path segment below; `?hash=` variants 404 on FastAPI.
       const res = await fetch(
         `${API_BASE}/status/${encodeURIComponent(proposal.file_hash)}`,
       );
@@ -175,15 +197,28 @@ export function usePayoutBridge(): PayoutBridgeApi {
 
       if (data.verified && data.results.every((r) => r.status === "success")) {
         setPhase("verified");
+        toast.success("Posted to Xero", {
+          description: `Clearing account reconciled · £${Number(
+            data.clearing_balance,
+          ).toLocaleString("en-GB", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`,
+        });
         void fetchPnl();
         void fetchStatus();
       } else {
         setPhase("partial_error");
         setError("One or more Xero writes failed. See step details.");
+        toast.error("A Xero write failed", {
+          description: "See the step details below to retry the failed step.",
+        });
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Approval failed");
+      const msg = e instanceof Error ? e.message : "Approval failed";
+      setError(msg);
       setPhase("partial_error");
+      toast.error("Approval failed", { description: msg });
     }
   }, [proposal, fetchPnl, fetchStatus]);
 
@@ -202,12 +237,62 @@ export function usePayoutBridge(): PayoutBridgeApi {
   };
 }
 
+// ── Live /dashboard normalization ────────────────────────────────────────────
+// The backend (models.DashboardResponse) returns rawer shapes than the UI uses:
+//   recent_payouts:   [{file_hash, completed_steps, clearing_balance}]
+//   aged_receivables: [{contact, outstanding}]
+// Normalize here so Demo and Live render through the identical UI types.
+
+interface BackendRecentPayout {
+  file_hash: string;
+  completed_steps: string[];
+  clearing_balance: string | null;
+}
+
+type RawDashboard = Omit<DashboardResponse, "recent_payouts"> & {
+  recent_payouts: (BackendRecentPayout | DashboardResponse["recent_payouts"][number])[];
+};
+
+function normalizeDashboard(raw: RawDashboard): DashboardResponse {
+  const recent_payouts = (raw.recent_payouts ?? []).map(
+    (p): DashboardResponse["recent_payouts"][number] => {
+      // Only the backend shape carries completed_steps — narrow on that.
+      if ("completed_steps" in p) {
+        const cleared =
+          p.clearing_balance == null || Number(p.clearing_balance) === 0;
+        return {
+          date: p.file_hash.slice(0, 8),
+          source: "MarketplaceCo",
+          gross: null,
+          net: null,
+          status:
+            cleared && p.completed_steps.length > 0 ? "verified" : "idempotent",
+          file_hash: p.file_hash,
+        };
+      }
+      return p;
+    },
+  );
+  return {
+    trial_balance: {
+      clearing: raw.trial_balance?.clearing ?? "0.00",
+      fees_expense: raw.trial_balance?.fees_expense ?? "0.00",
+      revenue: raw.trial_balance?.revenue ?? "0.00",
+    },
+    aged_receivables: raw.aged_receivables ?? [],
+    balance_sheet: raw.balance_sheet ?? {},
+    recent_payouts,
+    fetched_at: raw.fetched_at,
+    source: raw.source,
+  };
+}
+
 export async function fetchDashboard(): Promise<DashboardResponse | null> {
   try {
     if (isMockEnabled()) return await mockDashboard();
     const res = await fetch(`${API_BASE}/dashboard`);
     if (!res.ok) return null;
-    return (await res.json()) as DashboardResponse;
+    return normalizeDashboard((await res.json()) as RawDashboard);
   } catch {
     return null;
   }
@@ -227,13 +312,28 @@ export async function fetchVatCheck(): Promise<VatCheckResponse | null> {
 export interface HealthResponse {
   status: string;
   xero_connected: boolean;
-  organisation: string;
+  organisation: string | null; // backend sends null in degraded mode
 }
 
 export async function fetchHealth(): Promise<HealthResponse | null> {
   try {
     if (isMockEnabled()) return await mockHealth();
-    const res = await fetch(`${API_BASE}/health`);
+    return await probeRealHealth();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Probe the REAL backend /health regardless of the current mock mode — used by
+ * the Live/Demo toggle to decide auto-fallback and recovery. Short timeout so
+ * an unreachable backend degrades to Demo within a few seconds, not minutes.
+ */
+export async function probeRealHealth(timeoutMs = 3500): Promise<HealthResponse | null> {
+  try {
+    const res = await fetch(`${API_BASE}/health`, {
+      signal: AbortSignal.timeout(timeoutMs),
+    });
     if (!res.ok) return null;
     return (await res.json()) as HealthResponse;
   } catch {

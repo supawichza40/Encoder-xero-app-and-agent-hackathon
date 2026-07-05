@@ -91,7 +91,7 @@ export function Chatbot({ fullPage = false }: { fullPage?: boolean }) {
             key={p}
             type="button"
             onClick={() => void submitText(p)}
-            className="rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground transition-[color,background-color,transform] duration-150 hover:bg-muted hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {p}
           </button>

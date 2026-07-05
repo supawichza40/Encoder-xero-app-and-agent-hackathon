@@ -1,5 +1,5 @@
 """
-Tier 2 API tests: POST /approve  (AA1-AA11)
+Tier 2 API tests: POST /approve  (AA1-AA12)
 Real FastAPI TestClient, mocked XeroClient. No Xero credentials required.
 """
 
@@ -157,3 +157,27 @@ def test_AA11_non_zero_balance_not_verified(api_client, mock_xero, golden_csv):
     body = resp.json()
     assert body["verified"] is False
     assert body["clearing_balance"] == "0.01"
+
+
+# ── AA12: attach_file failure is non-fatal (E2) — approve still 200/success ─
+def test_AA12_attachment_failure_is_non_fatal(api_client, mock_xero, golden_csv):
+    """
+    attach_file raising must not fail the approve() call or any of the 3
+    Xero-write results — it is a best-effort extra, reported via the
+    `attachment` field with status="failed", not surfaced as an error.
+    """
+    mock_xero.attach_file.side_effect = Exception("attachment upload failed")
+
+    fh = _propose(api_client, golden_csv)
+    resp = _approve(api_client, fh)
+    assert resp.status_code == 200
+    body = resp.json()
+
+    assert len(body["results"]) == 3
+    for r in body["results"]:
+        assert r["status"] == "success"
+    assert body["verified"] is True
+
+    assert body["attachment"] is not None
+    assert body["attachment"]["status"] == "failed"
+    assert body["attachment"]["invoice_id"] == "INV-0042"

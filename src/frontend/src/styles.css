@@ -81,11 +81,14 @@ html.mono-dark {
   --muted-foreground: oklch(0.72 0 0);  /* mid grey */
   --accent: oklch(0.35 0 0);
   --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.55 0 0);       /* darker grey; kept desaturated */
+  /* Status colors stay saturated even in the mono theme: the zero-balance
+     verification (success) and failed writes (destructive) must read as
+     unmistakable green/red, never grey. Values match :root green-500/red-500. */
+  --destructive: oklch(0.637 0.237 25.331);   /* red-500 #ef4444 */
   --destructive-foreground: oklch(0.98 0 0);
-  --success: oklch(0.85 0 0);
+  --success: oklch(0.723 0.19 149.579);       /* green-500 #22c55e */
   --success-foreground: oklch(0.18 0 0);
-  --warning: oklch(0.75 0 0);
+  --warning: oklch(0.769 0.188 70.08);        /* amber-500 #f59e0b */
   --warning-foreground: oklch(0.18 0 0);
   --border: oklch(1 0 0 / 14%);
   --input: oklch(1 0 0 / 18%);
@@ -108,11 +111,14 @@ html.mono-light {
   --muted-foreground: oklch(0.45 0 0);  /* mid grey */
   --accent: oklch(0.94 0 0);
   --accent-foreground: oklch(0.18 0 0);
-  --destructive: oklch(0.35 0 0);
+  /* Saturated status colors on light surfaces too — success and destructive
+     were the identical grey here, making pass/fail indistinguishable by
+     color. Darker 600/700 shades hold WCAG-AA contrast on white. */
+  --destructive: oklch(0.577 0.245 27.325);   /* red-600 #dc2626 */
   --destructive-foreground: oklch(1 0 0);
-  --success: oklch(0.35 0 0);
+  --success: oklch(0.527 0.154 150.069);      /* green-700 #15803d */
   --success-foreground: oklch(1 0 0);
-  --warning: oklch(0.55 0 0);
+  --warning: oklch(0.555 0.163 48.998);       /* amber-700 #b45309 */
   --warning-foreground: oklch(1 0 0);
   --border: oklch(0 0 0 / 12%);
   --input: oklch(0 0 0 / 16%);
