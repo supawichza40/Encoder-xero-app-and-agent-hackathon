@@ -9,7 +9,7 @@ under tmp_path, mirroring the shapes produced by /propose and /approve.
 import json
 from datetime import datetime, timezone
 
-from backend.dashboard_metrics import compute_persona_metrics, compute_run_history
+from backend.dashboard_metrics import _load_proposal, compute_persona_metrics, compute_run_history
 
 
 def _seed_proposal(state_dir, file_hash, payout, step_kinds):
@@ -262,3 +262,173 @@ def test_run_history_status_skipped_idempotent(tmp_path):
     assert history is not None
     statuses = sorted(e.status for e in history if e.hash == file_hash[:12])
     assert statuses == ["posted", "skipped-idempotent"]
+
+
+# ── MED-6: repeated re-uploads of a fully-posted file must not grow run_history
+# unboundedly — only the LATEST skipped-idempotent event per hash survives ──
+
+def test_run_history_dedupes_repeated_skipped_idempotent_events(tmp_path):
+    file_hash = "7" * 64
+    payout = {"payout_ref": "MC-PAYOUT-DUP2", "net": "847.00"}
+    _seed_proposal(tmp_path, file_hash, payout, _STEPS)
+    _seed_posted(tmp_path, file_hash, completed_steps=_STEPS)
+    _append_audit(
+        tmp_path,
+        [
+            {"timestamp": "2026-07-04T15:30:00Z", "file_hash": file_hash, "action": "create-invoice", "status": "success"},
+            {"timestamp": "2026-07-04T15:30:05Z", "file_hash": file_hash, "action": "create-bank-transaction", "status": "success"},
+            {"timestamp": "2026-07-04T15:30:10Z", "file_hash": file_hash, "action": "create-payment", "status": "success"},
+            {"timestamp": "2026-07-05T09:00:00Z", "file_hash": file_hash, "action": "skipped-idempotent", "status": "success"},
+            {"timestamp": "2026-07-06T09:00:00Z", "file_hash": file_hash, "action": "skipped-idempotent", "status": "success"},
+            {"timestamp": "2026-07-07T09:00:00Z", "file_hash": file_hash, "action": "skipped-idempotent", "status": "success"},
+        ],
+    )
+
+    history = compute_run_history(tmp_path)
+    assert history is not None
+    skip_entries = [
+        e for e in history if e.hash == file_hash[:12] and e.status == "skipped-idempotent"
+    ]
+    assert len(skip_entries) == 1
+    assert skip_entries[0].timestamp == "2026-07-07T09:00:00Z"
+
+
+# ── HIGH-2: malformed proposals/<hash>.json must never crash the computation ──
+
+def test_persona_metrics_skips_unparseable_proposal_json(tmp_path):
+    file_hash = "f" * 64
+    proposals_dir = tmp_path / "proposals"
+    proposals_dir.mkdir(parents=True, exist_ok=True)
+    (proposals_dir / f"{file_hash}.json").write_text('{"payout": {"gross": "13', encoding="utf-8")
+    _seed_posted(tmp_path, file_hash, completed_steps=_STEPS)
+
+    # No valid proposal anywhere -> None, never an exception.
+    assert compute_persona_metrics(tmp_path) is None
+
+
+def test_run_history_tolerates_unparseable_proposal_json(tmp_path):
+    file_hash = "g" * 64
+    proposals_dir = tmp_path / "proposals"
+    proposals_dir.mkdir(parents=True, exist_ok=True)
+    (proposals_dir / f"{file_hash}.json").write_text("not json at all", encoding="utf-8")
+    _seed_posted(tmp_path, file_hash, completed_steps=_STEPS)
+
+    history = compute_run_history(tmp_path)
+    assert history is not None
+    entry = next(e for e in history if e.hash == file_hash[:12])
+    assert entry.payout_ref is None
+    assert entry.net is None
+
+
+def test_persona_metrics_skips_proposal_missing_expected_keys(tmp_path):
+    """Valid JSON but missing the 'plan'/'steps' structure — must be skipped,
+    not raise KeyError."""
+    file_hash = "h" * 64
+    proposals_dir = tmp_path / "proposals"
+    proposals_dir.mkdir(parents=True, exist_ok=True)
+    (proposals_dir / f"{file_hash}.json").write_text(
+        json.dumps({"payout": {"gross": "100.00"}}), encoding="utf-8"
+    )
+    _seed_posted(tmp_path, file_hash, completed_steps=_STEPS)
+
+    assert compute_persona_metrics(tmp_path) is None
+
+
+# ── MED-5: dashboard_metrics._load_proposal must reject path-traversal hashes ──
+
+def test_load_proposal_rejects_malformed_hash(tmp_path):
+    assert _load_proposal(tmp_path, "../../etc/passwd") is None
+    assert _load_proposal(tmp_path, "not-hex!!") is None
+    assert _load_proposal(tmp_path, "a" * 65) is None
+    assert _load_proposal(tmp_path, "") is None
+
+
+# ── HIGH-3: UK tax year / month bucket must use Europe/London local dates ────
+
+def test_persona_metrics_uk_tax_year_uses_london_local_time(tmp_path):
+    """2026-04-05T23:30:00Z is 2026-04-06T00:30 BST — already the NEW UK tax
+    year in Europe/London, even though the UTC calendar date is still 5 Apr."""
+    file_hash = "9" * 64
+    payout = {
+        "payout_ref": "MC-PAYOUT-BST", "period": "p", "gross": "500.00",
+        "commission": "100.00", "fees": "20.00", "refunds": "0.00", "net": "380.00",
+        "bookings": [{"date": "d", "client": "c", "client_type": "New", "service": "s",
+                       "gross_amount": "500.00", "commission_rate": "20%", "commission": "100.00"}],
+    }
+    _seed_proposal(tmp_path, file_hash, payout, _STEPS)
+    _seed_posted(tmp_path, file_hash, completed_steps=_STEPS)
+    _append_audit(
+        tmp_path,
+        [{"timestamp": "2026-04-05T23:30:00Z", "file_hash": file_hash, "action": k, "status": "success"}
+         for k in _STEPS],
+    )
+
+    now = datetime(2026, 7, 5, 8, 0, 0, tzinfo=timezone.utc)
+    metrics = compute_persona_metrics(tmp_path, now=now)
+
+    assert metrics is not None
+    assert metrics.ytd_income == "500.00"
+    assert metrics.ytd_deductible_fees == "120.00"
+
+
+def test_persona_metrics_fees_this_month_uses_london_local_time(tmp_path):
+    """2026-06-30T23:30:00Z is 2026-07-01T00:30 BST — already July locally,
+    even though the UTC calendar date is still 30 June."""
+    file_hash = "0" * 64
+    payout = {
+        "payout_ref": "MC-PAYOUT-MONTH-BST", "period": "p", "gross": "60.00",
+        "commission": "10.00", "fees": "2.00", "refunds": "0.00", "net": "48.00",
+        "bookings": [{"date": "d", "client": "c", "client_type": "New", "service": "s",
+                       "gross_amount": "60.00", "commission_rate": "16%", "commission": "10.00"}],
+    }
+    _seed_proposal(tmp_path, file_hash, payout, _STEPS)
+    _seed_posted(tmp_path, file_hash, completed_steps=_STEPS)
+    _append_audit(
+        tmp_path,
+        [{"timestamp": "2026-06-30T23:30:00Z", "file_hash": file_hash, "action": k, "status": "success"}
+         for k in _STEPS],
+    )
+
+    now = datetime(2026, 7, 5, 8, 0, 0, tzinfo=timezone.utc)
+    metrics = compute_persona_metrics(tmp_path, now=now)
+
+    assert metrics is not None
+    assert metrics.fees_this_month == "12.00"
+
+
+# ── MED-7: gross_turnover_vat_safe is a ROLLING 12-month window ──────────────
+
+def test_gross_turnover_vat_safe_rolling_12_month_window(tmp_path):
+    """A statement posted more than 12 months before `now` must be excluded
+    from gross_turnover_vat_safe (HMRC VAT-threshold monitoring is rolling,
+    not an all-time sum) even though it still fully qualifies otherwise."""
+    old_hash = "5" * 64
+    old_payout = {
+        "payout_ref": "MC-PAYOUT-OLD", "period": "p", "gross": "1000.00",
+        "commission": "200.00", "fees": "50.00", "refunds": "0.00", "net": "750.00",
+        "bookings": [{"date": "d", "client": "c", "client_type": "New", "service": "s",
+                       "gross_amount": "1000.00", "commission_rate": "20%", "commission": "200.00"}],
+    }
+    recent_hash = "6" * 64
+    recent_payout = {
+        "payout_ref": "MC-PAYOUT-RECENT", "period": "p", "gross": "100.00",
+        "commission": "20.00", "fees": "5.00", "refunds": "0.00", "net": "75.00",
+        "bookings": [{"date": "d", "client": "c", "client_type": "New", "service": "s",
+                       "gross_amount": "100.00", "commission_rate": "20%", "commission": "20.00"}],
+    }
+    for h, payout, ts in (
+        (old_hash, old_payout, "2025-01-01T10:00:00Z"),       # > 12 months before `now`
+        (recent_hash, recent_payout, "2026-06-01T10:00:00Z"),  # within the last 12 months
+    ):
+        _seed_proposal(tmp_path, h, payout, _STEPS)
+        _seed_posted(tmp_path, h, completed_steps=_STEPS)
+        _append_audit(
+            tmp_path,
+            [{"timestamp": ts, "file_hash": h, "action": k, "status": "success"} for k in _STEPS],
+        )
+
+    now = datetime(2026, 7, 5, 8, 0, 0, tzinfo=timezone.utc)
+    metrics = compute_persona_metrics(tmp_path, now=now)
+
+    assert metrics is not None
+    assert metrics.gross_turnover_vat_safe == "100.00"

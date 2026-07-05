@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { usePayoutBridge } from "@/lib/usePayoutBridge";
+import {
+  fetchAuditExport,
+  fetchEvidencePack,
+  fetchDashboard,
+  usePayoutBridge,
+} from "@/lib/usePayoutBridge";
 import { resetMockState } from "@/lib/payout-mock";
 import { mockProposeResponseNew } from "../mocks/data";
 
@@ -152,6 +157,74 @@ describe("usePayoutBridge — partial failure & error paths (live/real backend)"
 
     expect(result.current.phase).toBe("error");
     expect(result.current.error).toBe("boom");
+
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("usePayoutBridge — CONTRACT.md §4 mock parity (persona surfaces)", () => {
+  beforeEach(() => {
+    localStorage.clear(); // ensures isMockEnabled() defaults to true (mock mode)
+    resetMockState();
+  });
+
+  it("fetchDashboard (mock mode) surfaces persona_metrics and run_history", async () => {
+    const dash = await fetchDashboard();
+    expect(dash).not.toBeNull();
+    expect(dash!.persona_metrics).not.toBeNull();
+    expect(dash!.persona_metrics?.gross_turnover_vat_safe).toBe("1340.00");
+    expect(dash!.run_history).not.toBeNull();
+    expect(dash!.run_history!.length).toBeGreaterThan(0);
+  });
+
+  it("fetchAuditExport (mock mode) returns a downloadable CSV payload", async () => {
+    const res = await fetchAuditExport("csv");
+    expect(res).not.toBeNull();
+    expect(res!.contentType).toBe("text/csv");
+    expect(res!.content).toContain("timestamp,action,payout_ref,xero_id,status,summary");
+  });
+
+  it("fetchEvidencePack (mock mode) resolves for a posted hash and null for an unknown one", async () => {
+    const { result } = renderHook(() => usePayoutBridge());
+    await act(async () => {
+      await result.current.uploadFile(csvFile("evidence.csv"));
+    });
+    await act(async () => {
+      await result.current.approve();
+    });
+    const hash = result.current.proposal!.file_hash;
+
+    const pack = await fetchEvidencePack(hash);
+    expect(pack).not.toBeNull();
+    expect(pack!.verified).toBe(true);
+    expect(pack!.amounts.net).toBe("847.00");
+
+    const missing = await fetchEvidencePack("mock-unknownhash");
+    expect(missing).toBeNull();
+  });
+
+  it("fetchDashboard degrades gracefully (never throws) when persona_metrics/run_history are absent from a raw backend payload", async () => {
+    localStorage.setItem("payoutbridge.mock", "0"); // force real-backend code path
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          trial_balance: { clearing: "0.00", fees_expense: "0.00", revenue: "0.00" },
+          aged_receivables: [],
+          balance_sheet: {},
+          recent_payouts: [],
+          fetched_at: new Date().toISOString(),
+          source: "xero",
+          // persona_metrics / run_history intentionally absent — pre-backend-upgrade shape
+        }),
+      }),
+    );
+
+    const dash = await fetchDashboard();
+    expect(dash).not.toBeNull();
+    expect(dash!.persona_metrics ?? null).toBeNull();
+    expect(dash!.run_history ?? null).toBeNull();
 
     vi.unstubAllGlobals();
   });

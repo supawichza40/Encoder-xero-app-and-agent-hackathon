@@ -1,8 +1,9 @@
 """
-Tier 2 API tests: GET /dashboard  (AD1-AD7)  [E4]
+Tier 2 API tests: GET /dashboard  (AD1-AD9)  [E4]
 Real FastAPI TestClient, mocked XeroClient. No Xero credentials required.
 """
 
+import json
 from unittest.mock import MagicMock
 
 import pytest
@@ -135,3 +136,41 @@ def test_AD7_recent_payouts_from_state(api_client, mock_xero, tmp_path):
     assert len(payouts) == 1
     assert payouts[0]["file_hash"] == "abc123"
     assert payouts[0]["clearing_balance"] == "0.00"
+
+
+# ── AD8: HIGH-2 — corrupt proposals/<hash>.json must never 500 the live path ──
+def test_AD8_corrupt_proposal_returns_200_not_500(api_client, mock_xero, tmp_path):
+    _wire_success(mock_xero)
+    file_hash = "a" * 64
+    proposals_dir = tmp_path / "proposals"
+    proposals_dir.mkdir(parents=True, exist_ok=True)
+    (proposals_dir / f"{file_hash}.json").write_text('{"payout": {"gross": "13', encoding="utf-8")
+    (tmp_path / "posted.json").write_text(
+        json.dumps({file_hash: {"completed_steps": []}}), encoding="utf-8"
+    )
+
+    resp = api_client.get("/dashboard")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["source"] == "xero"
+    assert body["persona_metrics"] is None
+
+
+# ── AD9: HIGH-2 — same guard on the degraded (Xero-disconnected) path ────────
+def test_AD9_corrupt_proposal_degraded_path_returns_200_not_500(api_client, tmp_path):
+    from backend.main import app
+
+    app.state.xero = None
+    file_hash = "b" * 64
+    proposals_dir = tmp_path / "proposals"
+    proposals_dir.mkdir(parents=True, exist_ok=True)
+    (proposals_dir / f"{file_hash}.json").write_text("not json at all", encoding="utf-8")
+    (tmp_path / "posted.json").write_text(
+        json.dumps({file_hash: {"completed_steps": []}}), encoding="utf-8"
+    )
+
+    resp = api_client.get("/dashboard")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["source"] == "degraded"
+    assert body["persona_metrics"] is None

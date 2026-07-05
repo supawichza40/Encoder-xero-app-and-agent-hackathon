@@ -1,12 +1,19 @@
 import { AlertTriangle } from "lucide-react";
 import type { ExistingIds } from "@/lib/payout-types";
+import type { Persona } from "@/lib/useDemoAuth";
+import { cn } from "@/lib/utils";
 
 interface IdempotencyBannerProps {
   existingIds: ExistingIds;
   onReset: () => void;
+  /** Promotes (enlarges) the PRI-6 dedupe badge for bookkeeper, subtle otherwise. */
+  persona?: Persona;
 }
 
-export function IdempotencyBanner({ existingIds, onReset }: IdempotencyBannerProps) {
+export function IdempotencyBanner({ existingIds, onReset, persona }: IdempotencyBannerProps) {
+  const idCount = [existingIds.invoice_id, existingIds.bank_txn_id, existingIds.payment_id].filter(
+    Boolean,
+  ).length;
   return (
     <div
       role="status"
@@ -18,6 +25,16 @@ export function IdempotencyBanner({ existingIds, onReset }: IdempotencyBannerPro
           <p className="text-sm font-semibold text-warning">
             Already posted — skipped (idempotent)
           </p>
+          {/* PRI-6 dedupe badge — always present; promoted for bookkeeper. */}
+          <span
+            aria-label={`Already posted — ${idCount} Xero IDs on file`}
+            className={cn(
+              "inline-flex w-fit items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/5 font-mono text-amber-400",
+              persona === "bookkeeper" ? "px-3 py-1.5 text-sm" : "px-2 py-0.5 text-[11px]",
+            )}
+          >
+            Already posted · {idCount} Xero IDs on file
+          </span>
           <p className="tabular flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span>
               Invoice <span className="font-mono text-foreground">{existingIds.invoice_id}</span>

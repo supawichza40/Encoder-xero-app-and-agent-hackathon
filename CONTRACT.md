@@ -9,7 +9,7 @@ All monetary values: str(Decimal), never float. UK tax year (6 Apr–5 Apr) for 
   // ...all existing fields stay exactly as-is (trial_balance, recent_payouts, aged_receivables, balance_sheet, source)...
   "persona_metrics": {
     "fees_this_month": "493.00",           // commission+fees posted this calendar month (SAM-2)
-    "gross_turnover_vat_safe": "1340.00",  // gross pre-commission turnover, VAT/MTD-relevant (SAM-3)
+    "gross_turnover_vat_safe": "1340.00",  // rolling 12-month gross turnover (VAT-threshold-relevant) (SAM-3)
     "ytd_income": "1340.00",               // gross income, UK tax year to date (ALX-1)
     "ytd_deductible_fees": "493.00",       // commission+fees, UK tax year to date (ALX-1)
     "new_vs_repeat": {                     // from booking client_type + commission per row (SAM-5)

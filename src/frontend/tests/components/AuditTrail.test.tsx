@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AuditTrail } from "@/components/AuditTrail";
 import type { AuditEntry } from "@/lib/payout-types";
@@ -40,6 +40,13 @@ const entries: AuditEntry[] = [
 ];
 
 describe("AuditTrail", () => {
+  beforeEach(() => {
+    // jsdom doesn't implement the Blob-URL APIs; stub them so the PRI-1
+    // export flow (Blob → object URL → anchor click) doesn't throw.
+    URL.createObjectURL = vi.fn(() => "blob:mock-url");
+    URL.revokeObjectURL = vi.fn();
+  });
+
   it("is collapsed by default and expands on click", async () => {
     render(<AuditTrail entries={entries} />);
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
@@ -73,5 +80,31 @@ describe("AuditTrail", () => {
     const noteRow = rows.find((r) => r.textContent?.includes("history-note"));
     expect(noteRow).toHaveTextContent("info");
     expect(noteRow).toHaveTextContent("note=Verified zero-balance clearing");
+  });
+
+  // PRI-1 — audit-trail CSV export.
+  it("triggers a CSV download via the Export button without crashing", async () => {
+    render(<AuditTrail entries={entries} defaultOpen />);
+    await userEvent.click(screen.getByRole("button", { name: /export audit trail as csv/i }));
+    await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalledTimes(1));
+    const blobArg = (URL.createObjectURL as ReturnType<typeof vi.fn>).mock.calls[0][0] as Blob;
+    expect(blobArg.type).toContain("csv");
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
+  });
+
+  it("shows a prominent (primary) export button for bookkeeper, ghost for owner", () => {
+    const { rerender } = render(<AuditTrail entries={entries} persona="bookkeeper" />);
+    const bookkeeperBtn = screen.getByRole("button", { name: /export audit trail as csv/i });
+    expect(bookkeeperBtn.className).toMatch(/border-primary/);
+    rerender(<AuditTrail entries={entries} persona="owner" />);
+    const ownerBtn = screen.getByRole("button", { name: /export audit trail as csv/i });
+    expect(ownerBtn.className).not.toMatch(/border-primary/);
+  });
+
+  it("keeps the toggle button's accessible name as 'Transaction trace' next to the Export button", async () => {
+    render(<AuditTrail entries={entries} />);
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /transaction trace/i }));
+    expect(screen.getByRole("table")).toBeInTheDocument();
   });
 });

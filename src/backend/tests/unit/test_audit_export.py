@@ -90,6 +90,74 @@ def test_payout_ref_empty_when_proposal_missing(tmp_state):
     assert rows[1][2] == ""
 
 
+# ── HIGH-1: CSV formula injection ─────────────────────────────────────────
+# A malicious payout_ref (or any other attacker-derived cell) starting with
+# =, +, -, @, tab, or CR must never reach a spreadsheet app as a live formula.
+def test_csv_formula_injection_neutralized_in_payout_ref(tmp_state):
+    proposals_dir = tmp_state / "proposals"
+    proposals_dir.mkdir(parents=True, exist_ok=True)
+    file_hash = "9" * 64
+    (proposals_dir / f"{file_hash}.json").write_text(
+        json.dumps({"payout": {"payout_ref": '=HYPERLINK("http://evil.example","click")'}}),
+        encoding="utf-8",
+    )
+    entries = [
+        {
+            "timestamp": "t",
+            "file_hash": file_hash,
+            "action": "create-invoice",
+            "request": {},
+            "xero_id": "INV-001",
+            "status": "success",
+        }
+    ]
+    csv_text = entries_to_csv(entries, tmp_state)
+    rows = list(csv.reader(io.StringIO(csv_text)))
+    payout_ref_cell = rows[1][2]
+    assert payout_ref_cell.startswith("'=")
+    assert payout_ref_cell == "'=HYPERLINK(\"http://evil.example\",\"click\")"
+
+
+@pytest.mark.parametrize("trigger", ["=", "+", "-", "@", "\t", "\r"])
+def test_csv_formula_injection_neutralized_for_all_trigger_chars(tmp_state, trigger):
+    proposals_dir = tmp_state / "proposals"
+    proposals_dir.mkdir(parents=True, exist_ok=True)
+    file_hash = "8" * 64
+    malicious_ref = f"{trigger}cmd|'/bin/calc'!A1"
+    (proposals_dir / f"{file_hash}.json").write_text(
+        json.dumps({"payout": {"payout_ref": malicious_ref}}), encoding="utf-8"
+    )
+    entries = [
+        {
+            "timestamp": "t",
+            "file_hash": file_hash,
+            "action": "create-invoice",
+            "request": {},
+            "xero_id": "INV-001",
+            "status": "success",
+        }
+    ]
+    csv_text = entries_to_csv(entries, tmp_state)
+    rows = list(csv.reader(io.StringIO(csv_text)))
+    assert rows[1][2] == "'" + malicious_ref
+
+
+def test_csv_formula_injection_neutralized_in_xero_id_and_status(tmp_state):
+    entries = [
+        {
+            "timestamp": "t",
+            "file_hash": "b" * 64,
+            "action": "create-invoice",
+            "request": {},
+            "xero_id": "=cmd|'/bin/calc'!A1",
+            "status": "success",
+        }
+    ]
+    csv_text = entries_to_csv(entries, tmp_state)
+    rows = list(csv.reader(io.StringIO(csv_text)))
+    assert rows[1][3] == "'=cmd|'/bin/calc'!A1"
+
+
 # ── build_evidence_pack — fully populated ─────────────────────────────────
 def _seed_posted_and_proposal(state_dir, file_hash, posted_entry, payout):
     (state_dir / "posted.json").write_text(

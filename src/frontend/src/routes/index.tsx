@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  AlertTriangle,
   ArrowRight,
   ArrowUpRight,
   Briefcase,
@@ -24,6 +25,8 @@ import {
   LiveTurnoverAreaChart,
 } from "@/components/DashboardLiveCharts";
 import { HeroReceipt } from "@/components/HeroReceipt";
+import { PersonaEmptyState } from "@/components/PersonaEmptyState";
+import { loadHistory } from "@/components/InvoiceHistory";
 import {
   CountUp,
   LiveDot,
@@ -32,9 +35,10 @@ import {
   usePrefersReducedMotion,
   useRotatingIndex,
 } from "@/components/motion";
+import { PERSONA_COPY, PERSONA_TONE, type PersonaCopy } from "@/lib/personaTheme";
 import { openAuthDialog, useDemoAuth, type DemoUser, type Persona } from "@/lib/useDemoAuth";
 import { fetchDashboard } from "@/lib/usePayoutBridge";
-import type { DashboardResponse } from "@/lib/payout-types";
+import type { DashboardResponse, RunHistoryEntry } from "@/lib/payout-types";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -104,7 +108,265 @@ const kpiSparklines = {
   clearing: [120, 80, 40, 10, 2, 0],
 };
 
-function Dashboard({ user }: { user: DemoUser }) {
+// PRI-4 / SAM-2 / SAM-3 / ALX-1 (PERSONA-DESIGN.md §2.1) — one KPI card
+// config per persona, in the exact DOM order the design spec calls for.
+// Reordering happens by returning a differently-ordered array (not CSS
+// `order`), so keyboard/screen-reader order always matches the visual order.
+interface KpiConfig {
+  id: string;
+  label: string;
+  sublabel?: string;
+  numericValue: number;
+  prefix?: string;
+  decimals?: number;
+  delta: string;
+  tone: "primary" | "amber" | "violet" | "success";
+  icon: React.ReactNode;
+  sparkline?: number[];
+  pulse?: boolean;
+}
+
+function buildKpiConfigs(
+  persona: Persona,
+  copy: PersonaCopy,
+  data: {
+    grossTurnoverVatSafe: number;
+    feesThisMonth: number;
+    payoutsCount: number;
+    clearing: number;
+    statementsPosted: number;
+    ytdIncome: number;
+    ytdDeductibleFees: number;
+    takeHome: number;
+  },
+): KpiConfig[] {
+  const {
+    grossTurnoverVatSafe,
+    feesThisMonth,
+    payoutsCount,
+    clearing,
+    statementsPosted,
+    ytdIncome,
+    ytdDeductibleFees,
+    takeHome,
+  } = data;
+
+  if (persona === "bookkeeper") {
+    return [
+      {
+        id: "clearing-balance",
+        label: copy.clearingLabel,
+        numericValue: clearing,
+        prefix: "£",
+        decimals: 2,
+        delta: "Verified · provable zero",
+        tone: "success",
+        icon: <ShieldCheck className="size-5" />,
+        sparkline: kpiSparklines.clearing,
+        pulse: true,
+      },
+      {
+        id: "statements-posted",
+        label: copy.kpi2Label,
+        numericValue: statementsPosted,
+        delta: "0 exceptions · 0 duplicates",
+        tone: "primary",
+        icon: <FileText className="size-5" />,
+        sparkline: kpiSparklines.payouts,
+      },
+      {
+        id: "gross-turnover-period",
+        label: "Gross turnover (period)",
+        numericValue: grossTurnoverVatSafe,
+        prefix: "£",
+        delta: "This settlement period",
+        tone: "primary",
+        icon: <PoundSterling className="size-5" />,
+        sparkline: kpiSparklines.turnover,
+      },
+      {
+        id: "fees-posted-period",
+        label: "Fees posted (period)",
+        numericValue: feesThisMonth,
+        prefix: "£",
+        delta: "commission + fees",
+        tone: "amber",
+        icon: <TrendingUp className="size-5" />,
+        sparkline: kpiSparklines.fees,
+      },
+    ];
+  }
+
+  if (persona === "freelancer") {
+    return [
+      {
+        id: "income-self-assessment",
+        label: copy.kpi1Label,
+        sublabel: copy.kpi1Sublabel,
+        numericValue: ytdIncome,
+        prefix: "£",
+        delta: "this tax year",
+        tone: "violet",
+        icon: <PoundSterling className="size-5" />,
+        sparkline: kpiSparklines.turnover,
+      },
+      {
+        id: "deductible-fees",
+        label: copy.kpi2Label,
+        numericValue: ytdDeductibleFees,
+        prefix: "£",
+        delta: "you can claim back",
+        tone: "amber",
+        icon: <TrendingUp className="size-5" />,
+        sparkline: kpiSparklines.fees,
+      },
+      {
+        id: "take-home",
+        label: "Take-home so far",
+        numericValue: takeHome,
+        prefix: "£",
+        decimals: 2,
+        delta: "reached your bank",
+        tone: "success",
+        icon: <CheckCircle2 className="size-5" />,
+      },
+      {
+        id: "everything-checks-out",
+        label: copy.clearingLabel,
+        numericValue: clearing,
+        prefix: "£",
+        decimals: 2,
+        delta: "nothing left in limbo",
+        tone: "success",
+        icon: <ShieldCheck className="size-5" />,
+        sparkline: kpiSparklines.clearing,
+      },
+    ];
+  }
+
+  // owner
+  return [
+    {
+      id: "real-turnover",
+      label: copy.kpi1Label,
+      sublabel: copy.kpi1Sublabel,
+      numericValue: grossTurnoverVatSafe,
+      prefix: "£",
+      delta: "+54.9% vs reported",
+      tone: "success",
+      icon: <PoundSterling className="size-5" />,
+      sparkline: kpiSparklines.turnover,
+    },
+    {
+      id: "fees-taken",
+      label: copy.kpi2Label,
+      numericValue: feesThisMonth,
+      prefix: "£",
+      delta: "commission £445.90 + fees £47.10",
+      tone: "amber",
+      icon: <TrendingUp className="size-5" />,
+      sparkline: kpiSparklines.fees,
+    },
+    {
+      id: "payouts-reconciled",
+      label: "Payouts reconciled",
+      numericValue: payoutsCount,
+      delta: "6 this week",
+      tone: "success",
+      icon: <CheckCircle2 className="size-5" />,
+      sparkline: kpiSparklines.payouts,
+    },
+    {
+      id: "clearing-balance",
+      label: copy.clearingLabel,
+      numericValue: clearing,
+      prefix: "£",
+      decimals: 2,
+      delta: "Verified · zero-balance",
+      tone: "success",
+      icon: <ShieldCheck className="size-5" />,
+      sparkline: kpiSparklines.clearing,
+      pulse: true,
+    },
+  ];
+}
+
+// React reserves "key" as a prop name; spreading it directly into a
+// component's props triggers a dev warning even outside a list. Strip `id`
+// (the value we actually use for React list keys) before spreading.
+function withoutId({ id: _id, ...rest }: KpiConfig): Omit<KpiConfig, "id"> {
+  return rest;
+}
+
+// PRI-5 (PERSONA-DESIGN.md §2.3) — bookkeeper's charts-row replacement: a
+// dense, undecorated table straight off CONTRACT.md's run_history shape.
+function runStatusChipClass(status: RunHistoryEntry["status"]): string {
+  if (status === "posted") return "border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
+  if (status === "failed") return "border-destructive/30 bg-destructive/10 text-destructive";
+  // "skipped-idempotent" | "partial"
+  return "border-amber-500/30 bg-amber-500/10 text-amber-400";
+}
+
+function RunHistoryTable({ entries }: { entries: RunHistoryEntry[] | null }) {
+  const rows = entries ?? [];
+  return (
+    <div className="hover-lift rounded-2xl border border-border bg-card/80 p-5 backdrop-blur-sm">
+      <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+        Run history
+      </h3>
+      <div className="mt-3 overflow-x-auto">
+        <table className="w-full min-w-[520px] border-collapse font-mono text-xs">
+          <thead>
+            <tr className="border-b border-border text-left text-muted-foreground">
+              <th className="py-1.5 pr-4 font-medium">Payout ref</th>
+              <th className="py-1.5 pr-4 font-medium">Date</th>
+              <th className="py-1.5 pr-4 font-medium">Status</th>
+              <th className="py-1.5 pr-4 text-right font-medium">Net</th>
+              <th className="py-1.5 font-medium">Hash</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="py-4 text-center text-muted-foreground">
+                  No statements posted yet.
+                </td>
+              </tr>
+            ) : (
+              rows.map((r) => (
+                <tr key={r.hash} className="border-b border-border/60">
+                  <td className="py-1.5 pr-4 tabular-nums text-foreground">{r.payout_ref}</td>
+                  <td className="py-1.5 pr-4 tabular-nums text-muted-foreground">
+                    {new Date(r.timestamp).toLocaleDateString("en-GB")}
+                  </td>
+                  <td className="py-1.5 pr-4">
+                    <span
+                      className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${runStatusChipClass(r.status)}`}
+                    >
+                      {r.status}
+                    </span>
+                  </td>
+                  <td className="py-1.5 pr-4 text-right tabular-nums text-foreground">
+                    £{r.net}
+                  </td>
+                  <td className="py-1.5 tabular-nums text-muted-foreground">
+                    {r.hash.slice(0, 8)}…
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+export function Dashboard({ user }: { user: DemoUser }) {
+  const persona = user.persona;
+  const copy = PERSONA_COPY[persona];
+  const tone = PERSONA_TONE[persona];
+
   const [dash, setDash] = useState<DashboardResponse | null>(null);
   const [live, setLive] = useState(false);
   useEffect(() => {
@@ -116,6 +378,21 @@ function Dashboard({ user }: { user: DemoUser }) {
     });
   }, []);
 
+  // GEN-2 / SAM-1 / ALX-5 — a first-time user (no completed upload yet) must
+  // never see the fabricated illustrative figures below as if they were
+  // their own. Independent of the live/dash flags (those describe the demo
+  // backend's data source, not this user's real activity).
+  const [hasHistory, setHasHistory] = useState<boolean>(() => loadHistory().length > 0);
+  useEffect(() => {
+    const refresh = () => setHasHistory(loadHistory().length > 0);
+    window.addEventListener("payoutbridge:history-updated", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("payoutbridge:history-updated", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
+
   const turnover = dash ? Number(dash.trial_balance.revenue) : 18930;
   const reported = 12210;
   const hiddenRevenue = turnover - reported;
@@ -123,8 +400,31 @@ function Dashboard({ user }: { user: DemoUser }) {
   const payoutsCount = dash ? dash.recent_payouts.length * 5 : 30;
   const clearing = dash ? Number(dash.trial_balance.clearing) : 0;
 
+  // PRI-4 / SAM-2 / SAM-3 / ALX-1 — bind KPI values to persona_metrics /
+  // run_history (CONTRACT.md §1), falling back to the illustrative constants
+  // above only when the backend hasn't sent them (both may be null).
+  const metrics = dash?.persona_metrics ?? null;
+  const runHistory = dash?.run_history ?? null;
+  const grossTurnoverVatSafe = metrics ? Number(metrics.gross_turnover_vat_safe) : turnover;
+  const feesThisMonth = metrics ? Number(metrics.fees_this_month) : feesTotal;
+  const ytdIncome = metrics ? Number(metrics.ytd_income) : turnover;
+  const ytdDeductibleFees = metrics ? Number(metrics.ytd_deductible_fees) : feesTotal;
+  const takeHome = ytdIncome - ytdDeductibleFees;
+  const statementsPosted = runHistory ? runHistory.length : payoutsCount;
+
+  const kpiConfigs = buildKpiConfigs(persona, copy, {
+    grossTurnoverVatSafe,
+    feesThisMonth,
+    payoutsCount,
+    clearing,
+    statementsPosted,
+    ytdIncome,
+    ytdDeductibleFees,
+    takeHome,
+  });
+
   const reducedMotion = usePrefersReducedMotion();
-  const insightIndex = useRotatingIndex(3, 4500, !reducedMotion);
+  const insightIndex = useRotatingIndex(3, 4500, !reducedMotion && persona === "owner");
   const insights = [
     <>
       £<CountUp value={hiddenRevenue} duration={1400} /> more turnover than your bank feed shows
@@ -137,6 +437,24 @@ function Dashboard({ user }: { user: DemoUser }) {
       zero-balance
     </>,
   ];
+
+  // §2.2 — bookkeeper/freelancer get a calmer static insight line instead of
+  // owner's 3-item rotator (no motion churn on the evidence desk).
+  const bookkeeperInsight = `Clearing £${clearing.toFixed(2)} · ${statementsPosted} statements posted · 0 exceptions`;
+  const freelancerInsight = `You've earned £${ytdIncome.toLocaleString("en-GB")} this year · £${ytdDeductibleFees.toLocaleString("en-GB")} of it is claimable back.`;
+
+  // §7 accessibility — after a persona switch, return focus to the greeting
+  // heading so remounting the greeting/KPI blocks (key={persona}) below
+  // doesn't silently drop keyboard/screen-reader focus.
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const firstRenderRef = useRef(true);
+  useEffect(() => {
+    if (firstRenderRef.current) {
+      firstRenderRef.current = false;
+      return;
+    }
+    headingRef.current?.focus();
+  }, [persona]);
 
   const tickerItems = [
     {
@@ -190,6 +508,12 @@ function Dashboard({ user }: { user: DemoUser }) {
   ];
   const activityRows = dash?.recent_payouts.length ? dash.recent_payouts : defaultActivity;
 
+  // GEN-2 / SAM-1 / ALX-5 — no completed upload yet: show the guided empty
+  // state instead of the fully-populated (illustrative) dashboard.
+  if (!hasHistory) {
+    return <PersonaEmptyState persona={persona} />;
+  }
+
   return (
     <main className="relative flex min-h-screen w-full flex-col overflow-hidden">
       <div
@@ -198,6 +522,7 @@ function Dashboard({ user }: { user: DemoUser }) {
       />
 
       <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
+        {persona === "owner" ? (
         <div className="overflow-hidden rounded-xl border border-border/80 bg-card/50 backdrop-blur-sm">
           <Marquee speed="slow" className="py-2.5">
             {tickerItems.map((item) => (
@@ -223,19 +548,25 @@ function Dashboard({ user }: { user: DemoUser }) {
             ))}
           </Marquee>
         </div>
+        ) : null}
 
         {/* bento header row */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
           <div
+            key={persona}
             className="animate-fade-up hover-lift rounded-2xl border border-border bg-card/80 p-5 backdrop-blur-sm lg:col-span-5"
             style={{ animationDelay: "0ms" }}
           >
             <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              <LiveDot tone="success" className="size-1.5" />
-              {user.name}&apos;s workspace
+              <LiveDot tone={tone.dot} className="size-1.5" />
+              {copy.greetingEyebrow(user.name)}
             </p>
-            <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
-              Welcome back, <span className="text-primary/80">{user.name}</span>
+            <h1
+              ref={headingRef}
+              tabIndex={-1}
+              className="mt-2 text-2xl font-black tracking-tight sm:text-3xl focus:outline-none"
+            >
+              {copy.greetingHeadline}
             </h1>
             {live && dash ? (
               <p className="mt-1 text-[11px] text-emerald-500">
@@ -246,12 +577,18 @@ function Dashboard({ user }: { user: DemoUser }) {
                 })}
               </p>
             ) : null}
+            {persona === "owner" ? (
             <p
               key={insightIndex}
               className={`mt-3 min-h-[1.5rem] text-sm text-muted-foreground sm:text-base ${!reducedMotion ? "insight-rotate" : ""}`}
             >
               {insights[insightIndex]}
             </p>
+            ) : (
+            <p className="mt-3 min-h-[1.5rem] text-sm text-muted-foreground sm:text-base">
+              {persona === "bookkeeper" ? bookkeeperInsight : freelancerInsight}
+            </p>
+            )}
           </div>
 
           <div
@@ -261,36 +598,62 @@ function Dashboard({ user }: { user: DemoUser }) {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               Reported vs real
             </p>
-            <div className="mt-4 space-y-3">
-              <div>
-                <div className="mb-1 flex justify-between text-[11px] text-muted-foreground">
-                  <span>Bank feed</span>
-                  <span className="tabular-nums">£12,210</span>
-                </div>
-                <div className="h-2.5 overflow-hidden rounded-full bg-muted/60">
-                  <div
-                    className={`h-full rounded-full bg-slate-500/80 ${!reducedMotion ? "gap-bar-reported" : ""}`}
-                    style={{ width: reducedMotion ? "42%" : undefined }}
-                  />
-                </div>
+            {persona === "bookkeeper" ? (
+              <div className="mt-4 flex items-baseline justify-between gap-3">
+                <span className="text-3xl font-black tabular-nums text-primary">
+                  +£<CountUp value={hiddenRevenue} duration={1200} />
+                </span>
+                <span className="text-xs text-muted-foreground">recovered vs the bank feed</span>
               </div>
-              <div>
-                <div className="mb-1 flex justify-between text-[11px]">
-                  <span className="text-emerald-400/90">Real turnover</span>
-                  <span className="font-semibold tabular-nums text-emerald-400">£18,930</span>
+            ) : (
+              <>
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <div className="mb-1 flex justify-between text-[11px] text-muted-foreground">
+                      <span>Bank feed</span>
+                      <span className="tabular-nums">£12,210</span>
+                    </div>
+                    <div className="h-2.5 overflow-hidden rounded-full bg-muted/60">
+                      <div
+                        className={`h-full rounded-full bg-slate-500/80 ${!reducedMotion ? "gap-bar-reported" : ""}`}
+                        style={{ width: reducedMotion ? "42%" : undefined }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="mb-1 flex justify-between text-[11px]">
+                      <span className="text-emerald-400/90">Real turnover</span>
+                      <span className="font-semibold tabular-nums text-emerald-400">£18,930</span>
+                    </div>
+                    <div className="h-2.5 overflow-hidden rounded-full bg-emerald-500/15">
+                      <div
+                        className={`h-full rounded-full bg-emerald-500 ${!reducedMotion ? "gap-bar-real" : ""}`}
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="h-2.5 overflow-hidden rounded-full bg-emerald-500/15">
+                <p className="mt-3 text-xs font-semibold text-emerald-400">
+                  +£
+                  <CountUp value={hiddenRevenue} duration={1600} /> recovered · +54.9%
+                </p>
+                {persona === "freelancer" ? (
                   <div
-                    className={`h-full rounded-full bg-emerald-500 ${!reducedMotion ? "gap-bar-real" : ""}`}
-                    style={{ width: "100%" }}
-                  />
-                </div>
-              </div>
-            </div>
-            <p className="mt-3 text-xs font-semibold text-emerald-400">
-              +£
-              <CountUp value={hiddenRevenue} duration={1600} /> recovered · +54.9%
-            </p>
+                    role="note"
+                    className="mt-3 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/[0.06] p-3 text-xs text-amber-200"
+                  >
+                    <AlertTriangle
+                      className="mt-0.5 size-3.5 shrink-0 text-amber-400"
+                      aria-hidden
+                    />
+                    <p>
+                      You&apos;d have under-reported by £{hiddenRevenue.toLocaleString("en-GB")}.
+                      Your bank feed only ever showed £12,210 — your real income was £18,930.
+                    </p>
+                  </div>
+                ) : null}
+              </>
+            )}
           </div>
 
           <Link
@@ -311,66 +674,61 @@ function Dashboard({ user }: { user: DemoUser }) {
 
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-32 top-32 h-72 w-72 rounded-full bg-blue-500/8 blur-3xl animate-glow-pulse"
+          className={`pointer-events-none absolute -right-32 top-32 h-72 w-72 rounded-full ${tone.glowHue} blur-3xl animate-glow-pulse`}
         />
+        {persona === "owner" ? (
         <div
           aria-hidden
           className="pointer-events-none absolute -left-24 bottom-1/4 h-56 w-56 rounded-full bg-emerald-500/8 blur-3xl animate-glow-pulse"
           style={{ animationDelay: "2.5s" }}
         />
+        ) : null}
 
-        {/* KPI cards */}
-        <section className="relative grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="animate-fade-up" style={{ animationDelay: "180ms" }}>
-            <KpiCard
-              label={
-                user.persona === "freelancer" ? "Income (Self Assessment)" : "Real turnover (MTD)"
-              }
-              numericValue={turnover}
-              prefix="£"
-              delta="+54.9% vs reported"
-              tone="primary"
-              sparkline={kpiSparklines.turnover}
-              icon={<PoundSterling className="size-5" />}
-            />
-          </div>
-          <div className="animate-fade-up" style={{ animationDelay: "260ms" }}>
-            <KpiCard
-              label="Fees recovered"
-              numericValue={feesTotal}
-              prefix="£"
-              delta="+£812 vs last month"
-              tone="amber"
-              sparkline={kpiSparklines.fees}
-              icon={<TrendingUp className="size-5" />}
-            />
-          </div>
-          <div className="animate-fade-up" style={{ animationDelay: "340ms" }}>
-            <KpiCard
-              label="Payouts reconciled"
-              numericValue={payoutsCount}
-              delta="6 this week"
-              tone="violet"
-              sparkline={kpiSparklines.payouts}
-              icon={<CheckCircle2 className="size-5" />}
-            />
-          </div>
-          <div className="animate-fade-up" style={{ animationDelay: "420ms" }}>
-            <KpiCard
-              label="Clearing balance"
-              numericValue={clearing}
-              prefix="£"
-              decimals={2}
-              delta="Verified · zero-balance"
-              tone="success"
-              sparkline={kpiSparklines.clearing}
-              pulse
-              icon={<ShieldCheck className="size-5" />}
-            />
-          </div>
+        {/* KPI cards — PRI-4/SAM-2/SAM-3/ALX-1: DOM order (not CSS order)
+            differs per persona so keyboard/screen-reader order matches the
+            visual order (§7 accessibility). */}
+        <section key={persona} className="relative grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {persona === "freelancer" ? (
+            <>
+              <div
+                className="animate-fade-up rounded-2xl border border-violet-500/25 bg-violet-500/[0.04] p-1.5 sm:col-span-2 lg:col-span-2"
+                style={{ animationDelay: "180ms" }}
+              >
+                <p className="px-2 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wider text-violet-300">
+                  Your tax return needs these two numbers
+                </p>
+                <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                  <KpiCard {...withoutId(kpiConfigs[0])} />
+                  <KpiCard {...withoutId(kpiConfigs[1])} />
+                </div>
+              </div>
+              {kpiConfigs.slice(2).map((cfg, i) => (
+                <div
+                  key={cfg.id}
+                  className="animate-fade-up"
+                  style={{ animationDelay: `${260 + i * 80}ms` }}
+                >
+                  <KpiCard {...withoutId(cfg)} />
+                </div>
+              ))}
+            </>
+          ) : (
+            kpiConfigs.map((cfg, i) => (
+              <div
+                key={cfg.id}
+                className="animate-fade-up"
+                style={{ animationDelay: `${180 + i * 80}ms` }}
+              >
+                <KpiCard {...withoutId(cfg)} />
+              </div>
+            ))
+          )}
         </section>
 
-        {/* Charts row */}
+        {/* Charts row — PRI-4/GEN-3 (§2.3 show/mute matrix): owner keeps the
+            illustrative charts, bookkeeper gets the run-history table
+            instead, freelancer gets neither. */}
+        {persona === "owner" ? (
         <section className="relative grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="animate-fade-up lg:col-span-2" style={{ animationDelay: "580ms" }}>
             <ChartCard
@@ -413,9 +771,16 @@ function Dashboard({ user }: { user: DemoUser }) {
             </ChartCard>
           </div>
         </section>
+        ) : persona === "bookkeeper" ? (
+          <section className="animate-fade-up" style={{ animationDelay: "580ms" }}>
+            <RunHistoryTable entries={runHistory} />
+          </section>
+        ) : null}
 
-        {/* Bar chart + activity row */}
+        {/* Bar chart + activity row — payouts bar chart is owner-only (§2.3);
+            recent activity stays for everyone, taking the freed-up width. */}
         <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {persona === "owner" ? (
           <div className="animate-fade-up" style={{ animationDelay: "740ms" }}>
             <ChartCard
               accent="emerald"
@@ -427,8 +792,12 @@ function Dashboard({ user }: { user: DemoUser }) {
               <LivePayoutBarChart data={payoutsPerWeek} />
             </ChartCard>
           </div>
+          ) : null}
 
-          <div className="animate-fade-up lg:col-span-2" style={{ animationDelay: "820ms" }}>
+          <div
+            className={`animate-fade-up ${persona === "owner" ? "lg:col-span-2" : "lg:col-span-3"}`}
+            style={{ animationDelay: "820ms" }}
+          >
             <div className="hover-lift h-full overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-card to-violet-500/5 p-5 ring-1 ring-violet-500/10">
               <div className="flex items-baseline justify-between gap-4">
                 <div className="flex items-center gap-2">
@@ -546,6 +915,7 @@ function Sparkline({
 
 function KpiCard({
   label,
+  sublabel,
   value,
   numericValue,
   prefix = "",
@@ -557,6 +927,7 @@ function KpiCard({
   pulse,
 }: {
   label: string;
+  sublabel?: string;
   value?: string;
   numericValue?: number;
   prefix?: string;
@@ -605,9 +976,17 @@ function KpiCard({
       className={`dashboard-kpi group rounded-2xl border border-t-4 p-5 ${accents.kpi} ${accents.bar} ${!reduced ? "kpi-live-shimmer" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          {label}
-        </p>
+        <div>
+          <p
+            data-testid="kpi-label"
+            className="text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+          >
+            {label}
+          </p>
+          {sublabel ? (
+            <p className="mt-0.5 text-[10px] text-muted-foreground/70">{sublabel}</p>
+          ) : null}
+        </div>
         <span className="relative">
           {pulse ? (
             <span

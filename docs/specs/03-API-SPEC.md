@@ -374,7 +374,7 @@ Aggregates three cached MCP reads (trial balance, aged receivables, balance shee
 - Reads cached 60 s in-process (rate-limit rule: never live-loop). `source` is `"xero"` on a live read, `"degraded"` when Xero is unreachable (still 200 — never 503).
 - **`persona_metrics`** (additive, PayoutBridge persona use cases): computed from fully-posted statements only (all plan steps completed).
   - `fees_this_month` — commission + fees for statements posted in the current calendar month.
-  - `gross_turnover_vat_safe` — gross turnover across all fully-posted statements (VAT/MTD-relevant), unconditional on date.
+  - `gross_turnover_vat_safe` — rolling 12-month gross turnover (VAT-threshold-relevant), computed over the trailing 12 months from `now` (Europe/London dates) across fully-posted statements — mirrors HMRC's rolling VAT-registration-threshold monitoring, not an all-time sum.
   - `ytd_income` / `ytd_deductible_fees` — gross / (commission + fees) for statements posted within the **UK tax year to date** (6 Apr–5 Apr; a statement posted 5 Apr belongs to the prior tax year, 6 Apr belongs to the new one).
   - `new_vs_repeat` — per-booking count + commission split by `client_type` ("New" vs anything else), aggregated across all fully-posted statements.
   - `null` when no statement has been fully posted yet — the frontend must handle both `persona_metrics` and its absence.

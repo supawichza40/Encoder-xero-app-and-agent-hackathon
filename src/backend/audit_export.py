@@ -14,16 +14,21 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from .validation import is_valid_hash as _is_valid_hash
 
-def _is_valid_hash(file_hash: str) -> bool:
-    """Same guard as main.py's _load_proposal(): hex-only chars, len <= 64.
+# HIGH-1: CSV formula injection. A cell whose text starts with one of these
+# characters is interpreted as a live formula by Excel/Sheets when the CSV is
+# opened — attacker-controlled values (payout_ref from the uploaded CSV, or
+# any other string cell) must never reach the file unescaped.
+_CSV_FORMULA_TRIGGERS = ("=", "+", "-", "@", "\t", "\r")
 
-    file_hash is joined into a filesystem path below, so anything containing
-    `../`, `/`, `.` etc. must never reach the filesystem.
-    """
-    return bool(file_hash) and len(file_hash) <= 64 and all(
-        c in "0123456789abcdef" for c in file_hash
-    )
+
+def _csv_safe(value: str) -> str:
+    """Prefix a leading formula-trigger character with `'` so spreadsheet
+    apps render the cell as literal text instead of executing it."""
+    if value and value[0] in _CSV_FORMULA_TRIGGERS:
+        return "'" + value
+    return value
 
 
 def load_audit_entries(state_dir: Path) -> list[dict[str, Any]]:
@@ -69,16 +74,15 @@ def entries_to_csv(entries: list[dict[str, Any]], state_dir: Path) -> str:
         payout_ref = _load_payout_ref(state_dir, entry.get("file_hash"))
         xero_id = entry.get("xero_id") or ""
         summary = _flatten_request(entry.get("request"))
-        writer.writerow(
-            [
-                entry.get("timestamp", ""),
-                entry.get("action", ""),
-                payout_ref,
-                xero_id,
-                entry.get("status", ""),
-                summary,
-            ]
-        )
+        row = [
+            entry.get("timestamp", ""),
+            entry.get("action", ""),
+            payout_ref,
+            xero_id,
+            entry.get("status", ""),
+            summary,
+        ]
+        writer.writerow(_csv_safe(str(cell)) for cell in row)
     return buf.getvalue()
 
 

@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 
 const AUTH_KEY = "payoutbridge.demoAuth";
+// GEN-1 (PERSONA-DESIGN.md §8, docs/specs/09 §7.0) — the last-used persona
+// survives logout in its own key, separate from AUTH_KEY (which logout wipes
+// entirely). A plain login with no explicit persona choice reuses it.
+const LAST_PERSONA_KEY = "payoutbridge.lastPersona";
 const EVENT = "payoutbridge:auth-change";
 const OPEN_EVENT = "payoutbridge:auth-open";
 
@@ -34,8 +38,27 @@ function read(): DemoUser | null {
   }
 }
 
+function readLastPersona(): Persona | null {
+  try {
+    const raw = localStorage.getItem(LAST_PERSONA_KEY);
+    if (raw === "owner" || raw === "bookkeeper" || raw === "freelancer") return raw;
+  } catch {
+    /* private mode / storage unavailable — no last persona to reuse */
+  }
+  return null;
+}
+
+function writeLastPersona(persona: Persona) {
+  try {
+    localStorage.setItem(LAST_PERSONA_KEY, persona);
+  } catch {
+    /* non-fatal — persona just won't survive this logout */
+  }
+}
+
 function write(user: DemoUser) {
   localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+  writeLastPersona(user.persona);
   window.dispatchEvent(new Event(EVENT));
 }
 
@@ -81,8 +104,13 @@ export function useDemoAuth() {
     };
   }, []);
 
-  const login = (name: string, persona: Persona = "owner") => {
-    const u: DemoUser = { name, persona };
+  // GEN-1: a login with no explicit persona choice reuses the last-used
+  // persona (even across a logout) — only a genuinely first-ever session
+  // (nothing in LAST_PERSONA_KEY) falls back to "owner". Sign-up always
+  // passes an explicit persona, so this only changes the Log-in path.
+  const login = (name: string, persona?: Persona) => {
+    const resolved = persona ?? readLastPersona() ?? "owner";
+    const u: DemoUser = { name, persona: resolved };
     write(u);
     setUser(u);
   };

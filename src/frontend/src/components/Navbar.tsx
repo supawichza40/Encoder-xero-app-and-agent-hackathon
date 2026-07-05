@@ -279,7 +279,10 @@ export function Navbar() {
           onSubmit={() => {
             const trimmed = nameInput.trim();
             if (!trimmed) return;
-            login(trimmed, authMode === "signup" ? signupPersona : "owner");
+            // GEN-1: Sign-up always honors the door choice; Log-in passes no
+            // persona so useDemoAuth.login() reuses the last-used persona
+            // instead of resetting to "owner".
+            login(trimmed, authMode === "signup" ? signupPersona : undefined);
             setAuthMode(null);
             setNameInput("");
           }}

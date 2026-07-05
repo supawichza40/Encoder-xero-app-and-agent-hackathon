@@ -202,3 +202,30 @@ class VatCheckResponse(BaseModel):
     note: str
     fetched_at: str
     source: str   # "xero" | "degraded"
+
+
+# ── Evidence pack (PRI-2, CONTRACT.md §3) ──────────────────────────────────
+
+class EvidencePackXeroIds(BaseModel):
+    invoice_id: str | None = None
+    bank_txn_id: str | None = None
+    payment_id: str | None = None
+    credit_note_id: str | None = None   # non-null only for refund statements
+
+
+class EvidencePackAmounts(BaseModel):
+    gross: str
+    commission: str
+    fees: str
+    refunds: str
+    net: str
+
+
+class EvidencePack(BaseModel):
+    payout_ref: str
+    csv_sha256: str
+    xero_ids: EvidencePackXeroIds
+    amounts: EvidencePackAmounts
+    clearing_balance: str | None = None
+    verified: bool
+    generated_at: str
