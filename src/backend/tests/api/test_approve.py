@@ -159,6 +159,45 @@ def test_AA11_non_zero_balance_not_verified(api_client, mock_xero, golden_csv):
     assert body["clearing_balance"] == "0.01"
 
 
+# ── AA13: invoice is authorised after creation, before the payment step ───
+def test_AA13_invoice_authorised_before_payment(api_client, mock_xero, golden_csv):
+    """MCP creates the invoice DRAFT; the executor must authorise it via raw
+    REST (DRAFT invoices post nothing to the ledger and cannot take a payment).
+    The invoice line must post to real revenue (Sales, 200) and the payment
+    must settle the full gross INTO Platform Clearing (092)."""
+    fh = _propose(api_client, golden_csv)
+    resp = _approve(api_client, fh)
+    assert resp.status_code == 200
+
+    mock_xero.authorise_invoice.assert_called_once_with("INV-0042")
+
+    invoice_kwargs = mock_xero.create_invoice.call_args.kwargs
+    assert invoice_kwargs["account_code"] == "200"          # revenue, not clearing
+
+    payment_kwargs = mock_xero.create_payment.call_args.kwargs
+    assert payment_kwargs["account_code"] == "092"          # INTO Platform Clearing
+    assert payment_kwargs["amount"] == Decimal("1340.00")   # gross settles invoice
+
+
+# ── AA14: authorise failure fails step 1 loudly — nothing recorded ─────────
+def test_AA14_authorise_failure_fails_step1(api_client, mock_xero, golden_csv):
+    from backend.xero_client import XeroMCPError
+
+    mock_xero.authorise_invoice.side_effect = XeroMCPError("authorise failed: 400")
+
+    fh = _propose(api_client, golden_csv)
+    resp = _approve(api_client, fh)
+    assert resp.status_code == 503
+    assert "step 1" in resp.json()["detail"].lower()
+
+    # Step 1 must NOT be recorded complete — a DRAFT invoice is not a done step
+    ids = idem.get_step_ids(fh)
+    assert "create-invoice" not in ids["completed_steps"]
+    # And no later step may have run
+    mock_xero.create_bank_transaction.assert_not_called()
+    mock_xero.create_payment.assert_not_called()
+
+
 # ── AA12: attach_file failure is non-fatal (E2) — approve still 200/success ─
 def test_AA12_attachment_failure_is_non_fatal(api_client, mock_xero, golden_csv):
     """

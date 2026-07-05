@@ -54,7 +54,9 @@ def test_PL2_step1_invoice():
     s = plan.steps[0]
     assert s.kind == StepKind.CREATE_INVOICE
     assert s.amount == Decimal("1340.00")
-    assert s.account == "Platform Clearing"
+    # Invoice lines post to real revenue (Sales); the gross reaches Platform
+    # Clearing via the payment step, not the invoice line.
+    assert s.account == "Sales"
 
 
 # ── PL3: Step 2 is create-bank-transaction ────────────────────────────────
@@ -81,7 +83,11 @@ def test_PL5_step3_payment():
     plan = create_plan(_golden_payout())
     s = plan.steps[2]
     assert s.kind == StepKind.CREATE_PAYMENT
-    assert s.amount == Decimal("847.00")
+    # Payment settles the full invoice (gross − refunds) INTO Platform
+    # Clearing — that is what brings the gross into Clearing so it nets to
+    # zero against the seeded −net transfer and the fees SPEND.
+    assert s.amount == Decimal("1340.00")
+    assert s.account == "Platform Clearing"
     assert s.clears == "MC-PAYOUT-0407"
 
 
@@ -93,8 +99,11 @@ def test_PL6_invariant_true():
 
 # ── PL7: Step amounts sum correctly ───────────────────────────────────────
 def test_PL7_amounts_balance():
-    plan = create_plan(_golden_payout())
-    assert plan.steps[0].amount - plan.steps[1].amount == plan.steps[2].amount
+    """Clearing identity: payment (gross in) − fees SPEND == net swept to the
+    bank by the seed transfer, so Clearing closes at exactly 0."""
+    payout = _golden_payout()
+    plan = create_plan(payout)
+    assert plan.steps[2].amount - plan.steps[1].amount == payout.net
 
 
 # ── PL8: Zero-refund payout ────────────────────────────────────────────────
@@ -141,8 +150,9 @@ def test_PL9_nonzero_refund():
     assert plan.steps[2].amount == Decimal("350.00")
     assert len(plan.steps[2].lines) == 2  # commission + fees, no refund line
 
-    # Payment carries net
-    assert plan.steps[3].amount == Decimal("550.00")
+    # Payment settles the invoice balance (gross − credit-noted refunds) into
+    # Clearing: −net (seed) − 350 (fees) + 900 (payment) = 0
+    assert plan.steps[3].amount == Decimal("900.00")
 
 
 # ── PL10: Planner refuses when invariant is broken ────────────────────────

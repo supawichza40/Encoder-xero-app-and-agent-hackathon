@@ -1,16 +1,20 @@
 """
 Idempotent seed script for the Xero Demo Company.
 
-Sets up everything both CSVs need, then captures the BEFORE P&L snapshot.
+Sets up everything the golden path needs, then captures the BEFORE P&L snapshot.
 Safe to run multiple times — re-run creates nothing new.
 
 What it creates (once each):
-  1. Account: Platform Clearing (code 810, BANK type, enable payments)
-  2. Account: Platform Commission & Fees (code 418, expense)
+  1. Account: Platform Clearing (code 092, real BANK account, via raw REST)
+  2. Account: fees expense — reuses the Demo Company's "Bank Fees" (404)
   3. Contact: MarketplaceCo (Marketplace)
-  4. RECEIVE bank transaction: £847.00 into Platform Clearing, ref MC-PAYOUT-0407
-  5. RECEIVE bank transaction: £695.00 into Platform Clearing, ref MC-PAYOUT-2107  [E1]
-  6. Tracking category "Channel" + option "MarketplaceCo"                          [E3]
+  4. Bank transfer: £847.00 Platform Clearing → Business Bank (the net payout
+     deposit landing in the bank; Dr Bank / Cr Clearing, so Clearing opens −847
+     and the 3 golden-path writes close it to exactly £0.00)
+  5. [optional, SEED_REFUND_DEPOSIT=true] £695.00 transfer for the refund CSV.
+     Off by default: pre-seeding it would leave Clearing at −695 after the
+     golden path and break the zero-balance verification.                    [E1]
+  6. Tracking category "Channel" + option "MarketplaceCo"                    [E3]
   7. P&L BEFORE snapshot → state/pnl-before.json
 
 Usage:
@@ -33,15 +37,16 @@ async def seed_demo_company(client: "XeroClient") -> dict:  # type: ignore[name-
     Idempotent seed. Returns a summary dict of what was created/found.
     """
     from .config import (
+        BANK_ACCOUNT_CODE,
         CLEARING_ACCOUNT_CODE,
         CLEARING_ACCOUNT_NAME,
+        CLEARING_BANK_ACCOUNT_NUMBER,
         FEES_ACCOUNT_CODE,
         FEES_ACCOUNT_NAME,
         CONTACT_NAME,
-        PAYOUT_REFERENCE,
         NET_DEPOSIT_AMOUNT,
-        REFUND_PAYOUT_REFERENCE,
         REFUND_NET_DEPOSIT_AMOUNT,
+        SEED_REFUND_DEPOSIT,
         TRACKING_CATEGORY,
         TRACKING_OPTION,
         STATE_DIR,
@@ -51,87 +56,67 @@ async def seed_demo_company(client: "XeroClient") -> dict:  # type: ignore[name-
         "clearing_account": None,
         "fees_account": None,
         "contact_id": None,
-        "receive_txn_id": None,
-        "refund_receive_txn_id": None,
+        "net_transfer_id": None,
+        "refund_net_transfer_id": None,
         "tracking_category": None,
         "pnl_before_captured": False,
         "warnings": [],
     }
 
-    # ── 1. Check / create Platform Clearing account ──────────────────────
+    # ── 1. Check / create Platform Clearing account (real BANK account) ──
     logger.info("Checking Platform Clearing account (code %s)…", CLEARING_ACCOUNT_CODE)
-    clearing_id = await client.find_or_create_account(
+    summary["clearing_account"] = await client.find_or_create_account(
         name=CLEARING_ACCOUNT_NAME,
         code=CLEARING_ACCOUNT_CODE,
         account_type="BANK",
+        bank_account_number=CLEARING_BANK_ACCOUNT_NUMBER,
     )
-    summary["clearing_account"] = clearing_id
-    if clearing_id == CLEARING_ACCOUNT_CODE:
-        summary["warnings"].append(
-            f"Platform Clearing (code {CLEARING_ACCOUNT_CODE}) not found. "
-            "Create it in Xero UI → Settings → Chart of Accounts → Add Account "
-            "(Type: Bank, Code: 810, Name: Platform Clearing, enable payments)."
-        )
 
-    # ── 2. Check / create Platform Commission & Fees account ─────────────
-    logger.info("Checking Platform Commission & Fees account (code %s)…", FEES_ACCOUNT_CODE)
-    fees_id = await client.find_or_create_account(
+    # ── 2. Check / create fees expense account (reuses Demo "Bank Fees") ─
+    logger.info("Checking fees expense account (code %s)…", FEES_ACCOUNT_CODE)
+    summary["fees_account"] = await client.find_or_create_account(
         name=FEES_ACCOUNT_NAME,
         code=FEES_ACCOUNT_CODE,
         account_type="EXPENSE",
     )
-    summary["fees_account"] = fees_id
-    if fees_id == FEES_ACCOUNT_CODE:
-        summary["warnings"].append(
-            f"Platform Commission & Fees (code {FEES_ACCOUNT_CODE}) not found. "
-            "Create it in Xero UI (Type: Expense, Code: 418, Name: Platform Commission & Fees)."
-        )
 
     # ── 3. Check / create MarketplaceCo contact ───────────────────────────
     logger.info("Checking contact '%s'…", CONTACT_NAME)
     contact_id = await client.create_contact(CONTACT_NAME)
     summary["contact_id"] = contact_id
 
-    # ── 4. Check / create RECEIVE bank transaction — golden path £847 ─────
-    logger.info(
-        "Checking for seeded RECEIVE bank transaction (ref %s)…", PAYOUT_REFERENCE
+    # ── 4. Seed net deposit — bank transfer Clearing → Business Bank ─────
+    # Dr Business Bank £847 / Cr Platform Clearing £847: the marketplace's net
+    # payout landing in the real bank. Clearing opens at −847 so the golden
+    # path (+gross via payment, −fees via SPEND) closes it to exactly £0.00.
+    logger.info("Checking for seeded net-deposit transfer (£%s)…", NET_DEPOSIT_AMOUNT)
+    summary["net_transfer_id"] = await client.find_bank_transfer(
+        CLEARING_ACCOUNT_CODE, BANK_ACCOUNT_CODE, Decimal(NET_DEPOSIT_AMOUNT)
     )
-    existing_txns = await client.list_bank_transactions()
-    summary["receive_txn_id"] = _find_receive_txn(
-        existing_txns, PAYOUT_REFERENCE, CLEARING_ACCOUNT_CODE
-    )
-
-    if not summary["receive_txn_id"]:
-        logger.info("Creating seeded RECEIVE £%s in Platform Clearing…", NET_DEPOSIT_AMOUNT)
-        summary["receive_txn_id"] = await client.create_receive_transaction(
-            amount=Decimal(NET_DEPOSIT_AMOUNT),
-            reference=PAYOUT_REFERENCE,
-            account_code=CLEARING_ACCOUNT_CODE,
-            contact_name=CONTACT_NAME,
+    if not summary["net_transfer_id"]:
+        summary["net_transfer_id"] = await client.create_bank_transfer(
+            CLEARING_ACCOUNT_CODE, BANK_ACCOUNT_CODE, Decimal(NET_DEPOSIT_AMOUNT)
         )
-        logger.info("Created seeded RECEIVE transaction: %s", summary["receive_txn_id"])
+        logger.info("Created net-deposit transfer: %s", summary["net_transfer_id"])
+    else:
+        logger.info("Net-deposit transfer already exists: %s", summary["net_transfer_id"])
 
-    # ── 5. Check / create RECEIVE bank transaction — refund path £695 ─────
-    logger.info(
-        "Checking for seeded RECEIVE bank transaction (ref %s)…", REFUND_PAYOUT_REFERENCE
-    )
-    summary["refund_receive_txn_id"] = _find_receive_txn(
-        existing_txns, REFUND_PAYOUT_REFERENCE, CLEARING_ACCOUNT_CODE
-    )
-
-    if not summary["refund_receive_txn_id"]:
+    # ── 5. Refund-path deposit £695 — opt-in only [E1] ────────────────────
+    if SEED_REFUND_DEPOSIT:
+        summary["refund_net_transfer_id"] = await client.find_bank_transfer(
+            CLEARING_ACCOUNT_CODE, BANK_ACCOUNT_CODE, Decimal(REFUND_NET_DEPOSIT_AMOUNT)
+        )
+        if not summary["refund_net_transfer_id"]:
+            summary["refund_net_transfer_id"] = await client.create_bank_transfer(
+                CLEARING_ACCOUNT_CODE, BANK_ACCOUNT_CODE, Decimal(REFUND_NET_DEPOSIT_AMOUNT)
+            )
+            logger.info(
+                "Created refund net-deposit transfer: %s", summary["refund_net_transfer_id"]
+            )
+    else:
         logger.info(
-            "Creating seeded RECEIVE £%s in Platform Clearing…", REFUND_NET_DEPOSIT_AMOUNT
-        )
-        summary["refund_receive_txn_id"] = await client.create_receive_transaction(
-            amount=Decimal(REFUND_NET_DEPOSIT_AMOUNT),
-            reference=REFUND_PAYOUT_REFERENCE,
-            account_code=CLEARING_ACCOUNT_CODE,
-            contact_name=CONTACT_NAME,
-        )
-        logger.info(
-            "Created refund seeded RECEIVE transaction: %s",
-            summary["refund_receive_txn_id"],
+            "Refund deposit not seeded (SEED_REFUND_DEPOSIT=false) — seeding it "
+            "before the golden path would break the £0.00 clearing verification."
         )
 
     # ── 6. Tracking category "Channel" + option "MarketplaceCo" ──────────
@@ -166,36 +151,6 @@ async def seed_demo_company(client: "XeroClient") -> dict:  # type: ignore[name-
             summary["warnings"].append(f"BEFORE P&L capture failed: {exc}")
 
     return summary
-
-
-def _find_receive_txn(
-    txns: list[dict],
-    reference: str,
-    bank_code: str,
-) -> str | None:
-    """
-    Return the ID of a bank transaction matching our seed reference, else None.
-    The MCP list-bank-transactions text carries the reference and id but no clean
-    RECEIVE/SPEND type or bank-account code column, so idempotency keys on the
-    unique payout reference alone.
-    """
-    for txn in txns:
-        ref = (
-            txn.get("Reference")
-            or txn.get("reference")
-            or ""
-        )
-        if ref == reference:
-            txn_id = (
-                txn.get("Bank Transaction ID")
-                or txn.get("BankTransactionID")
-                or txn.get("bankTransactionID")
-                or txn.get("id")
-                or "FOUND"
-            )
-            logger.info("Seeded transaction with ref %s already exists: %s", reference, txn_id)
-            return txn_id
-    return None
 
 
 if __name__ == "__main__":

@@ -20,20 +20,37 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 STATE_DIR = BASE_DIR / "state"
 DATA_DIR = BASE_DIR / "data"
 
-# ── Xero account constants ─────────────────────────────────────────────────
-CLEARING_ACCOUNT_CODE = "810"
+# ── Xero account constants (Demo Company UK chart, verified live 2026-07-05) ─
+# Platform Clearing is a real BANK account (created via raw REST — MCP has no
+# create-account tool). BANK type is required so fees can be SPENT from it and
+# the invoice payment can be received INTO it.
+CLEARING_ACCOUNT_CODE = "092"
 CLEARING_ACCOUNT_NAME = "Platform Clearing"
-FEES_ACCOUNT_CODE = "418"
-FEES_ACCOUNT_NAME = "Platform Commission & Fees"
+CLEARING_BANK_ACCOUNT_NUMBER = "00000000"  # dummy — BANK accounts require one
+# Reuse the Demo Company's existing "Bank Fees" overhead account for the
+# marketplace commission + fees expense (minimises tenant changes).
+FEES_ACCOUNT_CODE = "404"
+FEES_ACCOUNT_NAME = "Bank Fees"
+# Invoice lines post to real revenue so turnover is recognised on the P&L.
+REVENUE_ACCOUNT_CODE = "200"
+REVENUE_ACCOUNT_NAME = "Sales"
+# The business's real bank account the marketplace net deposit lands in.
+BANK_ACCOUNT_CODE = "090"
+BANK_ACCOUNT_NAME = "Business Bank Account"
 CONTACT_NAME = "MarketplaceCo (Marketplace)"
 
-# Golden path (0407) — net deposit pre-seeded in Platform Clearing
+# Golden path (0407) — net deposit seeded as a bank transfer
+# Platform Clearing → Business Bank (Dr Bank / Cr Clearing).
 PAYOUT_REFERENCE = "MC-PAYOUT-0407"
 NET_DEPOSIT_AMOUNT = "847.00"
 
-# Refund path (2107) — second net deposit for E1 demo
+# Refund path (2107) — second net deposit for E1 demo. NOT seeded by default:
+# a second pre-seeded deposit would leave Platform Clearing at -695 after the
+# golden path and break its zero-balance verification. Set SEED_REFUND_DEPOSIT
+# =true and re-run the seed just before demoing the refund CSV.
 REFUND_PAYOUT_REFERENCE = "MC-PAYOUT-2107"
 REFUND_NET_DEPOSIT_AMOUNT = "695.00"
+SEED_REFUND_DEPOSIT = os.getenv("SEED_REFUND_DEPOSIT", "false").lower() == "true"
 
 # ── E3 — Channel tracking category ────────────────────────────────────────
 TRACKING_CATEGORY = "Channel"

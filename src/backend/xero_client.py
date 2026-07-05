@@ -2,8 +2,12 @@
 Xero MCP client wrapper + raw REST helpers.
 
 MCP calls: all accounting operations via npx @xeroapi/xero-mcp-server@latest.
-Raw REST:  attachment PUT (E2) and history note PUT (E6) — MCP does not expose
-           these endpoints; token is minted via client-credentials.
+Raw REST:  attachment PUT (E2), history note PUT (E6), account creation
+           (PUT Accounts — MCP has no create-account tool), invoice
+           authorisation (POST Invoices/{id} — MCP creates DRAFT and cannot
+           authorise; create-payment requires AUTHORISED), and bank transfers
+           (PUT BankTransfers — the net sweep Clearing → Business Bank).
+           Token is minted via client-credentials.
 
 MCP wire format (v0.0.17): tools reply with one or more TEXT content blocks, NOT
 JSON. `structuredContent` is None. A list-* tool returns a header block ("Found N
@@ -364,6 +368,138 @@ class XeroClient:
 
         return False
 
+    async def _rest_headers(self) -> dict[str, str]:
+        """Auth + tenant headers for raw REST JSON calls."""
+        return {
+            "Authorization": f"Bearer {await self._get_access_token()}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "xero-tenant-id": await self._get_tenant_id(),
+        }
+
+    async def _rest_request(
+        self, method: str, url: str, payload: dict[str, Any], what: str
+    ) -> dict[str, Any]:
+        """
+        Issue a raw REST JSON request. Retries once on 429 (honours Retry-After).
+        Raises XeroMCPError on any non-2xx response so failures are loud.
+        """
+        headers = await self._rest_headers()
+        for attempt in range(2):
+            async with httpx.AsyncClient(timeout=30) as http:
+                resp = await http.request(method, url, json=payload, headers=headers)
+            if resp.status_code == 429 and attempt == 0:
+                retry_after = int(resp.headers.get("Retry-After", 60))
+                logger.warning("%s rate limited — sleeping %ds", what, retry_after)
+                await asyncio.sleep(retry_after)
+                continue
+            if resp.status_code not in (200, 201):
+                raise XeroMCPError(f"{what} failed: {resp.status_code} {resp.text[:300]}")
+            return resp.json()
+        raise XeroMCPError(f"{what}: rate limit exceeded after retry")
+
+    # ── Raw REST writes MCP cannot do ──────────────────────────────────────
+
+    async def authorise_invoice(self, invoice_id: str) -> bool:
+        """
+        Move a DRAFT invoice to AUTHORISED via raw REST (accounting.invoices).
+        MCP v0.0.17 creates invoices DRAFT and cannot authorise them; a DRAFT
+        invoice has no ledger impact and cannot take a payment.
+        Raises XeroMCPError on failure — the payment step depends on this.
+        """
+        body = await self._rest_request(
+            "POST",
+            f"{XERO_API_BASE}/Invoices/{invoice_id}",
+            {"InvoiceID": invoice_id, "Status": "AUTHORISED"},
+            f"authorise_invoice({invoice_id})",
+        )
+        status = (body.get("Invoices") or [{}])[0].get("Status", "")
+        if status != "AUTHORISED":
+            raise XeroMCPError(
+                f"authorise_invoice({invoice_id}): status is '{status}', not AUTHORISED"
+            )
+        logger.info("Invoice %s authorised", invoice_id)
+        return True
+
+    async def create_account(
+        self,
+        name: str,
+        code: str,
+        account_type: str,
+        bank_account_number: str | None = None,
+    ) -> str:
+        """
+        Create a chart-of-accounts entry via raw REST (accounting.settings) —
+        MCP has no create-account tool. BANK accounts require a (dummy)
+        BankAccountNumber. Returns the new AccountID GUID.
+        """
+        payload: dict[str, Any] = {"Code": code, "Name": name, "Type": account_type}
+        if account_type == "BANK":
+            payload["BankAccountNumber"] = bank_account_number or "00000000"
+        body = await self._rest_request(
+            "PUT", f"{XERO_API_BASE}/Accounts", payload, f"create_account({name})"
+        )
+        account_id = (body.get("Accounts") or [{}])[0].get("AccountID", "")
+        if not account_id:
+            raise XeroMCPError(f"create_account({name}): no AccountID in response")
+        self._accounts_cache = None  # chart changed — invalidate resolution cache
+        logger.info("Created account '%s' (code %s): %s", name, code, account_id)
+        return account_id
+
+    async def find_bank_transfer(
+        self, from_code: str, to_code: str, amount: Decimal
+    ) -> str | None:
+        """
+        Return the BankTransferID of an existing transfer matching from/to
+        account codes and amount, else None (seed idempotency — BankTransfers
+        carry no reference field to key on).
+        """
+        headers = await self._rest_headers()
+        async with httpx.AsyncClient(timeout=30) as http:
+            resp = await http.get(f"{XERO_API_BASE}/BankTransfers", headers=headers)
+        if resp.status_code != 200:
+            raise XeroMCPError(
+                f"find_bank_transfer: {resp.status_code} {resp.text[:300]}"
+            )
+        for xfer in resp.json().get("BankTransfers", []):
+            if (
+                str(xfer.get("FromBankAccount", {}).get("Code", "")) == str(from_code)
+                and str(xfer.get("ToBankAccount", {}).get("Code", "")) == str(to_code)
+                and Decimal(str(xfer.get("Amount", "0"))) == amount
+            ):
+                return xfer.get("BankTransferID")
+        return None
+
+    async def create_bank_transfer(
+        self, from_code: str, to_code: str, amount: Decimal
+    ) -> str:
+        """
+        Create a bank transfer between two BANK accounts via raw REST
+        (PUT BankTransfers). Used to move the net payout from Platform
+        Clearing to the Business Bank Account. Returns the BankTransferID.
+        """
+        body = await self._rest_request(
+            "PUT",
+            f"{XERO_API_BASE}/BankTransfers",
+            {
+                "BankTransfers": [
+                    {
+                        "FromBankAccount": {"Code": from_code},
+                        "ToBankAccount": {"Code": to_code},
+                        "Amount": float(amount),
+                    }
+                ]
+            },
+            f"create_bank_transfer({from_code}->{to_code} {amount})",
+        )
+        transfer_id = (body.get("BankTransfers") or [{}])[0].get("BankTransferID", "")
+        if not transfer_id:
+            raise XeroMCPError("create_bank_transfer: no BankTransferID in response")
+        logger.info(
+            "Bank transfer %s → %s £%s created: %s", from_code, to_code, amount, transfer_id
+        )
+        return transfer_id
+
     async def _get_tenant_id(self) -> str:
         """
         Retrieve the Xero tenant ID (organisation UUID) via the Connections API.
@@ -516,9 +652,8 @@ class XeroClient:
     ) -> str:
         """
         Create an ACCREC invoice for gross revenue. Returns Invoice ID.
-        NB: MCP v0.0.17 creates invoices as DRAFT (no status arg); it cannot
-        authorise them, so a subsequent create-payment requires the invoice to be
-        authorised out-of-band.
+        NB: MCP v0.0.17 creates invoices as DRAFT (no status arg); the executor
+        must call authorise_invoice() before create-payment can be applied.
         """
         contact_id = await self._get_contact_id(contact_name)
         payload = {
@@ -679,22 +814,24 @@ class XeroClient:
         name: str,
         code: str,
         account_type: str,
-        account_class: str = "ASSET",
+        bank_account_number: str | None = None,
     ) -> str:
-        """Return account ID if present, else warn and return the code (MCP cannot create accounts)."""
+        """
+        Return the AccountID if the code is already in the chart, else create the
+        account via raw REST (MCP has no create-account tool) and return its ID.
+        """
         for account in await self.list_accounts():
             if str(account.get("Code", "")) == str(code):
                 aid = account.get("ID") or code
                 logger.info("Account '%s' (code %s) found: %s", name, code, aid)
                 return aid
 
-        logger.warning(
-            "SETUP REQUIRED: Account '%s' (code %s, type %s) not found in Xero. "
-            "MCP cannot create accounts — create it via Xero UI → Settings → Chart of "
-            "Accounts → Add Account. Enable 'Payments to this account' for Platform Clearing.",
-            name, code, account_type,
+        return await self.create_account(
+            name=name,
+            code=code,
+            account_type=account_type,
+            bank_account_number=bank_account_number,
         )
-        return code
 
     async def ensure_tracking_category(
         self,

@@ -297,3 +297,119 @@ async def test_get_clearing_balance_computes_debit_minus_credit():
 async def test_get_clearing_balance_absent_account_is_zero():
     c = _client({"list-trial-balance": _trial_balance([])})
     assert await c.get_clearing_balance() == Decimal("0")
+
+
+# ── Raw REST helpers: authorise_invoice / create_account / bank transfers ──────
+# These endpoints do not exist in the MCP server, so the client calls the Xero
+# REST API directly. The tests stub `_rest_request` (the shared HTTP/429 layer)
+# and verify each method's request payload and response parsing.
+
+from unittest.mock import AsyncMock
+
+
+def _rest_client() -> XeroClient:
+    return XeroClient()
+
+
+async def test_authorise_invoice_posts_status_and_confirms():
+    c = _rest_client()
+    c._rest_request = AsyncMock(
+        return_value={"Invoices": [{"InvoiceID": "INV-1", "Status": "AUTHORISED"}]}
+    )
+
+    assert await c.authorise_invoice("INV-1") is True
+
+    method, url, payload, _ = c._rest_request.call_args.args
+    assert method == "POST"
+    assert url.endswith("/Invoices/INV-1")
+    assert payload == {"InvoiceID": "INV-1", "Status": "AUTHORISED"}
+
+
+async def test_authorise_invoice_raises_when_not_authorised():
+    c = _rest_client()
+    c._rest_request = AsyncMock(
+        return_value={"Invoices": [{"InvoiceID": "INV-1", "Status": "DRAFT"}]}
+    )
+    with pytest.raises(XeroMCPError, match="not AUTHORISED"):
+        await c.authorise_invoice("INV-1")
+
+
+async def test_create_account_bank_includes_bank_number_and_busts_cache():
+    c = _rest_client()
+    c._accounts_cache = [{"Code": "090"}]  # pre-warm — must be invalidated
+    c._rest_request = AsyncMock(
+        return_value={"Accounts": [{"AccountID": "acc-guid-1"}]}
+    )
+
+    aid = await c.create_account(
+        "Platform Clearing", "092", "BANK", bank_account_number="00000000"
+    )
+
+    assert aid == "acc-guid-1"
+    assert c._accounts_cache is None
+    method, url, payload, _ = c._rest_request.call_args.args
+    assert (method, payload["Type"], payload["BankAccountNumber"]) == (
+        "PUT", "BANK", "00000000",
+    )
+
+
+async def test_create_bank_transfer_payload_and_id():
+    c = _rest_client()
+    c._rest_request = AsyncMock(
+        return_value={"BankTransfers": [{"BankTransferID": "xfer-guid-1"}]}
+    )
+
+    xid = await c.create_bank_transfer("092", "090", Decimal("847.00"))
+
+    assert xid == "xfer-guid-1"
+    _, url, payload, _ = c._rest_request.call_args.args
+    assert url.endswith("/BankTransfers")
+    xfer = payload["BankTransfers"][0]
+    assert xfer["FromBankAccount"] == {"Code": "092"}
+    assert xfer["ToBankAccount"] == {"Code": "090"}
+    assert xfer["Amount"] == 847.0
+
+
+async def test_find_bank_transfer_matches_codes_and_amount(monkeypatch):
+    import backend.xero_client as xc_mod
+
+    transfers = {
+        "BankTransfers": [
+            {  # wrong amount — must be skipped
+                "BankTransferID": "xfer-other",
+                "FromBankAccount": {"Code": "092"},
+                "ToBankAccount": {"Code": "090"},
+                "Amount": 695.0,
+            },
+            {
+                "BankTransferID": "xfer-hit",
+                "FromBankAccount": {"Code": "092"},
+                "ToBankAccount": {"Code": "090"},
+                "Amount": 847.0,
+            },
+        ]
+    }
+
+    class _FakeResponse:
+        status_code = 200
+
+        @staticmethod
+        def json():
+            return transfers
+
+    class _FakeAsyncClient:
+        def __init__(self, *a, **kw): ...
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *a):
+            return False
+        async def get(self, url, headers=None):
+            return _FakeResponse()
+
+    monkeypatch.setattr(xc_mod.httpx, "AsyncClient", _FakeAsyncClient)
+
+    c = _rest_client()
+    c._rest_headers = AsyncMock(return_value={})
+
+    assert await c.find_bank_transfer("092", "090", Decimal("847.00")) == "xfer-hit"
+    assert await c.find_bank_transfer("092", "090", Decimal("1.00")) is None

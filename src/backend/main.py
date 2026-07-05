@@ -10,12 +10,14 @@ Endpoints:
   GET  /vat-check          — list-tax-rates + VAT consistency flag [E5]
   GET  /health             — connectivity + Xero org check
 
-Golden path accounting (Platform Clearing, code 810, BANK type):
-  Seed  → RECEIVE net deposit pre-seeded in Platform Clearing
-  Step1 → create-invoice gross (ACCREC) into Clearing
-  Step2 → create-credit-note refunds OUT of Clearing (only when refunds > 0) [E1]
-  Step3 → create-bank-transaction SPEND fees FROM Clearing
-  Step4 → create-payment SPEND net FROM Clearing → £0.00 ✓
+Golden path accounting (Platform Clearing, code 092, real BANK account):
+  Seed  → bank transfer net Clearing → Business Bank (the deposit that landed
+          in the bank), so Clearing opens at −net
+  Step1 → create-invoice gross (ACCREC, line → Sales) + authorise via raw REST
+  Step2 → create-credit-note refunds (contra revenue, only when refunds > 0) [E1]
+  Step3 → create-bank-transaction SPEND commission+fees FROM Clearing
+  Step4 → create-payment (gross − refunds) settles the invoice INTO Clearing
+          → Clearing: −net − fees + (gross − refunds) = £0.00 ✓
   (Step 2 absent for zero-refund files → 3 total steps)
 
 Post-write extras (non-fatal):
@@ -42,6 +44,7 @@ from .config import (
     CONTACT_NAME,
     CORS_ALLOW_ORIGINS,
     PAYOUT_REFERENCE,
+    REVENUE_ACCOUNT_CODE,
     STATE_DIR,
 )
 from .models import (
@@ -257,16 +260,28 @@ async def approve(request: ApproveRequest):
                     contact_name=CONTACT_NAME,
                     description=description,
                     amount=step.amount,
-                    account_code=CLEARING_ACCOUNT_CODE,
+                    account_code=REVENUE_ACCOUNT_CODE,
                     reference=payout_ref,
                 )
                 invoice_id = xero_id
+                # MCP creates the invoice DRAFT (no ledger impact, cannot take a
+                # payment). Authorise via raw REST within the same step so a
+                # failure here fails the step loudly rather than stranding a
+                # DRAFT that the payment step would then bounce off.
+                await client.authorise_invoice(xero_id)
+                audit_module.append_entry(
+                    file_hash=file_hash,
+                    action="authorise-invoice",
+                    request={"invoice_id": xero_id},
+                    xero_id=xero_id,
+                    status="success",
+                )
 
             elif step.kind == StepKind.CREATE_CREDIT_NOTE:
                 xero_id = await client.create_credit_note(
                     contact_name=CONTACT_NAME,
                     amount=step.amount,
-                    account_code=CLEARING_ACCOUNT_CODE,
+                    account_code=REVENUE_ACCOUNT_CODE,
                     reference=payout_ref,
                 )
 

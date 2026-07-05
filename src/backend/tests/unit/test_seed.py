@@ -95,22 +95,50 @@ async def test_SD4_two_category_cap_blocks_creation(client):
     client._call.assert_not_called()
 
 
-# ── SD5: seed_demo_company smoke test — surfaces tracking result, idempotent ─
-async def test_SD5_seed_demo_company_smoke(monkeypatch):
+def _seed_mock() -> AsyncMock:
     m = AsyncMock()
     m.find_or_create_account.return_value = "ACC-1"
     m.create_contact.return_value = "CONTACT-1"
-    m.list_bank_transactions.return_value = []
-    m.create_receive_transaction.return_value = "TXN-1"
+    m.find_bank_transfer.return_value = None
+    m.create_bank_transfer.return_value = "XFER-1"
     m.list_profit_and_loss.return_value = {"Revenue": "0.00"}
     m.extract_pnl_snapshot = MagicMock(return_value={"revenue": "0.00"})
     m.ensure_tracking_category = AsyncMock()
+    return m
 
+
+# ── SD5: seed_demo_company smoke test — surfaces tracking result, idempotent ─
+async def test_SD5_seed_demo_company_smoke(monkeypatch):
+    from decimal import Decimal
+
+    m = _seed_mock()
     summary = await seed_demo_company(m)
 
     assert summary["clearing_account"] == "ACC-1"
     assert summary["contact_id"] == "CONTACT-1"
-    assert summary["receive_txn_id"] == "TXN-1"
+    assert summary["net_transfer_id"] == "XFER-1"
     assert summary["tracking_category"] == "Channel/MarketplaceCo"
     assert summary["pnl_before_captured"] is True
     m.ensure_tracking_category.assert_called_once_with("Channel", "MarketplaceCo")
+    # Net deposit is a bank transfer Clearing → Business Bank for exactly £847
+    m.create_bank_transfer.assert_called_once_with(
+        cfg_mod.CLEARING_ACCOUNT_CODE, cfg_mod.BANK_ACCOUNT_CODE, Decimal("847.00")
+    )
+    # Clearing must be created as a real BANK account (payments + SPEND need it)
+    clearing_call = m.find_or_create_account.call_args_list[0]
+    assert clearing_call.kwargs["account_type"] == "BANK"
+    assert clearing_call.kwargs["bank_account_number"]
+    # Refund deposit NOT seeded by default — it would break the golden path's
+    # £0.00 clearing verification
+    assert summary["refund_net_transfer_id"] is None
+
+
+# ── SD6: existing net-deposit transfer → seed creates nothing new ─────────
+async def test_SD6_seed_skips_existing_transfer():
+    m = _seed_mock()
+    m.find_bank_transfer.return_value = "XFER-EXISTING"
+
+    summary = await seed_demo_company(m)
+
+    assert summary["net_transfer_id"] == "XFER-EXISTING"
+    m.create_bank_transfer.assert_not_called()

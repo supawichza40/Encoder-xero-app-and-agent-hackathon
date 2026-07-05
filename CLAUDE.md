@@ -104,13 +104,17 @@ Two independent codebases under `src/`:
 
 ## Golden Path (the demo flow)
 
-3 writes in strict order:
+Platform Clearing is a real BANK account (code 092, created via raw REST — MCP
+has no create-account tool). The seed books the net deposit as a bank transfer
+Clearing → Business Bank (£847.00), so Clearing opens at −847. Then 3 writes in
+strict order:
 
-1. `create-invoice` — gross revenue £1,340.00 into Platform Clearing
-2. `create-bank-transaction` — commission £445.90 + fees £47.10 out of Clearing
-3. `create-payment` — £847.00 clears against the bank deposit
+1. `create-invoice` — gross revenue £1,340.00 (line → Sales 200), then authorised via raw REST
+2. `create-bank-transaction` — commission £445.90 + fees £47.10 SPEND from Clearing (→ Bank Fees 404)
+3. `create-payment` — £1,340.00 settles the invoice INTO Clearing
 
-Then: verification read (clearing = £0.00) + P&L before/after snapshot.
+Clearing: −847 − 493 + 1340 = £0.00. Then: verification read (trial balance,
+clearing = £0.00) + P&L before/after snapshot.
 
 ## Critical Constraints
 
@@ -121,7 +125,7 @@ Then: verification read (clearing = £0.00) + P&L before/after snapshot.
 - **Demo data is SYNTHETIC.** Never present as a real customer statement. Use "MarketplaceCo" as the brand, not Treatwell (Treatwell appears only as market research).
 - **Xero rate limits:** 60 calls/min, 5 concurrent, 5,000/day. Golden path uses ≤10 calls.
 - **`update-bank-transaction` is broken** in MCP v0.0.17 (issues #206/#184). Use `create-bank-transaction` only.
-- **MCP cannot:** approve DRAFT→AUTHORISED, reconcile bank lines, attach files, void/delete. This is why the path uses `create-*` end to end.
+- **MCP cannot:** approve DRAFT→AUTHORISED, reconcile bank lines, attach files, create accounts, bank transfers, void/delete. The backend works around these with raw REST (client-credentials token): authorise-invoice, attachments, history notes, account creation, bank transfers.
 - **API terms prohibit training models on Xero API data** (inference is fine).
 
 ## Specs & Plans

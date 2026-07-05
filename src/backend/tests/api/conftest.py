@@ -46,8 +46,11 @@ def mock_xero():
 
     # Golden-path write return values (create_* now return the created object's ID)
     m.create_invoice.return_value = "INV-0042"
+    m.authorise_invoice.return_value = True
     m.create_bank_transaction.return_value = "BT-0117"
     m.create_payment.return_value = "PMT-0089"
+    m.find_bank_transfer.return_value = None
+    m.create_bank_transfer.return_value = "XFER-0001"
 
     # Verification / read return values
     m.get_clearing_balance.return_value = Decimal("0.00")
