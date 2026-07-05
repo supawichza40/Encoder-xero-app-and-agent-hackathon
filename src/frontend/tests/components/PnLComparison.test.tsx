@@ -49,9 +49,7 @@ describe("PnLComparison", () => {
   it("starts collapsed when defaultOpen is false, and expands on click", async () => {
     render(<PnLComparison before={before} after={after} defaultOpen={false} />);
     expect(screen.queryByText("£1,340.00")).not.toBeInTheDocument();
-    await userEvent.click(
-      screen.getByRole("button", { name: /profit & loss · before vs after/i }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: /profit & loss · before vs after/i }));
     expect(screen.getByText("£1,340.00")).toBeInTheDocument();
   });
 

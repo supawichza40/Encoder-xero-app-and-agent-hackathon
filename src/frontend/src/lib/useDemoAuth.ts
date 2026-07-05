@@ -29,9 +29,7 @@ function read(): DemoUser | null {
     const parsed = JSON.parse(raw) as Partial<DemoUser>;
     if (!parsed?.name) return null;
     const persona: Persona =
-      parsed.persona === "bookkeeper" || parsed.persona === "freelancer"
-        ? parsed.persona
-        : "owner";
+      parsed.persona === "bookkeeper" || parsed.persona === "freelancer" ? parsed.persona : "owner";
     return { name: parsed.name, persona };
   } catch {
     return null;
@@ -63,9 +61,7 @@ function write(user: DemoUser) {
 }
 
 export function openAuthDialog(kind: AuthDialog, persona?: Persona) {
-  window.dispatchEvent(
-    new CustomEvent(OPEN_EVENT, { detail: { kind, persona } }),
-  );
+  window.dispatchEvent(new CustomEvent(OPEN_EVENT, { detail: { kind, persona } }));
 }
 
 export interface AuthOpenDetail {
@@ -73,9 +69,7 @@ export interface AuthOpenDetail {
   persona?: Persona;
 }
 
-export function useAuthDialogRequests(
-  handler: (detail: AuthOpenDetail) => void,
-) {
+export function useAuthDialogRequests(handler: (detail: AuthOpenDetail) => void) {
   useEffect(() => {
     const onOpen = (e: Event) => {
       const detail = (e as CustomEvent<AuthOpenDetail | AuthDialog>).detail;
@@ -133,4 +127,3 @@ export const PERSONA_LABEL: Record<Persona, string> = {
   bookkeeper: "Bookkeeper",
   freelancer: "Freelancer",
 };
-

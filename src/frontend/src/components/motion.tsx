@@ -48,7 +48,7 @@ export function Reveal({
 
   return (
     <Tag
-      // biome-ignore lint/suspicious/noExplicitAny: polymorphic ref
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- polymorphic ref
       ref={ref as any}
       id={id}
       aria-labelledby={ariaLabelledBy}

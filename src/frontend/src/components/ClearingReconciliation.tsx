@@ -26,7 +26,9 @@ export function ClearingReconciliation({
   persona,
 }: ClearingReconciliationProps) {
   const plain = persona === "freelancer";
-  const heading = plain ? "Money moving through — verified" : "Live verification · Platform Clearing";
+  const heading = plain
+    ? "Money moving through — verified"
+    : "Live verification · Platform Clearing";
   const feesLabel = plain ? "Platform fees you can claim" : "Commission & fees";
   const netLabel = plain ? "Take-home" : "Net";
   const balanceLabel = plain ? "Money moving through" : "Platform Clearing balance";
@@ -45,10 +47,7 @@ export function ClearingReconciliation({
         verified ? "border-success/60 shadow-success/10" : "border-destructive/60",
       )}
     >
-      <h2
-        id="clearing-heading"
-        className="text-xs uppercase tracking-widest text-muted-foreground"
-      >
+      <h2 id="clearing-heading" className="text-xs uppercase tracking-widest text-muted-foreground">
         {heading}
       </h2>
 
@@ -74,15 +73,13 @@ export function ClearingReconciliation({
           {verified ? (
             <CheckCircle2 className="size-14 sm:size-16 lg:size-20" aria-label="Verified zero" />
           ) : (
-            <AlertTriangle className="size-14 sm:size-16 lg:size-20" aria-label="Non-zero balance" />
+            <AlertTriangle
+              className="size-14 sm:size-16 lg:size-20"
+              aria-label="Non-zero balance"
+            />
           )}
         </div>
-        <p
-          className={cn(
-            "text-sm font-medium",
-            verified ? "text-success" : "text-destructive",
-          )}
-        >
+        <p className={cn("text-sm font-medium", verified ? "text-success" : "text-destructive")}>
           {verified ? verifiedText : unverifiedText}
         </p>
       </div>

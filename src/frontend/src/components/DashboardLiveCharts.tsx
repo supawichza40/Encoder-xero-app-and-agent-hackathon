@@ -134,13 +134,7 @@ function useRippleTime(enabled: boolean) {
   return t;
 }
 
-export function LiveFeesDonutChart({
-  data,
-  total,
-}: {
-  data: FeeSlice[];
-  total: number;
-}) {
+export function LiveFeesDonutChart({ data, total }: { data: FeeSlice[]; total: number }) {
   const reduced = usePrefersReducedMotion();
   const t = useRippleTime(!reduced);
   const slices = useMemo(() => layoutPieSlices(data), [data]);
@@ -209,7 +203,12 @@ function LiveAreaDot(props: {
     <g>
       <circle cx={cx} cy={cy} r={12} fill={color} opacity={0.2}>
         <animate attributeName="r" values="8;16;8" dur="2.4s" repeatCount="indefinite" />
-        <animate attributeName="opacity" values="0.28;0.08;0.28" dur="2.4s" repeatCount="indefinite" />
+        <animate
+          attributeName="opacity"
+          values="0.28;0.08;0.28"
+          dur="2.4s"
+          repeatCount="indefinite"
+        />
       </circle>
       <circle cx={cx} cy={cy} r={5} fill={color} stroke="var(--card)" strokeWidth={2} />
     </g>
@@ -293,7 +292,12 @@ export function LiveTurnoverAreaChart({ data }: { data: RevenuePoint[] }) {
             animationEasing="ease-out"
             isAnimationActive={!reduced || tick === 0}
             dot={(props) => (
-              <LiveAreaDot {...props} dataLength={data.length} color={AREA_REAL} reduced={reduced} />
+              <LiveAreaDot
+                {...props}
+                dataLength={data.length}
+                color={AREA_REAL}
+                reduced={reduced}
+              />
             )}
           />
         </AreaChart>

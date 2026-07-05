@@ -21,10 +21,7 @@ export function TaxSummaryCard({ income, costs, takeHome }: TaxSummaryCardProps)
       aria-labelledby="tax-summary-heading"
       className="animate-fade-up rounded-2xl border border-violet-500/40 bg-violet-500/[0.06] p-6"
     >
-      <h2
-        id="tax-summary-heading"
-        className="text-xs uppercase tracking-widest text-violet-400"
-      >
+      <h2 id="tax-summary-heading" className="text-xs uppercase tracking-widest text-violet-400">
         Your tax summary
       </h2>
       <dl className="tabular mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">

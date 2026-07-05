@@ -73,9 +73,7 @@ export function InvoiceHistory({ selectedId, onSelect }: Props) {
       </div>
 
       {entries.length === 0 ? (
-        <p className="text-xs text-muted-foreground">
-          Uploaded invoices will appear here.
-        </p>
+        <p className="text-xs text-muted-foreground">Uploaded invoices will appear here.</p>
       ) : (
         <ul className="flex flex-col gap-1">
           {entries.map((entry) => {
@@ -97,9 +95,7 @@ export function InvoiceHistory({ selectedId, onSelect }: Props) {
                     }`}
                   />
                   <span className="flex flex-col overflow-hidden">
-                    <span className="truncate font-medium text-foreground">
-                      {entry.fileName}
-                    </span>
+                    <span className="truncate font-medium text-foreground">{entry.fileName}</span>
                     <span className="truncate text-[10px] text-muted-foreground">
                       {entry.proposal.payout.period} · £{entry.proposal.payout.net}
                     </span>
