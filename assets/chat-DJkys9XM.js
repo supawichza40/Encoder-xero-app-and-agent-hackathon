@@ -1,0 +1,1 @@
+import{j as e}from"./useDemoAuth-DFUsvlUH.js";import{t}from"./Navbar-CoA3hVS9.js";import{v as n}from"./index-BghLBsqA.js";var r=e();function i(){return(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(t,{}),(0,r.jsx)(`main`,{className:`mx-auto w-full max-w-6xl px-4 py-6 sm:px-6`,children:(0,r.jsx)(n,{fullPage:!0})})]})}export{i as component};
