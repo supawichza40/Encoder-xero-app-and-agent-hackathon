@@ -199,7 +199,12 @@ class XeroClient:
         Scope: accounting.attachments
         """
         token = await self._get_access_token()
-        url = f"{XERO_API_BASE}/Invoices/{invoice_id}/Attachments/{filename}"
+        # filename derives from CSV-supplied data (payout_ref); strip any path
+        # segments and URL-encode so it can't steer the authenticated PUT's path/query.
+        from urllib.parse import quote
+
+        safe_filename = quote(filename.rsplit("/", 1)[-1].rsplit("\\", 1)[-1], safe="") or "attachment.csv"
+        url = f"{XERO_API_BASE}/Invoices/{invoice_id}/Attachments/{safe_filename}"
 
         for attempt in range(2):
             async with httpx.AsyncClient(timeout=30) as http:

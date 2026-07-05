@@ -679,6 +679,13 @@ if ALLOW_SEED:
 
 def _load_proposal(file_hash: str) -> tuple[Any, JournalPlan]:
     """Load proposal from in-memory cache or disk. Raises 404 if not found."""
+    # Reject anything that isn't a plain hex hash: file_hash is joined into a
+    # filesystem path below, so `../`, `/`, `.` etc. must never reach it.
+    if not file_hash or len(file_hash) > 64 or any(
+        c not in "0123456789abcdef" for c in file_hash
+    ):
+        raise HTTPException(status_code=404, detail=f"No proposal found for hash: {file_hash}")
+
     if file_hash in _proposals:
         return _proposals[file_hash]
 
