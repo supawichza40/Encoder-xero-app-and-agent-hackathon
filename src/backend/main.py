@@ -465,6 +465,38 @@ async def pnl():
     return PnLResponse(before=before, after=after)
 
 
+# ── GET /audit/export — PRI-1 ──────────────────────────────────────────────────
+
+@app.get("/audit/export")
+async def audit_export(format: str = "csv"):
+    """
+    Export the full audit trail as CSV (default) or JSON.
+    Unknown/garbage `format` values fall back to CSV. Never 500 — an empty
+    audit trail returns a header-only CSV / an empty JSON array.
+    """
+    entries = export_mod.load_audit_entries(Path(STATE_DIR))
+    if format == "json":
+        return JSONResponse(content=entries)
+
+    csv_text = export_mod.entries_to_csv(entries, Path(STATE_DIR))
+    return Response(
+        content=csv_text,
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="payoutbridge-audit.csv"'},
+    )
+
+
+# ── GET /evidence-pack/{file_hash} — PRI-2 ─────────────────────────────────────
+
+@app.get("/evidence-pack/{file_hash}")
+async def evidence_pack(file_hash: str):
+    """Return the reconciliation evidence pack for a posted statement."""
+    pack = export_mod.build_evidence_pack(Path(STATE_DIR), file_hash)
+    if pack is None:
+        raise HTTPException(status_code=404, detail="no posted statement with that hash")
+    return pack
+
+
 # ── GET /dashboard — E4 ───────────────────────────────────────────────────────
 
 @app.get("/dashboard", response_model=DashboardResponse)
