@@ -173,23 +173,27 @@ def _find_receive_txn(
     reference: str,
     bank_code: str,
 ) -> str | None:
-    """Return the ID of a matching RECEIVE transaction if found, else None."""
+    """
+    Return the ID of a bank transaction matching our seed reference, else None.
+    The MCP list-bank-transactions text carries the reference and id but no clean
+    RECEIVE/SPEND type or bank-account code column, so idempotency keys on the
+    unique payout reference alone.
+    """
     for txn in txns:
-        ref = txn.get("Reference") or txn.get("reference") or ""
-        txn_type = txn.get("Type") or txn.get("type") or ""
-        b_code = (
-            (txn.get("BankAccount") or txn.get("bankAccount") or {}).get("Code")
-            or (txn.get("BankAccount") or txn.get("bankAccount") or {}).get("code")
+        ref = (
+            txn.get("Reference")
+            or txn.get("reference")
             or ""
         )
-        if ref == reference and txn_type == "RECEIVE" and str(b_code) == bank_code:
+        if ref == reference:
             txn_id = (
-                txn.get("BankTransactionID")
+                txn.get("Bank Transaction ID")
+                or txn.get("BankTransactionID")
                 or txn.get("bankTransactionID")
                 or txn.get("id")
                 or "FOUND"
             )
-            logger.info("Seeded RECEIVE transaction already exists: %s", txn_id)
+            logger.info("Seeded transaction with ref %s already exists: %s", reference, txn_id)
             return txn_id
     return None
 

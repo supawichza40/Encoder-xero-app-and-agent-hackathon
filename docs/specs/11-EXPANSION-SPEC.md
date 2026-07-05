@@ -119,6 +119,12 @@ Dropdown to re-tint live (judges see all 3 views in 90s). Switching persona neve
 | Checklist copy | "What Xero will do" | "Writes with Xero IDs" | "What we'll record" |
 | Chat suggested prompts | "What did the platform take?" | "Show me the audit trail" | "Is my income right for taxes?" |
 
+### P5 — Implementation status + persona requirement backlog (audited 2026-07-05)
+
+Of the P4 map, only four branches are actually implemented: KPI #1 **label** (freelancer only — order never changes), checklist heading, AuditTrail default-open (bookkeeper), and chat prompt set/order. Dashboard KPI *order*, greeting tinting, and P&L auto-expand (owner) are **spec-only**. Known bug: the Log-in flow hard-codes persona `"owner"` (`Navbar.tsx:282`); only Sign-up honors the door choice.
+
+The full per-persona journey spec, dashboard gap analysis, and requirement backlog (`GEN-1..4`, `SAM-1..6`, `PRI-1..6`, `ALX-1..6`) live in [`09-USE-CASES-AND-PERSONAS.md`](09-USE-CASES-AND-PERSONAS.md) **§7** — that section is the source of truth for persona build work; this table stays the quick-reference tint map.
+
 ---
 
 ## Rate-limit budget (all features, worst case refund file)

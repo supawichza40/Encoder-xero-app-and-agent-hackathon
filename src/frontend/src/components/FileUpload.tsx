@@ -132,9 +132,7 @@ export function FileUpload({ onFileSelected, disabled, loading, error, compact }
           <p className="text-base font-medium text-foreground">
             {loading ? "Parsing statement…" : "Drop marketplace CSV here"}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            or click to choose a file — CSV only
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">or click to choose a file — CSV only</p>
         </div>
       </div>
       {error ? (

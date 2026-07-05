@@ -17,7 +17,9 @@ describe("FileUpload", () => {
     const onFileSelected = vi.fn();
     render(<FileUpload onFileSelected={onFileSelected} />);
     const file = csvFile();
-    const input = screen.getByLabelText(/upload marketplace payout csv file/i).querySelector("input")!;
+    const input = screen
+      .getByLabelText(/upload marketplace payout csv file/i)
+      .querySelector("input")!;
     await userEvent.upload(input, file);
     expect(onFileSelected).toHaveBeenCalledTimes(1);
     expect(onFileSelected.mock.calls[0][0]).toBe(file);

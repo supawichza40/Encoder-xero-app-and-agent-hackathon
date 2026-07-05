@@ -55,7 +55,10 @@ export function Navbar() {
             to="/"
             className="text-xl font-black tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
           >
-            Payout<span className="bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">Bridge</span>
+            Payout
+            <span className="bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">
+              Bridge
+            </span>
           </Link>
 
           {/* Status badges + Real/Demo data-source toggle */}
@@ -63,7 +66,8 @@ export function Navbar() {
             <span className="hidden md:inline-flex">
               {health?.xero_connected ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-500">
-                  <span className="size-1.5 rounded-full bg-emerald-500" /> Xero · {health.organisation} ✓
+                  <span className="size-1.5 rounded-full bg-emerald-500" /> Xero ·{" "}
+                  {health.organisation} ✓
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-500">
@@ -76,7 +80,9 @@ export function Navbar() {
               type="button"
               role="switch"
               aria-checked={!mock}
-              aria-label={mock ? "Data source: Demo. Switch to Live" : "Data source: Live. Switch to Demo"}
+              aria-label={
+                mock ? "Data source: Demo. Switch to Live" : "Data source: Live. Switch to Demo"
+              }
               title={
                 fallback
                   ? "Backend unreachable — auto-fell-back to Demo data"
@@ -95,10 +101,14 @@ export function Navbar() {
                     : "translate-x-full border-emerald-500/40 bg-emerald-500/15"
                 }`}
               />
-              <span className={`relative z-10 px-2.5 transition-colors duration-200 ${mock ? "text-blue-500" : "text-muted-foreground"}`}>
+              <span
+                className={`relative z-10 px-2.5 transition-colors duration-200 ${mock ? "text-blue-500" : "text-muted-foreground"}`}
+              >
                 Demo
               </span>
-              <span className={`relative z-10 inline-flex items-center gap-1 px-2.5 transition-colors duration-200 ${!mock ? "text-emerald-500" : "text-muted-foreground"}`}>
+              <span
+                className={`relative z-10 inline-flex items-center gap-1 px-2.5 transition-colors duration-200 ${!mock ? "text-emerald-500" : "text-muted-foreground"}`}
+              >
                 <span
                   aria-hidden
                   className={`size-1.5 rounded-full ${!mock ? "bg-emerald-500" : "bg-muted-foreground/50"}`}
@@ -109,7 +119,8 @@ export function Navbar() {
 
             {fallback ? (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-500">
-                <span className="size-1.5 rounded-full bg-amber-500" aria-hidden /> Demo data · backend offline
+                <span className="size-1.5 rounded-full bg-amber-500" aria-hidden /> Demo data ·
+                backend offline
               </span>
             ) : null}
           </div>
@@ -157,11 +168,7 @@ export function Navbar() {
               type="button"
               role="switch"
               aria-checked={mode === "mono-light"}
-              aria-label={
-                mode === "mono-dark"
-                  ? "Switch to light mode"
-                  : "Switch to dark mode"
-              }
+              aria-label={mode === "mono-dark" ? "Switch to light mode" : "Switch to dark mode"}
               title={mode === "mono-dark" ? "Light mode" : "Dark mode"}
               onClick={toggle}
               className="relative inline-flex h-7 w-14 items-center rounded-full border border-border bg-card transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -344,52 +351,47 @@ function HelpDialog({ onClose }: { onClose: () => void }) {
         <section>
           <h3 className="text-base font-semibold">1. Open the app</h3>
           <p className="mt-1 text-muted-foreground">
-            Click <strong>Launch PayoutBridge</strong> on the home page, or
-            navigate to <code className="rounded bg-background px-1">/app</code>.
+            Click <strong>Launch PayoutBridge</strong> on the home page, or navigate to{" "}
+            <code className="rounded bg-background px-1">/app</code>.
           </p>
         </section>
         <section>
           <h3 className="text-base font-semibold">2. Upload a settlement CSV</h3>
           <p className="mt-1 text-muted-foreground">
-            Drag and drop a marketplace settlement <code>.csv</code> into the
-            drop zone, or click to pick a file. The demo runs in mock mode by
-            default — any CSV works.
+            Drag and drop a marketplace settlement <code>.csv</code> into the drop zone, or click to
+            pick a file. The demo runs in mock mode by default — any CSV works.
           </p>
         </section>
         <section>
           <h3 className="text-base font-semibold">3. Review the proposal</h3>
           <p className="mt-1 text-muted-foreground">
-            PayoutBridge parses the payout and shows the three Xero writes it
-            plans to make: a gross ACCREC invoice, a fees expense, and a
-            payment against the bank deposit.
+            PayoutBridge parses the payout and shows the three Xero writes it plans to make: a gross
+            ACCREC invoice, a fees expense, and a payment against the bank deposit.
           </p>
         </section>
         <section>
           <h3 className="text-base font-semibold">4. Approve</h3>
           <p className="mt-1 text-muted-foreground">
-            Click <strong>Approve &amp; post to Xero</strong>. Watch the step
-            progress, then confirm the clearing account balances to £0.00 and
-            the corrected P&amp;L.
+            Click <strong>Approve &amp; post to Xero</strong>. Watch the step progress, then confirm
+            the clearing account balances to £0.00 and the corrected P&amp;L.
           </p>
         </section>
         <section>
           <h3 className="text-base font-semibold">5. Re-upload safely</h3>
           <p className="mt-1 text-muted-foreground">
-            PayoutBridge is idempotent by file hash. Uploading the same
-            statement twice surfaces the existing Xero IDs instead of
-            double-posting.
+            PayoutBridge is idempotent by file hash. Uploading the same statement twice surfaces the
+            existing Xero IDs instead of double-posting.
           </p>
         </section>
         <section className="rounded-lg border border-border bg-background/50 p-4">
           <h3 className="text-sm font-semibold">Keyboard shortcuts</h3>
           <ul className="mt-2 space-y-1 text-muted-foreground">
             <li>
-              <kbd className="rounded border border-border px-1.5">Esc</kbd> —
-              close a dialog
+              <kbd className="rounded border border-border px-1.5">Esc</kbd> — close a dialog
             </li>
             <li>
-              <kbd className="rounded border border-border px-1.5">Tab</kbd> —
-              move focus through nav, upload, and approval controls
+              <kbd className="rounded border border-border px-1.5">Tab</kbd> — move focus through
+              nav, upload, and approval controls
             </li>
           </ul>
         </section>
@@ -437,11 +439,13 @@ function AuthDialogView({
           <fieldset className="flex flex-col gap-2">
             <legend className="text-sm font-medium">I am…</legend>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              {([
-                { id: "owner", title: "I run the business", sub: "See true turnover" },
-                { id: "bookkeeper", title: "I keep the books", sub: "Every figure traceable" },
-                { id: "freelancer", title: "I work for myself", sub: "Income for taxes" },
-              ] as { id: Persona; title: string; sub: string }[]).map((c) => (
+              {(
+                [
+                  { id: "owner", title: "I run the business", sub: "See true turnover" },
+                  { id: "bookkeeper", title: "I keep the books", sub: "Every figure traceable" },
+                  { id: "freelancer", title: "I work for myself", sub: "Income for taxes" },
+                ] as { id: Persona; title: string; sub: string }[]
+              ).map((c) => (
                 <button
                   key={c.id}
                   type="button"

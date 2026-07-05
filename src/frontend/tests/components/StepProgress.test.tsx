@@ -28,7 +28,9 @@ describe("StepProgress", () => {
   });
 
   it("shows 'Posting to Xero…' while incomplete", () => {
-    const results: StepResult[] = [{ step: 1, kind: "create-invoice", xero_id: "INV-1", status: "success" }];
+    const results: StepResult[] = [
+      { step: 1, kind: "create-invoice", xero_id: "INV-1", status: "success" },
+    ];
     render(<StepProgress results={results} steps={threeSteps} />);
     expect(screen.getByText(/posting to xero/i)).toBeInTheDocument();
   });

@@ -24,7 +24,14 @@ import {
   LiveTurnoverAreaChart,
 } from "@/components/DashboardLiveCharts";
 import { HeroReceipt } from "@/components/HeroReceipt";
-import { CountUp, LiveDot, Marquee, Reveal, usePrefersReducedMotion, useRotatingIndex } from "@/components/motion";
+import {
+  CountUp,
+  LiveDot,
+  Marquee,
+  Reveal,
+  usePrefersReducedMotion,
+  useRotatingIndex,
+} from "@/components/motion";
 import { openAuthDialog, useDemoAuth, type DemoUser, type Persona } from "@/lib/useDemoAuth";
 import { fetchDashboard } from "@/lib/usePayoutBridge";
 import type { DashboardResponse } from "@/lib/payout-types";
@@ -119,24 +126,67 @@ function Dashboard({ user }: { user: DemoUser }) {
   const reducedMotion = usePrefersReducedMotion();
   const insightIndex = useRotatingIndex(3, 4500, !reducedMotion);
   const insights = [
-    <>£<CountUp value={hiddenRevenue} duration={1400} /> more turnover than your bank feed shows</>,
-    <>{payoutsCount} payouts reconciled · <span className="text-emerald-400">6 this week</span></>,
-    <>Clearing verified at <span className="text-emerald-400">£{clearing.toFixed(2)}</span> · zero-balance</>,
+    <>
+      £<CountUp value={hiddenRevenue} duration={1400} /> more turnover than your bank feed shows
+    </>,
+    <>
+      {payoutsCount} payouts reconciled · <span className="text-emerald-400">6 this week</span>
+    </>,
+    <>
+      Clearing verified at <span className="text-emerald-400">£{clearing.toFixed(2)}</span> ·
+      zero-balance
+    </>,
   ];
 
   const tickerItems = [
-    { label: "Verified", detail: "MarketplaceCo · £1,340 gross · £847 net", tone: "success" as const },
-    { label: "Verified", detail: "MarketplaceCo · £980 gross · £642 net", tone: "success" as const },
+    {
+      label: "Verified",
+      detail: "MarketplaceCo · £1,340 gross · £847 net",
+      tone: "success" as const,
+    },
+    {
+      label: "Verified",
+      detail: "MarketplaceCo · £980 gross · £642 net",
+      tone: "success" as const,
+    },
     { label: "Gap closed", detail: "+54.9% vs reported turnover", tone: "primary" as const },
-    { label: "Fees visible", detail: `£${feesTotal.toLocaleString()} recovered this month`, tone: "warning" as const },
+    {
+      label: "Fees visible",
+      detail: `£${feesTotal.toLocaleString()} recovered this month`,
+      tone: "warning" as const,
+    },
     { label: "Idempotent", detail: "Duplicate upload blocked · Jun 24", tone: "warning" as const },
   ];
 
   const defaultActivity = [
-    { date: "2026-07-02", source: "MarketplaceCo", gross: "1340.00", net: "847.00", status: "verified" as const },
-    { date: "2026-06-28", source: "MarketplaceCo", gross: "980.00", net: "642.00", status: "verified" as const },
-    { date: "2026-06-24", source: "MarketplaceCo", gross: "0.00", net: "0.00", status: "idempotent" as const },
-    { date: "2026-06-20", source: "MarketplaceCo", gross: "2110.00", net: "1368.00", status: "verified" as const },
+    {
+      date: "2026-07-02",
+      source: "MarketplaceCo",
+      gross: "1340.00",
+      net: "847.00",
+      status: "verified" as const,
+    },
+    {
+      date: "2026-06-28",
+      source: "MarketplaceCo",
+      gross: "980.00",
+      net: "642.00",
+      status: "verified" as const,
+    },
+    {
+      date: "2026-06-24",
+      source: "MarketplaceCo",
+      gross: "0.00",
+      net: "0.00",
+      status: "idempotent" as const,
+    },
+    {
+      date: "2026-06-20",
+      source: "MarketplaceCo",
+      gross: "2110.00",
+      net: "1368.00",
+      status: "verified" as const,
+    },
   ];
   const activityRows = dash?.recent_payouts.length ? dash.recent_payouts : defaultActivity;
 
@@ -156,7 +206,13 @@ function Dashboard({ user }: { user: DemoUser }) {
                 className="inline-flex items-center gap-2 px-6 text-xs text-muted-foreground"
               >
                 <LiveDot
-                  tone={item.tone === "success" ? "success" : item.tone === "warning" ? "warning" : "primary"}
+                  tone={
+                    item.tone === "success"
+                      ? "success"
+                      : item.tone === "warning"
+                        ? "warning"
+                        : "primary"
+                  }
                   className="size-1.5"
                 />
                 <span className="font-semibold uppercase tracking-wider text-foreground/80">
@@ -232,7 +288,8 @@ function Dashboard({ user }: { user: DemoUser }) {
               </div>
             </div>
             <p className="mt-3 text-xs font-semibold text-emerald-400">
-              +£<CountUp value={hiddenRevenue} duration={1600} /> recovered · +54.9%
+              +£
+              <CountUp value={hiddenRevenue} duration={1600} /> recovered · +54.9%
             </p>
           </div>
 
@@ -242,7 +299,10 @@ function Dashboard({ user }: { user: DemoUser }) {
             style={{ animationDelay: "160ms" }}
           >
             <span className="grid size-12 place-items-center rounded-xl bg-emerald-500/20 ring-1 ring-emerald-500/30 transition-transform duration-500 group-hover:scale-110">
-              <Upload className={`size-5 text-emerald-400 ${!reducedMotion ? "animate-float" : ""}`} aria-hidden />
+              <Upload
+                className={`size-5 text-emerald-400 ${!reducedMotion ? "animate-float" : ""}`}
+                aria-hidden
+              />
             </span>
             <span className="text-sm font-bold text-emerald-300">Upload payout</span>
             <span className="text-[11px] text-muted-foreground">Drop a settlement CSV</span>
@@ -259,158 +319,175 @@ function Dashboard({ user }: { user: DemoUser }) {
           style={{ animationDelay: "2.5s" }}
         />
 
-      {/* KPI cards */}
-      <section className="relative grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="animate-fade-up" style={{ animationDelay: "180ms" }}>
-          <KpiCard
-            label={user.persona === "freelancer" ? "Income (Self Assessment)" : "Real turnover (MTD)"}
-            numericValue={turnover}
-            prefix="£"
-            delta="+54.9% vs reported"
-            tone="primary"
-            sparkline={kpiSparklines.turnover}
-            icon={<PoundSterling className="size-5" />}
-          />
-        </div>
-        <div className="animate-fade-up" style={{ animationDelay: "260ms" }}>
-          <KpiCard
-            label="Fees recovered"
-            numericValue={feesTotal}
-            prefix="£"
-            delta="+£812 vs last month"
-            tone="amber"
-            sparkline={kpiSparklines.fees}
-            icon={<TrendingUp className="size-5" />}
-          />
-        </div>
-        <div className="animate-fade-up" style={{ animationDelay: "340ms" }}>
-          <KpiCard
-            label="Payouts reconciled"
-            numericValue={payoutsCount}
-            delta="6 this week"
-            tone="violet"
-            sparkline={kpiSparklines.payouts}
-            icon={<CheckCircle2 className="size-5" />}
-          />
-        </div>
-        <div className="animate-fade-up" style={{ animationDelay: "420ms" }}>
-          <KpiCard
-            label="Clearing balance"
-            numericValue={clearing}
-            prefix="£"
-            decimals={2}
-            delta="Verified · zero-balance"
-            tone="success"
-            sparkline={kpiSparklines.clearing}
-            pulse
-            icon={<ShieldCheck className="size-5" />}
-          />
-        </div>
-      </section>
-
-      {/* Charts row */}
-      <section className="relative grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="animate-fade-up lg:col-span-2" style={{ animationDelay: "580ms" }}>
-          <ChartCard
-            className="h-full"
-            accent="blue"
-            live
-            title="Reported vs real turnover"
-            subtitle="Last 6 months"
-          >
-          <LiveTurnoverAreaChart data={revenueSeries} />
-          <div className="mt-3 flex flex-wrap gap-3 border-t border-border/60 pt-3">
-            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="size-2.5 rounded-full bg-slate-400 animate-glow-pulse" aria-hidden /> Reported
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="relative flex size-2.5 items-center justify-center" aria-hidden>
-                <span className="absolute inset-0 rounded-full bg-blue-500/40 animate-pulse-ring" />
-                <span className="size-2.5 rounded-full bg-blue-500" />
-              </span>{" "}
-              Real turnover
-            </span>
+        {/* KPI cards */}
+        <section className="relative grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="animate-fade-up" style={{ animationDelay: "180ms" }}>
+            <KpiCard
+              label={
+                user.persona === "freelancer" ? "Income (Self Assessment)" : "Real turnover (MTD)"
+              }
+              numericValue={turnover}
+              prefix="£"
+              delta="+54.9% vs reported"
+              tone="primary"
+              sparkline={kpiSparklines.turnover}
+              icon={<PoundSterling className="size-5" />}
+            />
           </div>
-          </ChartCard>
-        </div>
+          <div className="animate-fade-up" style={{ animationDelay: "260ms" }}>
+            <KpiCard
+              label="Fees recovered"
+              numericValue={feesTotal}
+              prefix="£"
+              delta="+£812 vs last month"
+              tone="amber"
+              sparkline={kpiSparklines.fees}
+              icon={<TrendingUp className="size-5" />}
+            />
+          </div>
+          <div className="animate-fade-up" style={{ animationDelay: "340ms" }}>
+            <KpiCard
+              label="Payouts reconciled"
+              numericValue={payoutsCount}
+              delta="6 this week"
+              tone="violet"
+              sparkline={kpiSparklines.payouts}
+              icon={<CheckCircle2 className="size-5" />}
+            />
+          </div>
+          <div className="animate-fade-up" style={{ animationDelay: "420ms" }}>
+            <KpiCard
+              label="Clearing balance"
+              numericValue={clearing}
+              prefix="£"
+              decimals={2}
+              delta="Verified · zero-balance"
+              tone="success"
+              sparkline={kpiSparklines.clearing}
+              pulse
+              icon={<ShieldCheck className="size-5" />}
+            />
+          </div>
+        </section>
 
-        <div className="animate-fade-up" style={{ animationDelay: "660ms" }}>
-          <ChartCard accent="amber" className="h-full" live title="Fees this month" subtitle="Where £5,048 went">
-          <LiveFeesDonutChart data={feeBreakdown} total={feesTotal} />
-          <LiveFeeLegend data={feeBreakdown} colors={PIE_COLORS} />
-          </ChartCard>
-        </div>
-      </section>
-
-      {/* Bar chart + activity row */}
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="animate-fade-up" style={{ animationDelay: "740ms" }}>
-          <ChartCard accent="emerald" className="h-full" live title="Payouts reconciled per week" subtitle="Last 6 weeks">
-          <LivePayoutBarChart data={payoutsPerWeek} />
-          </ChartCard>
-        </div>
-
-        <div className="animate-fade-up lg:col-span-2" style={{ animationDelay: "820ms" }}>
-          <div className="hover-lift h-full overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-card to-violet-500/5 p-5 ring-1 ring-violet-500/10">
-          <div className="flex items-baseline justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <span className="grid size-8 place-items-center rounded-lg bg-violet-500/15 ring-1 ring-violet-500/25">
-                <FileText className="size-4 text-violet-400" aria-hidden />
-              </span>
-              <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-                Recent activity
-              </h3>
-            </div>
-            <Link
-              to="/app"
-              className="group inline-flex items-center gap-1 text-sm text-primary transition-colors hover:underline"
+        {/* Charts row */}
+        <section className="relative grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="animate-fade-up lg:col-span-2" style={{ animationDelay: "580ms" }}>
+            <ChartCard
+              className="h-full"
+              accent="blue"
+              live
+              title="Reported vs real turnover"
+              subtitle="Last 6 months"
             >
-              View all{" "}
-              <ArrowUpRight
-                className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                aria-hidden
-              />
-            </Link>
+              <LiveTurnoverAreaChart data={revenueSeries} />
+              <div className="mt-3 flex flex-wrap gap-3 border-t border-border/60 pt-3">
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span
+                    className="size-2.5 rounded-full bg-slate-400 animate-glow-pulse"
+                    aria-hidden
+                  />{" "}
+                  Reported
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="relative flex size-2.5 items-center justify-center" aria-hidden>
+                    <span className="absolute inset-0 rounded-full bg-blue-500/40 animate-pulse-ring" />
+                    <span className="size-2.5 rounded-full bg-blue-500" />
+                  </span>{" "}
+                  Real turnover
+                </span>
+              </div>
+            </ChartCard>
           </div>
-          <ul className="mt-4 divide-y divide-border">
-            {activityRows.map((p, i) => (
-              <ActivityRow
-                key={"file_hash" in p && p.file_hash ? p.file_hash : `${p.date}-${i}`}
-                delay={i * 70}
-                liveHighlight={i === 0}
-                status={p.status}
-                title={p.status === "idempotent" ? "Duplicate blocked" : `Payout ${p.date}`}
-                detail={
-                  p.status === "idempotent"
-                    ? `settlement-${p.date}.csv already posted`
-                    : p.gross != null && p.net != null
-                      ? `${p.source} · £${p.gross} gross · £${p.net} net`
-                      : `${p.source} · posted to Xero · clearing £0.00`
-                }
-                time={p.date}
-              />
-            ))}
-            {dash && dash.recent_payouts.length === 0 ? (
-              <li className="py-6 text-center text-sm text-muted-foreground">
-                <p>No payouts yet.</p>
-                <Link to="/app" className="mt-2 inline-block text-primary hover:underline">
-                  Upload your first payout statement →
+
+          <div className="animate-fade-up" style={{ animationDelay: "660ms" }}>
+            <ChartCard
+              accent="amber"
+              className="h-full"
+              live
+              title="Fees this month"
+              subtitle="Where £5,048 went"
+            >
+              <LiveFeesDonutChart data={feeBreakdown} total={feesTotal} />
+              <LiveFeeLegend data={feeBreakdown} colors={PIE_COLORS} />
+            </ChartCard>
+          </div>
+        </section>
+
+        {/* Bar chart + activity row */}
+        <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="animate-fade-up" style={{ animationDelay: "740ms" }}>
+            <ChartCard
+              accent="emerald"
+              className="h-full"
+              live
+              title="Payouts reconciled per week"
+              subtitle="Last 6 weeks"
+            >
+              <LivePayoutBarChart data={payoutsPerWeek} />
+            </ChartCard>
+          </div>
+
+          <div className="animate-fade-up lg:col-span-2" style={{ animationDelay: "820ms" }}>
+            <div className="hover-lift h-full overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-card to-violet-500/5 p-5 ring-1 ring-violet-500/10">
+              <div className="flex items-baseline justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="grid size-8 place-items-center rounded-lg bg-violet-500/15 ring-1 ring-violet-500/25">
+                    <FileText className="size-4 text-violet-400" aria-hidden />
+                  </span>
+                  <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+                    Recent activity
+                  </h3>
+                </div>
+                <Link
+                  to="/app"
+                  className="group inline-flex items-center gap-1 text-sm text-primary transition-colors hover:underline"
+                >
+                  View all{" "}
+                  <ArrowUpRight
+                    className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    aria-hidden
+                  />
                 </Link>
-              </li>
-            ) : null}
-          </ul>
+              </div>
+              <ul className="mt-4 divide-y divide-border">
+                {activityRows.map((p, i) => (
+                  <ActivityRow
+                    key={"file_hash" in p && p.file_hash ? p.file_hash : `${p.date}-${i}`}
+                    delay={i * 70}
+                    liveHighlight={i === 0}
+                    status={p.status}
+                    title={p.status === "idempotent" ? "Duplicate blocked" : `Payout ${p.date}`}
+                    detail={
+                      p.status === "idempotent"
+                        ? `settlement-${p.date}.csv already posted`
+                        : p.gross != null && p.net != null
+                          ? `${p.source} · £${p.gross} gross · £${p.net} net`
+                          : `${p.source} · posted to Xero · clearing £0.00`
+                    }
+                    time={p.date}
+                  />
+                ))}
+                {dash && dash.recent_payouts.length === 0 ? (
+                  <li className="py-6 text-center text-sm text-muted-foreground">
+                    <p>No payouts yet.</p>
+                    <Link to="/app" className="mt-2 inline-block text-primary hover:underline">
+                      Upload your first payout statement →
+                    </Link>
+                  </li>
+                ) : null}
+              </ul>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-
-      <footer
-        className="animate-fade-up pt-2 text-center text-xs text-muted-foreground"
-        style={{ animationDelay: "900ms" }}
-      >
-        Signed in as {user.name} · demo session
-        {live ? "" : " · figures are illustrative"}
-      </footer>
+        <footer
+          className="animate-fade-up pt-2 text-center text-xs text-muted-foreground"
+          style={{ animationDelay: "900ms" }}
+        >
+          Signed in as {user.name} · demo session
+          {live ? "" : " · figures are illustrative"}
+        </footer>
       </div>
       <Chatbot />
     </main>
@@ -533,7 +610,10 @@ function KpiCard({
         </p>
         <span className="relative">
           {pulse ? (
-            <span className="absolute inset-0 rounded-lg bg-emerald-400/40 animate-pulse-ring" aria-hidden />
+            <span
+              className="absolute inset-0 rounded-lg bg-emerald-400/40 animate-pulse-ring"
+              aria-hidden
+            />
           ) : null}
           <span
             className={`relative flex size-9 items-center justify-center rounded-xl ring-1 ring-white/10 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3 ${accents.bg} ${accents.text}`}
@@ -550,9 +630,7 @@ function KpiCard({
             value
           )}
         </p>
-        {sparkline ? (
-          <Sparkline points={sparkline} color={accents.spark} live={!reduced} />
-        ) : null}
+        {sparkline ? <Sparkline points={sparkline} color={accents.spark} live={!reduced} /> : null}
       </div>
       <p className={`mt-2 text-xs font-semibold ${accents.text}`}>{delta}</p>
     </div>
@@ -639,10 +717,7 @@ function ActivityRow({
           border: "border-amber-500/50",
         };
   return (
-    <li
-      className="animate-slide-in"
-      style={{ animationDelay: `${delay}ms` }}
-    >
+    <li className="animate-slide-in" style={{ animationDelay: `${delay}ms` }}>
       <div
         className={`group flex items-center gap-3 border-l-[3px] py-3 pl-3 transition-all duration-300 hover:bg-white/[0.03] ${badge.border} ${
           liveHighlight && !reduced ? "activity-live-verified" : ""
@@ -671,7 +746,6 @@ function ActivityRow({
     </li>
   );
 }
-
 
 /* -------------------------------------------------------------------------- */
 /* Signed-out marketing page                                                  */
@@ -753,10 +827,9 @@ function SignedOutHome() {
               className="animate-fade-up max-w-xl text-pretty text-base text-white/85 sm:text-lg"
               style={{ animationDelay: "280ms" }}
             >
-              When a marketplace deducts commission and fees before wiring your
-              payout, Xero only records the net deposit. PayoutBridge restores
-              the real gross revenue, books the fees, and proves it with a
-              live zero-balance clearing account — every write approved by you.
+              When a marketplace deducts commission and fees before wiring your payout, Xero only
+              records the net deposit. PayoutBridge restores the real gross revenue, books the fees,
+              and proves it with a live zero-balance clearing account — every write approved by you.
             </p>
 
             <div
@@ -844,9 +917,11 @@ function SignedOutHome() {
         <section aria-labelledby="personas-heading" className="flex flex-col gap-8">
           <div className="max-w-2xl">
             <Eyebrow>Who it's for</Eyebrow>
-            <h2 id="personas-heading" className="mt-4 text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">
-              Three doors,{" "}
-              <span className="font-display italic text-emerald-400">one room.</span>
+            <h2
+              id="personas-heading"
+              className="mt-4 text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl"
+            >
+              Three doors, <span className="font-display italic text-emerald-400">one room.</span>
             </h2>
             <p className="mt-4 text-pretty text-base text-muted-foreground sm:text-lg">
               Same deterministic engine, tuned to how you think about your books.
@@ -889,69 +964,82 @@ function SignedOutHome() {
               <span className="font-display italic text-primary">PayoutBridge</span>
             </h2>
             <p className="mt-4 text-pretty text-base text-muted-foreground sm:text-lg">
-              A free account unlocks the full workspace: dashboard, saved
-              audit trails, and one-click posting to Xero.
+              A free account unlocks the full workspace: dashboard, saved audit trails, and
+              one-click posting to Xero.
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-6 md:grid-rows-2">
             {/* wide feature */}
             <Reveal delay={80} className="md:col-span-4 md:row-span-2">
-            <div className="hover-lift group relative h-full overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-8">
-              <div className="flex items-start gap-4">
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
-                  <TrendingUp className="size-5 text-primary" strokeWidth={1.75} />
-                </span>
-                <div>
-                  <h3 className="text-lg font-semibold">See your real turnover</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    A live dashboard shows reported vs real revenue and fees
-                    recovered — updated on every approval.
-                  </p>
+              <div className="hover-lift group relative h-full overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-8">
+                <div className="flex items-start gap-4">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
+                    <TrendingUp className="size-5 text-primary" strokeWidth={1.75} />
+                  </span>
+                  <div>
+                    <h3 className="text-lg font-semibold">See your real turnover</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      A live dashboard shows reported vs real revenue and fees recovered — updated
+                      on every approval.
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* mini bar-comparison visual */}
-              <div className="mt-6 rounded-xl border border-border/60 bg-background/40 p-4">
-                <div className="flex items-end justify-between gap-3">
-                  <MiniBar label="Reported" value={0.42} tone="muted" amount="£9.1k" delay={200} />
-                  <MiniBar label="Real" value={1} tone="primary" amount="£15.7k" delay={320} />
-                  <MiniBar label="Recovered" value={0.32} tone="success" amount="+£6.6k" delay={440} />
+                {/* mini bar-comparison visual */}
+                <div className="mt-6 rounded-xl border border-border/60 bg-background/40 p-4">
+                  <div className="flex items-end justify-between gap-3">
+                    <MiniBar
+                      label="Reported"
+                      value={0.42}
+                      tone="muted"
+                      amount="£9.1k"
+                      delay={200}
+                    />
+                    <MiniBar label="Real" value={1} tone="primary" amount="£15.7k" delay={320} />
+                    <MiniBar
+                      label="Recovered"
+                      value={0.32}
+                      tone="success"
+                      amount="+£6.6k"
+                      delay={440}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
             </Reveal>
 
             <Reveal delay={160} className="md:col-span-2">
-            <div className="hover-lift h-full rounded-2xl border border-border bg-card p-6">
-              <span className="grid size-10 place-items-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/20">
-                <FileText className="size-5 text-emerald-400" strokeWidth={1.75} />
-              </span>
-              <h3 className="mt-4 text-base font-semibold">Keep every audit trail</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Signed-in workspaces save every proposal, Xero ID, and
-                timestamp so your accountant never has to ask twice.
-              </p>
-            </div>
+              <div className="hover-lift h-full rounded-2xl border border-border bg-card p-6">
+                <span className="grid size-10 place-items-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/20">
+                  <FileText className="size-5 text-emerald-400" strokeWidth={1.75} />
+                </span>
+                <h3 className="mt-4 text-base font-semibold">Keep every audit trail</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Signed-in workspaces save every proposal, Xero ID, and timestamp so your
+                  accountant never has to ask twice.
+                </p>
+              </div>
             </Reveal>
 
             <Reveal delay={240} className="md:col-span-2">
-            <div className="hover-lift h-full rounded-2xl border border-border bg-card p-6">
-              <span className="grid size-10 place-items-center rounded-xl bg-violet-500/10 ring-1 ring-violet-500/20">
-                <ShieldCheck className="size-5 text-violet-400" strokeWidth={1.75} />
-              </span>
-              <h3 className="mt-4 text-base font-semibold">Post safely to Xero</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Connect once and PayoutBridge is idempotent by file hash —
-                re-uploads never double-post.
-              </p>
-            </div>
+              <div className="hover-lift h-full rounded-2xl border border-border bg-card p-6">
+                <span className="grid size-10 place-items-center rounded-xl bg-violet-500/10 ring-1 ring-violet-500/20">
+                  <ShieldCheck className="size-5 text-violet-400" strokeWidth={1.75} />
+                </span>
+                <h3 className="mt-4 text-base font-semibold">Post safely to Xero</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Connect once and PayoutBridge is idempotent by file hash — re-uploads never
+                  double-post.
+                </p>
+              </div>
             </Reveal>
           </div>
         </Reveal>
 
         {/* Attraction panel — £493 stat as centerpiece */}
-        <Reveal as="section"
+        <Reveal
+          as="section"
           aria-labelledby="problem-heading"
           className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-card/60 p-1.5 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.6)] ring-1 ring-white/5"
         >
@@ -960,72 +1048,73 @@ function SignedOutHome() {
             className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-red-500/15 blur-3xl"
           />
           <div className="relative rounded-[calc(2rem-0.375rem)] border border-white/5 bg-gradient-to-br from-card via-card to-background/80 p-6 sm:p-12 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
-          <div className="relative grid grid-cols-1 items-center gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <div className="flex flex-col gap-5">
-              <Eyebrow tone="rose">The problem</Eyebrow>
-              <h2
-                id="problem-heading"
-                className="text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl"
-              >
-                Stop losing revenue{" "}
-                <span className="font-display italic text-rose-400">in plain sight.</span>
-              </h2>
-              <p className="text-pretty text-base text-muted-foreground sm:text-lg">
-                Marketplace payouts arrive net of commission, fees, and
-                refunds — so Xero records a fraction of your actual turnover.
-                PayoutBridge rebuilds the full picture with three Xero-native
-                writes and a zero-balance clearing account.
-              </p>
-              <ul className="space-y-3 text-sm">
-                {[
-                  "Recover hidden commission and fee expenses.",
-                  "Keep a live, auditable trail for every payout.",
-                  "Post once — re-uploading the same file never double-posts.",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-primary/15 ring-1 ring-primary/25">
-                      <CheckCircle2
-                        className="size-3 text-primary"
-                        aria-hidden
-                        strokeWidth={2.5}
-                      />
-                    </span>
-                    <span className="text-foreground/90">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Double-bezel stat card */}
-            <div className="relative rounded-[1.75rem] bg-gradient-to-br from-white/10 to-white/[0.02] p-1.5 ring-1 ring-white/10 shadow-[0_30px_80px_-40px_rgba(244,63,94,0.4)]">
-              <div className="relative rounded-[calc(1.75rem-0.375rem)] border border-white/5 bg-background/80 p-8 text-center backdrop-blur-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-400/30 bg-rose-500/10 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-300">
-                  Typical understatement
-                </span>
-                <p className="mt-5 bg-gradient-to-br from-rose-200 via-rose-400 to-red-600 bg-clip-text pb-2 font-display text-8xl font-normal leading-none tracking-tight text-transparent tabular-nums sm:text-[9rem]">
-                  £<CountUp value={493} duration={1600} />
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  per <span className="font-mono tabular-nums text-foreground/80">£1,340</span> marketplace payout
-                </p>
-                <button
-                  type="button"
-                  onClick={() => openAuthDialog("signup")}
-                  className="group mt-7 inline-flex items-center gap-2 rounded-full bg-white py-2.5 pl-5 pr-2 text-sm font-semibold text-slate-900 shadow-lg shadow-black/30 ring-1 ring-white/40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            <div className="relative grid grid-cols-1 items-center gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <div className="flex flex-col gap-5">
+                <Eyebrow tone="rose">The problem</Eyebrow>
+                <h2
+                  id="problem-heading"
+                  className="text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl"
                 >
-                  Find yours
-                  <span className="grid size-7 place-items-center rounded-full bg-slate-900 text-white transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:-translate-y-[1px]">
-                    <ArrowRight className="size-3.5" aria-hidden />
+                  Stop losing revenue{" "}
+                  <span className="font-display italic text-rose-400">in plain sight.</span>
+                </h2>
+                <p className="text-pretty text-base text-muted-foreground sm:text-lg">
+                  Marketplace payouts arrive net of commission, fees, and refunds — so Xero records
+                  a fraction of your actual turnover. PayoutBridge rebuilds the full picture with
+                  three Xero-native writes and a zero-balance clearing account.
+                </p>
+                <ul className="space-y-3 text-sm">
+                  {[
+                    "Recover hidden commission and fee expenses.",
+                    "Keep a live, auditable trail for every payout.",
+                    "Post once — re-uploading the same file never double-posts.",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-3">
+                      <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-primary/15 ring-1 ring-primary/25">
+                        <CheckCircle2
+                          className="size-3 text-primary"
+                          aria-hidden
+                          strokeWidth={2.5}
+                        />
+                      </span>
+                      <span className="text-foreground/90">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Double-bezel stat card */}
+              <div className="relative rounded-[1.75rem] bg-gradient-to-br from-white/10 to-white/[0.02] p-1.5 ring-1 ring-white/10 shadow-[0_30px_80px_-40px_rgba(244,63,94,0.4)]">
+                <div className="relative rounded-[calc(1.75rem-0.375rem)] border border-white/5 bg-background/80 p-8 text-center backdrop-blur-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-400/30 bg-rose-500/10 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-300">
+                    Typical understatement
                   </span>
-                </button>
+                  <p className="mt-5 bg-gradient-to-br from-rose-200 via-rose-400 to-red-600 bg-clip-text pb-2 font-display text-8xl font-normal leading-none tracking-tight text-transparent tabular-nums sm:text-[9rem]">
+                    £<CountUp value={493} duration={1600} />
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    per <span className="font-mono tabular-nums text-foreground/80">£1,340</span>{" "}
+                    marketplace payout
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => openAuthDialog("signup")}
+                    className="group mt-7 inline-flex items-center gap-2 rounded-full bg-white py-2.5 pl-5 pr-2 text-sm font-semibold text-slate-900 shadow-lg shadow-black/30 ring-1 ring-white/40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    Find yours
+                    <span className="grid size-7 place-items-center rounded-full bg-slate-900 text-white transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:-translate-y-[1px]">
+                      <ArrowRight className="size-3.5" aria-hidden />
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
           </div>
         </Reveal>
 
         {/* How it works — timeline rail */}
-        <Reveal as="section"
+        <Reveal
+          as="section"
           id="how-it-works"
           aria-labelledby="hiw-heading"
           className="flex flex-col gap-8"
@@ -1040,8 +1129,8 @@ function SignedOutHome() {
               <span className="font-display italic text-emerald-400">Zero balance.</span>
             </h2>
             <p className="mt-4 text-pretty text-base text-muted-foreground sm:text-lg">
-              PayoutBridge parses the settlement CSV, proposes the accounting
-              in plain English, and only posts to Xero after you approve.
+              PayoutBridge parses the settlement CSV, proposes the accounting in plain English, and
+              only posts to Xero after you approve.
             </p>
           </div>
 
@@ -1079,10 +1168,7 @@ function SignedOutHome() {
         </Reveal>
 
         {/* Guarantees — numbered promises rail */}
-        <Reveal as="section"
-          aria-labelledby="guarantees-heading"
-          className="flex flex-col gap-8"
-        >
+        <Reveal as="section" aria-labelledby="guarantees-heading" className="flex flex-col gap-8">
           <div className="max-w-2xl">
             <Eyebrow tone="amber">Guarantees</Eyebrow>
             <h2
@@ -1093,8 +1179,8 @@ function SignedOutHome() {
               <span className="font-display italic text-amber-400">not vibes.</span>
             </h2>
             <p className="mt-4 text-pretty text-base text-muted-foreground sm:text-lg">
-              Three guarantees hold the entire posting pipeline together —
-              enforced in code, not policy.
+              Three guarantees hold the entire posting pipeline together — enforced in code, not
+              policy.
             </p>
           </div>
 
@@ -1124,7 +1210,10 @@ function SignedOutHome() {
         </Reveal>
 
         {/* Final CTA */}
-        <Reveal as="section" className="relative rounded-[2rem] bg-gradient-to-br from-primary/20 via-white/5 to-white/[0.02] p-1.5 ring-1 ring-white/10 shadow-[0_40px_100px_-50px_rgba(59,130,246,0.6)]">
+        <Reveal
+          as="section"
+          className="relative rounded-[2rem] bg-gradient-to-br from-primary/20 via-white/5 to-white/[0.02] p-1.5 ring-1 ring-white/10 shadow-[0_40px_100px_-50px_rgba(59,130,246,0.6)]"
+        >
           <div className="relative overflow-hidden rounded-[calc(2rem-0.375rem)] border border-white/5 bg-gradient-to-br from-card via-background to-background p-10 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)] sm:p-16">
             <div
               aria-hidden
@@ -1136,8 +1225,8 @@ function SignedOutHome() {
               <span className="font-display italic text-primary">real turnover?</span>
             </h2>
             <p className="relative mx-auto mt-4 max-w-xl text-pretty text-base text-muted-foreground sm:text-lg">
-              Create a free account and PayoutBridge will show you exactly how
-              much revenue your bank feed has been hiding.
+              Create a free account and PayoutBridge will show you exactly how much revenue your
+              bank feed has been hiding.
             </p>
             <div className="relative mt-8 flex flex-wrap items-center justify-center gap-3">
               <button
@@ -1345,4 +1434,3 @@ function PersonaCard({
     </button>
   );
 }
-

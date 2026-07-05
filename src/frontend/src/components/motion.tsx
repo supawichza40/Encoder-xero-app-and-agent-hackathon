@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /* -----------------------------------------------------------------------------
@@ -151,14 +145,10 @@ export function Marquee({
   className?: string;
   speed?: "slow" | "normal" | "fast";
 }) {
-  const duration =
-    speed === "slow" ? "40s" : speed === "fast" ? "18s" : "28s";
+  const duration = speed === "slow" ? "40s" : speed === "fast" ? "18s" : "28s";
   return (
     <div className={cn("overflow-hidden", className)}>
-      <div
-        className="flex w-max animate-marquee gap-8"
-        style={{ animationDuration: duration }}
-      >
+      <div className="flex w-max animate-marquee gap-8" style={{ animationDuration: duration }}>
         {children}
         {children}
       </div>
@@ -201,18 +191,11 @@ export function LiveDot({
   className?: string;
 }) {
   const colors =
-    tone === "primary"
-      ? "bg-primary"
-      : tone === "warning"
-        ? "bg-amber-400"
-        : "bg-emerald-500";
+    tone === "primary" ? "bg-primary" : tone === "warning" ? "bg-amber-400" : "bg-emerald-500";
   return (
     <span className={cn("relative inline-flex size-2", className)}>
       <span
-        className={cn(
-          "absolute inset-0 rounded-full opacity-40 animate-pulse-ring",
-          colors,
-        )}
+        className={cn("absolute inset-0 rounded-full opacity-40 animate-pulse-ring", colors)}
         aria-hidden
       />
       <span className={cn("relative size-2 rounded-full", colors)} aria-hidden />

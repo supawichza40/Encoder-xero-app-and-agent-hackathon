@@ -17,10 +17,34 @@ const refundPayout: CanonicalPayout = {
 const refundPlan: JournalPlan = {
   invariant_check: true,
   steps: [
-    { kind: "create-invoice", amount: "1180.00", account: "Platform Clearing", lines: null, clears: null },
-    { kind: "create-credit-note", amount: "60.00", account: "Platform Clearing", lines: null, clears: null },
-    { kind: "create-bank-transaction", amount: "425.00", account: "Platform Clearing", lines: null, clears: null },
-    { kind: "create-payment", amount: "695.00", account: null, lines: null, clears: "MC-PAYOUT-2107" },
+    {
+      kind: "create-invoice",
+      amount: "1180.00",
+      account: "Platform Clearing",
+      lines: null,
+      clears: null,
+    },
+    {
+      kind: "create-credit-note",
+      amount: "60.00",
+      account: "Platform Clearing",
+      lines: null,
+      clears: null,
+    },
+    {
+      kind: "create-bank-transaction",
+      amount: "425.00",
+      account: "Platform Clearing",
+      lines: null,
+      clears: null,
+    },
+    {
+      kind: "create-payment",
+      amount: "695.00",
+      account: null,
+      lines: null,
+      clears: "MC-PAYOUT-2107",
+    },
   ],
 };
 
@@ -38,7 +62,9 @@ describe("ApprovalDrawer", () => {
     expect(screen.getAllByText("£847.00").length).toBeGreaterThan(0);
     expect(screen.queryByText("Refunds")).not.toBeInTheDocument();
     expect(screen.getByText(/balanced/i)).toBeInTheDocument();
-    expect(screen.getByText(new RegExp(`booking detail \\(${payout.bookings.length}\\)`, "i"))).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(`booking detail \\(${payout.bookings.length}\\)`, "i")),
+    ).toBeInTheDocument();
     // 3 Xero writes listed. The "Clear <amount> against..." line has the
     // amount in a nested <span>, so getByText's node-local text matcher
     // won't see the full sentence — assert on the rendered container text

@@ -37,11 +37,7 @@ export interface FeeLineItem {
 }
 
 export interface PlanStep {
-  kind:
-    | "create-invoice"
-    | "create-credit-note"
-    | "create-bank-transaction"
-    | "create-payment";
+  kind: "create-invoice" | "create-credit-note" | "create-bank-transaction" | "create-payment";
   amount: string;
   account: string | null;
   lines: FeeLineItem[] | null;

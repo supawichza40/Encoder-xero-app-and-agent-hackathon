@@ -73,8 +73,10 @@ async def test_SD3_creates_option_when_category_exists_without_it(client):
 
     await client.ensure_tracking_category("Channel", "MarketplaceCo")
 
+    # Real MCP create-tracking-options takes an optionNames array, not a single name.
     client._call.assert_called_once_with(
-        "create-tracking-options", {"trackingCategoryId": "TC-1", "name": "MarketplaceCo"}
+        "create-tracking-options",
+        {"trackingCategoryId": "TC-1", "optionNames": ["MarketplaceCo"]},
     )
 
 

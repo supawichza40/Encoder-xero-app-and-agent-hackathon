@@ -106,7 +106,13 @@ describe("usePayoutBridge — partial failure & error paths (live/real backend)"
             verified: false,
             results: [
               { step: 1, kind: "create-invoice", xero_id: "INV-1", status: "success" },
-              { step: 2, kind: "create-bank-transaction", xero_id: "", status: "error", message: "Xero rate limit" },
+              {
+                step: 2,
+                kind: "create-bank-transaction",
+                xero_id: "",
+                status: "error",
+                message: "Xero rate limit",
+              },
             ],
           }),
         } as Response;

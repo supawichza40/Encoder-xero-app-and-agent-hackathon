@@ -7,9 +7,7 @@ import type { ExistingIds } from "@/lib/payout-types";
 
 describe("IdempotencyBanner", () => {
   it("renders the existing Xero IDs from the prior run", () => {
-    render(
-      <IdempotencyBanner existingIds={mockExistingIds as ExistingIds} onReset={vi.fn()} />,
-    );
+    render(<IdempotencyBanner existingIds={mockExistingIds as ExistingIds} onReset={vi.fn()} />);
     expect(screen.getByText(/already posted/i)).toBeInTheDocument();
     expect(screen.getByText("INV-0042")).toBeInTheDocument();
     expect(screen.getByText("BT-0117")).toBeInTheDocument();

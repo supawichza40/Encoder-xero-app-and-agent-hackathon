@@ -27,10 +27,7 @@ function delta(before: string | null | undefined, after: string | null | undefin
 export function PnLComparison({ before, after }: PnLComparisonProps) {
   return (
     <section aria-labelledby="pnl-heading" className="w-full">
-      <h2
-        id="pnl-heading"
-        className="mb-3 text-xs uppercase tracking-widest text-muted-foreground"
-      >
+      <h2 id="pnl-heading" className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
         Profit &amp; Loss · Before vs After
       </h2>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -134,12 +131,8 @@ function Row({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <dt className={cn("text-sm", strong ? "font-semibold" : "text-muted-foreground")}>
-        {label}
-      </dt>
-      <dd className={cn("text-right text-base", strong && "text-lg font-semibold")}>
-        {children}
-      </dd>
+      <dt className={cn("text-sm", strong ? "font-semibold" : "text-muted-foreground")}>{label}</dt>
+      <dd className={cn("text-right text-base", strong && "text-lg font-semibold")}>{children}</dd>
     </div>
   );
 }

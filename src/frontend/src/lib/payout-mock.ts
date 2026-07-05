@@ -12,7 +12,6 @@ import type {
   VatCheckResponse,
 } from "./payout-types";
 
-
 // localStorage key for the persisted Real/Demo choice: "0" = live, "1" = demo.
 export const MOCK_STORAGE_KEY = "payoutbridge.mock";
 // sessionStorage flag set when Live was chosen but GET /health was unreachable,
@@ -91,7 +90,6 @@ export function isMockEnabled(): boolean {
   if (isMockFallbackActive()) return true;
   return isMockChosen();
 }
-
 
 const DEMO_PAYOUT = {
   payout_ref: "MC-PAYOUT-0407",
@@ -221,8 +219,20 @@ export async function mockPropose(file: File): Promise<ProposalResponse> {
   }
   const steps = isRefund
     ? [
-        { kind: "create-invoice" as const, amount: payout.gross, account: "Platform Clearing", lines: null, clears: null },
-        { kind: "create-credit-note" as const, amount: payout.refunds, account: "Platform Clearing", lines: null, clears: null },
+        {
+          kind: "create-invoice" as const,
+          amount: payout.gross,
+          account: "Platform Clearing",
+          lines: null,
+          clears: null,
+        },
+        {
+          kind: "create-credit-note" as const,
+          amount: payout.refunds,
+          account: "Platform Clearing",
+          lines: null,
+          clears: null,
+        },
         {
           kind: "create-bank-transaction" as const,
           amount: (Number(payout.commission) + Number(payout.fees)).toFixed(2),
@@ -233,10 +243,22 @@ export async function mockPropose(file: File): Promise<ProposalResponse> {
           ],
           clears: null,
         },
-        { kind: "create-payment" as const, amount: payout.net, account: null, lines: null, clears: payout.payout_ref },
+        {
+          kind: "create-payment" as const,
+          amount: payout.net,
+          account: null,
+          lines: null,
+          clears: payout.payout_ref,
+        },
       ]
     : [
-        { kind: "create-invoice" as const, amount: "1340.00", account: "Platform Clearing", lines: null, clears: null },
+        {
+          kind: "create-invoice" as const,
+          amount: "1340.00",
+          account: "Platform Clearing",
+          lines: null,
+          clears: null,
+        },
         {
           kind: "create-bank-transaction" as const,
           amount: "493.00",
@@ -247,7 +269,13 @@ export async function mockPropose(file: File): Promise<ProposalResponse> {
           ],
           clears: null,
         },
-        { kind: "create-payment" as const, amount: "847.00", account: null, lines: null, clears: "MC-PAYOUT-0407" },
+        {
+          kind: "create-payment" as const,
+          amount: "847.00",
+          account: null,
+          lines: null,
+          clears: "MC-PAYOUT-0407",
+        },
       ];
   return delay({
     status: "new",
@@ -317,55 +345,105 @@ export async function mockStatus(file_hash: string): Promise<StatusResponse> {
   const isRefund = refundHashes.has(file_hash);
   const entries: AuditEntry[] = isRefund
     ? [
-        { timestamp: t(0), file_hash, action: "create-invoice", request: { amount: "1180.00", account: "Platform Clearing", tracking: "Channel:MarketplaceCo" }, xero_id: "INV-0051", status: "success" },
-        { timestamp: t(1), file_hash, action: "create-credit-note", request: { amount: "60.00", account: "Platform Clearing" }, xero_id: "CN-0007", status: "success" },
-        { timestamp: t(2), file_hash, action: "create-bank-transaction", request: { amount: "425.00", account: "Platform Clearing" }, xero_id: "BT-0128", status: "success" },
-        { timestamp: t(3), file_hash, action: "create-payment", request: { amount: "695.00", clears: "MC-PAYOUT-2107" }, xero_id: "PMT-0094", status: "success" },
-        { timestamp: t(4), file_hash, action: "attach-source", request: { filename: "settlement.csv", invoice_id: "INV-0051" }, xero_id: "INV-0051", status: "success" },
-        { timestamp: t(5), file_hash, action: "history-note", request: { note: "Verified zero-balance clearing (refund path)" }, xero_id: null, status: "info" },
+        {
+          timestamp: t(0),
+          file_hash,
+          action: "create-invoice",
+          request: {
+            amount: "1180.00",
+            account: "Platform Clearing",
+            tracking: "Channel:MarketplaceCo",
+          },
+          xero_id: "INV-0051",
+          status: "success",
+        },
+        {
+          timestamp: t(1),
+          file_hash,
+          action: "create-credit-note",
+          request: { amount: "60.00", account: "Platform Clearing" },
+          xero_id: "CN-0007",
+          status: "success",
+        },
+        {
+          timestamp: t(2),
+          file_hash,
+          action: "create-bank-transaction",
+          request: { amount: "425.00", account: "Platform Clearing" },
+          xero_id: "BT-0128",
+          status: "success",
+        },
+        {
+          timestamp: t(3),
+          file_hash,
+          action: "create-payment",
+          request: { amount: "695.00", clears: "MC-PAYOUT-2107" },
+          xero_id: "PMT-0094",
+          status: "success",
+        },
+        {
+          timestamp: t(4),
+          file_hash,
+          action: "attach-source",
+          request: { filename: "settlement.csv", invoice_id: "INV-0051" },
+          xero_id: "INV-0051",
+          status: "success",
+        },
+        {
+          timestamp: t(5),
+          file_hash,
+          action: "history-note",
+          request: { note: "Verified zero-balance clearing (refund path)" },
+          xero_id: null,
+          status: "info",
+        },
       ]
     : [
-    {
-      timestamp: t(0),
-      file_hash,
-      action: "create-invoice",
-      request: { amount: "1340.00", account: "Platform Clearing", tracking: "Channel:MarketplaceCo" },
-      xero_id: "INV-0042",
-      status: "success",
-    },
-    {
-      timestamp: t(1),
-      file_hash,
-      action: "create-bank-transaction",
-      request: { amount: "493.00", account: "Platform Clearing" },
-      xero_id: "BT-0117",
-      status: "success",
-    },
-    {
-      timestamp: t(2),
-      file_hash,
-      action: "create-payment",
-      request: { amount: "847.00", clears: "MC-PAYOUT-0407" },
-      xero_id: "PMT-0089",
-      status: "success",
-    },
-    {
-      timestamp: t(3),
-      file_hash,
-      action: "attach-source",
-      request: { filename: "settlement.csv", invoice_id: "INV-0042" },
-      xero_id: "INV-0042",
-      status: "success",
-    },
-    {
-      timestamp: t(4),
-      file_hash,
-      action: "history-note",
-      request: { note: "Verified zero-balance clearing" },
-      xero_id: null,
-      status: "info",
-    },
-  ];
+        {
+          timestamp: t(0),
+          file_hash,
+          action: "create-invoice",
+          request: {
+            amount: "1340.00",
+            account: "Platform Clearing",
+            tracking: "Channel:MarketplaceCo",
+          },
+          xero_id: "INV-0042",
+          status: "success",
+        },
+        {
+          timestamp: t(1),
+          file_hash,
+          action: "create-bank-transaction",
+          request: { amount: "493.00", account: "Platform Clearing" },
+          xero_id: "BT-0117",
+          status: "success",
+        },
+        {
+          timestamp: t(2),
+          file_hash,
+          action: "create-payment",
+          request: { amount: "847.00", clears: "MC-PAYOUT-0407" },
+          xero_id: "PMT-0089",
+          status: "success",
+        },
+        {
+          timestamp: t(3),
+          file_hash,
+          action: "attach-source",
+          request: { filename: "settlement.csv", invoice_id: "INV-0042" },
+          xero_id: "INV-0042",
+          status: "success",
+        },
+        {
+          timestamp: t(4),
+          file_hash,
+          action: "history-note",
+          request: { note: "Verified zero-balance clearing" },
+          xero_id: null,
+          status: "info",
+        },
+      ];
   return delay({
     file_hash,
     completed_steps: isRefund
@@ -385,10 +463,34 @@ export async function mockDashboard(): Promise<DashboardResponse> {
     aged_receivables: [],
     balance_sheet: { assets: "24800.00", liabilities: "6210.00", equity: "18590.00" },
     recent_payouts: [
-      { date: "2026-07-02", source: "MarketplaceCo", gross: "1340.00", net: "847.00", status: "verified" },
-      { date: "2026-06-28", source: "MarketplaceCo", gross: "980.00", net: "642.00", status: "verified" },
-      { date: "2026-06-24", source: "MarketplaceCo", gross: "0.00", net: "0.00", status: "idempotent" },
-      { date: "2026-06-20", source: "MarketplaceCo", gross: "2110.00", net: "1368.00", status: "verified" },
+      {
+        date: "2026-07-02",
+        source: "MarketplaceCo",
+        gross: "1340.00",
+        net: "847.00",
+        status: "verified",
+      },
+      {
+        date: "2026-06-28",
+        source: "MarketplaceCo",
+        gross: "980.00",
+        net: "642.00",
+        status: "verified",
+      },
+      {
+        date: "2026-06-24",
+        source: "MarketplaceCo",
+        gross: "0.00",
+        net: "0.00",
+        status: "idempotent",
+      },
+      {
+        date: "2026-06-20",
+        source: "MarketplaceCo",
+        gross: "2110.00",
+        net: "1368.00",
+        status: "verified",
+      },
     ],
     fetched_at: new Date().toISOString(),
     source: "demo",
@@ -409,7 +511,11 @@ export async function mockVatCheck(): Promise<VatCheckResponse> {
   });
 }
 
-export async function mockHealth(): Promise<{ status: string; xero_connected: boolean; organisation: string }> {
+export async function mockHealth(): Promise<{
+  status: string;
+  xero_connected: boolean;
+  organisation: string;
+}> {
   return delay({ status: "ok", xero_connected: true, organisation: "Demo Company (UK)" });
 }
 

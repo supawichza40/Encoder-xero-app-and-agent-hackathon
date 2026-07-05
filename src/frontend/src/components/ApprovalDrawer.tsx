@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Loader2, CheckCircle2, FileText, Receipt, Landmark, RotateCcw, XCircle } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  CheckCircle2,
+  FileText,
+  Receipt,
+  Landmark,
+  RotateCcw,
+  XCircle,
+} from "lucide-react";
 import type { CanonicalPayout, JournalPlan, PlanStep } from "@/lib/payout-types";
 import { cn } from "@/lib/utils";
 
@@ -51,17 +61,44 @@ export function ApprovalDrawer({
       </header>
 
       {/* Summary */}
-      <dl className={cn(
-        "tabular grid gap-x-6 gap-y-4 rounded-lg bg-background/50 p-4",
-        hasRefunds ? "grid-cols-2 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4",
-      )}>
-        <SummaryCell label="Gross" value={money(payout.gross)} icon={<FileText className="size-3.5" />} tone="blue" />
-        <SummaryCell label="Commission" value={money(payout.commission)} icon={<Receipt className="size-3.5" />} tone="amber" />
-        <SummaryCell label="Fees" value={money(payout.fees)} icon={<Receipt className="size-3.5" />} tone="rose" />
+      <dl
+        className={cn(
+          "tabular grid gap-x-6 gap-y-4 rounded-lg bg-background/50 p-4",
+          hasRefunds ? "grid-cols-2 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4",
+        )}
+      >
+        <SummaryCell
+          label="Gross"
+          value={money(payout.gross)}
+          icon={<FileText className="size-3.5" />}
+          tone="blue"
+        />
+        <SummaryCell
+          label="Commission"
+          value={money(payout.commission)}
+          icon={<Receipt className="size-3.5" />}
+          tone="amber"
+        />
+        <SummaryCell
+          label="Fees"
+          value={money(payout.fees)}
+          icon={<Receipt className="size-3.5" />}
+          tone="rose"
+        />
         {hasRefunds ? (
-          <SummaryCell label="Refunds" value={money(payout.refunds)} icon={<RotateCcw className="size-3.5" />} tone="rose" />
+          <SummaryCell
+            label="Refunds"
+            value={money(payout.refunds)}
+            icon={<RotateCcw className="size-3.5" />}
+            tone="rose"
+          />
         ) : null}
-        <SummaryCell label="Net payout" value={money(payout.net)} icon={<Landmark className="size-3.5" />} tone="emerald" />
+        <SummaryCell
+          label="Net payout"
+          value={money(payout.net)}
+          icon={<Landmark className="size-3.5" />}
+          tone="emerald"
+        />
       </dl>
 
       {/* Equation */}
@@ -117,7 +154,9 @@ export function ApprovalDrawer({
                     </td>
                     <td className="px-3 py-2">{b.service}</td>
                     <td className="px-3 py-2 text-right">{money(b.gross_amount)}</td>
-                    <td className="px-3 py-2 text-right text-muted-foreground">{b.commission_rate}</td>
+                    <td className="px-3 py-2 text-right text-muted-foreground">
+                      {b.commission_rate}
+                    </td>
                     <td className="px-3 py-2 text-right">{money(b.commission)}</td>
                   </tr>
                 ))}
@@ -188,13 +227,25 @@ function stepDescription(s: PlanStep): React.ReactNode {
   const amt = <span className="font-semibold">{money(s.amount)}</span>;
   switch (s.kind) {
     case "create-invoice":
-      return <>Create a gross revenue invoice for {amt} into {s.account ?? "Platform Clearing"}</>;
+      return (
+        <>
+          Create a gross revenue invoice for {amt} into {s.account ?? "Platform Clearing"}
+        </>
+      );
     case "create-credit-note":
       return <>Issue a credit note for {amt} to reflect refunds</>;
     case "create-bank-transaction":
-      return <>Book commission &amp; fees ({amt}) as expenses from {s.account ?? "Platform Clearing"}</>;
+      return (
+        <>
+          Book commission &amp; fees ({amt}) as expenses from {s.account ?? "Platform Clearing"}
+        </>
+      );
     case "create-payment":
-      return <>Clear {amt} against your bank deposit{s.clears ? ` (${s.clears})` : ""}</>;
+      return (
+        <>
+          Clear {amt} against your bank deposit{s.clears ? ` (${s.clears})` : ""}
+        </>
+      );
   }
 }
 
@@ -226,17 +277,20 @@ function SummaryCell({
     <div>
       <dt className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
         {tone && icon ? (
-          <span className={cn("flex size-5 items-center justify-center rounded-md", bgClasses[tone], toneClasses[tone])}>
+          <span
+            className={cn(
+              "flex size-5 items-center justify-center rounded-md",
+              bgClasses[tone],
+              toneClasses[tone],
+            )}
+          >
             {icon}
           </span>
         ) : null}
         {label}
       </dt>
       <dd
-        className={cn(
-          "mt-1.5 text-lg font-semibold",
-          tone ? toneClasses[tone] : "text-foreground",
-        )}
+        className={cn("mt-1.5 text-lg font-semibold", tone ? toneClasses[tone] : "text-foreground")}
       >
         {value}
       </dd>
@@ -271,7 +325,12 @@ function ChecklistItem({
           ✓
         </span>
       ) : icon ? (
-        <span className={cn("mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border", tone ? toneClasses[tone] : "border-border bg-transparent text-muted-foreground")}>
+        <span
+          className={cn(
+            "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border",
+            tone ? toneClasses[tone] : "border-border bg-transparent text-muted-foreground",
+          )}
+        >
           {icon}
         </span>
       ) : (

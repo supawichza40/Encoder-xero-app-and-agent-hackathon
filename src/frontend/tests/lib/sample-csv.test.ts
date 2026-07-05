@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  GOLDEN_SAMPLE_CSV,
-  REFUND_SAMPLE_CSV,
-  makeSampleFile,
-} from "@/lib/sample-csv";
+import { GOLDEN_SAMPLE_CSV, REFUND_SAMPLE_CSV, makeSampleFile } from "@/lib/sample-csv";
 
 // Parse the two-row summary header the backend parser expects:
 // PayoutRef,Period,GrossSales,NewClientCommission,PrepaymentFees,Refunds,NetPayout

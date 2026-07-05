@@ -32,7 +32,11 @@ describe("Navbar — Real/Demo data-source toggle", () => {
       "fetch",
       vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ status: "ok", xero_connected: true, organisation: "Demo Company (UK)" }),
+        json: async () => ({
+          status: "ok",
+          xero_connected: true,
+          organisation: "Demo Company (UK)",
+        }),
       }),
     );
     render(<Navbar />);

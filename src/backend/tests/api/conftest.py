@@ -36,23 +36,28 @@ def mock_xero():
     """
     from backend.xero_client import XeroClient
 
+    # NB: API-tier tests intentionally stub XeroClient at the METHOD level — the return
+    # values below are the shapes each method yields AFTER parsing (a GUID string from a
+    # write, a parsed dict from a read). The raw multi-TEXT-block MCP wire format and the
+    # _call parser that decodes it are exercised directly in tests/unit/test_xero_client.py.
     m = AsyncMock(spec=XeroClient)
     m.connect = AsyncMock()
     m.disconnect = AsyncMock()
 
-    # Golden-path write return values
+    # Golden-path write return values (create_* now return the created object's ID)
     m.create_invoice.return_value = "INV-0042"
     m.create_bank_transaction.return_value = "BT-0117"
     m.create_payment.return_value = "PMT-0089"
 
     # Verification / read return values
     m.get_clearing_balance.return_value = Decimal("0.00")
-    m.list_profit_and_loss.return_value = {
-        "Revenue": "1340.00",
-        "Expenses": "493.00",
-        "NetProfit": "847.00",
+    # list_profit_and_loss returns the report tool's raw text; extract_pnl_snapshot
+    # (mocked below) is what turns it into figures.
+    m.list_profit_and_loss.return_value = {"raw_text": "Profit and Loss Report: ..."}
+    m.list_organisation_details.return_value = {
+        "Name": "Demo Company (UK)",
+        "Is Demo Company": "Yes",
     }
-    m.list_organisation_details.return_value = {"Name": "Demo Company (UK)"}
 
     # extract_pnl_snapshot is synchronous — use MagicMock
     m.extract_pnl_snapshot = MagicMock(

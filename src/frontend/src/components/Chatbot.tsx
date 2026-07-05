@@ -9,7 +9,10 @@ import { fetchVatCheck } from "@/lib/usePayoutBridge";
 type Msg = { role: "user" | "bot"; text: string };
 
 const initialMsgs: Msg[] = [
-  { role: "bot", text: "Hi! I'm the PayoutBridge demo assistant. Try one of the suggestions below." },
+  {
+    role: "bot",
+    text: "Hi! I'm the PayoutBridge demo assistant. Try one of the suggestions below.",
+  },
 ];
 
 const PERSONA_PROMPTS: Record<string, string[]> = {
@@ -31,7 +34,8 @@ async function scriptedReply(prompt: string): Promise<string> {
   }
   if (q.includes("vat")) {
     const v = await fetchVatCheck();
-    if (!v) return "Couldn't reach the VAT check endpoint. Ask your accountant to confirm treatment.";
+    if (!v)
+      return "Couldn't reach the VAT check endpoint. Ask your accountant to confirm treatment.";
     const rates = v.org_rates.map((r) => r.name).join(", ");
     return `Rates on file: ${rates}. This payout posted VAT-free — ${v.consistent ? "consistent" : "inconsistent"}. Ask your accountant to confirm treatment.`;
   }
@@ -69,10 +73,7 @@ export function Chatbot({ fullPage = false }: { fullPage?: boolean }) {
     <>
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 p-4">
         {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-          >
+          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
               className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
                 m.role === "user"

@@ -12,11 +12,7 @@ import { StepProgress } from "@/components/StepProgress";
 import { ClearingReconciliation } from "@/components/ClearingReconciliation";
 import { PnLComparison } from "@/components/PnLComparison";
 import { AuditTrail } from "@/components/AuditTrail";
-import {
-  InvoiceHistory,
-  saveHistoryEntry,
-  type HistoryEntry,
-} from "@/components/InvoiceHistory";
+import { InvoiceHistory, saveHistoryEntry, type HistoryEntry } from "@/components/InvoiceHistory";
 import { InvoiceDetails } from "@/components/InvoiceDetails";
 import { makeSampleFile } from "@/lib/sample-csv";
 
@@ -60,11 +56,7 @@ function Index() {
 
   // Persist a history entry when a fresh proposal arrives.
   useEffect(() => {
-    if (
-      bridge.proposal &&
-      lastFileName &&
-      savedHashRef.current !== bridge.proposal.file_hash
-    ) {
+    if (bridge.proposal && lastFileName && savedHashRef.current !== bridge.proposal.file_hash) {
       savedHashRef.current = bridge.proposal.file_hash;
       saveHistoryEntry({
         id: bridge.proposal.file_hash,
@@ -123,10 +115,7 @@ function Index() {
           className="pointer-events-none absolute right-0 top-1/3 h-64 w-64 rounded-full bg-primary/8 blur-3xl animate-glow-pulse"
         />
         <Reveal className="lg:sticky lg:top-6 lg:self-start" delay={0}>
-          <InvoiceHistory
-            selectedId={selected?.id ?? null}
-            onSelect={(e) => setSelected(e)}
-          />
+          <InvoiceHistory selectedId={selected?.id ?? null} onSelect={(e) => setSelected(e)} />
         </Reveal>
 
         <div className="flex flex-col gap-6">
@@ -147,24 +136,24 @@ function Index() {
 
           {selected ? (
             <Reveal delay={120}>
-            <InvoiceDetails
-              fileName={selected.fileName}
-              uploadedAt={selected.uploadedAt}
-              proposal={selected.proposal}
-              onClose={() => setSelected(null)}
-              attachment={bridge.approval?.attachment ?? null}
-            />
+              <InvoiceDetails
+                fileName={selected.fileName}
+                uploadedAt={selected.uploadedAt}
+                proposal={selected.proposal}
+                onClose={() => setSelected(null)}
+                attachment={bridge.approval?.attachment ?? null}
+              />
             </Reveal>
           ) : (
             <>
               <Reveal delay={140}>
-              <FileUpload
-                onFileSelected={handleFile}
-                disabled={uploadDisabled}
-                loading={bridge.phase === "uploading"}
-                error={bridge.phase === "error" ? bridge.error : null}
-                compact={Boolean(bridge.proposal)}
-              />
+                <FileUpload
+                  onFileSelected={handleFile}
+                  disabled={uploadDisabled}
+                  loading={bridge.phase === "uploading"}
+                  error={bridge.phase === "error" ? bridge.error : null}
+                  compact={Boolean(bridge.proposal)}
+                />
               </Reveal>
 
               {bridge.phase === "idle" ||
@@ -209,10 +198,10 @@ function Index() {
 
               {bridge.phase === "idempotent" && bridge.proposal?.existing_ids ? (
                 <Reveal delay={160}>
-                <IdempotencyBanner
-                  existingIds={bridge.proposal.existing_ids}
-                  onReset={bridge.reset}
-                />
+                  <IdempotencyBanner
+                    existingIds={bridge.proposal.existing_ids}
+                    onReset={bridge.reset}
+                  />
                 </Reveal>
               ) : null}
 
@@ -222,16 +211,16 @@ function Index() {
               bridge.proposal &&
               bridge.proposal.plan ? (
                 <Reveal delay={180}>
-                <ApprovalDrawer
-                  payout={bridge.proposal.payout}
-                  plan={bridge.proposal.plan}
-                  fileHash={bridge.proposal.file_hash}
-                  onApprove={() => void bridge.approve()}
-                  disabled={bridge.phase !== "proposed"}
-                  loading={bridge.phase === "approving"}
-                  approved={bridge.phase === "verified"}
-                  headingLabel={approvalHeading}
-                />
+                  <ApprovalDrawer
+                    payout={bridge.proposal.payout}
+                    plan={bridge.proposal.plan}
+                    fileHash={bridge.proposal.file_hash}
+                    onApprove={() => void bridge.approve()}
+                    disabled={bridge.phase !== "proposed"}
+                    loading={bridge.phase === "approving"}
+                    approved={bridge.phase === "verified"}
+                    headingLabel={approvalHeading}
+                  />
                 </Reveal>
               ) : null}
 
@@ -259,18 +248,21 @@ function Index() {
               {bridge.phase === "verified" && bridge.approval ? (
                 <>
                   <Reveal delay={260}>
-                  <div ref={clearingRef}>
-                    <ClearingReconciliation
-                      gross={bridge.proposal!.payout.gross}
-                      feesTotal={feesTotal}
-                      net={bridge.proposal!.payout.net}
-                      clearingBalance={bridge.approval.clearing_balance}
-                      verified={bridge.approval.verified}
-                    />
-                  </div>
+                    <div ref={clearingRef}>
+                      <ClearingReconciliation
+                        gross={bridge.proposal!.payout.gross}
+                        feesTotal={feesTotal}
+                        net={bridge.proposal!.payout.net}
+                        clearingBalance={bridge.approval.clearing_balance}
+                        verified={bridge.approval.verified}
+                      />
+                    </div>
                   </Reveal>
                   <Reveal delay={300}>
-                    <PnLComparison before={bridge.pnl?.before ?? null} after={bridge.pnl?.after ?? null} />
+                    <PnLComparison
+                      before={bridge.pnl?.before ?? null}
+                      after={bridge.pnl?.after ?? null}
+                    />
                   </Reveal>
                   <Reveal delay={340}>
                     <AuditTrail entries={bridge.audit} defaultOpen={persona === "bookkeeper"} />

@@ -7,11 +7,13 @@ load_dotenv()
 # ── Xero credentials ───────────────────────────────────────────────────────
 XERO_CLIENT_ID: str = os.getenv("XERO_CLIENT_ID", "")
 XERO_CLIENT_SECRET: str = os.getenv("XERO_CLIENT_SECRET", "")
-XERO_SCOPES: str = os.getenv(
-    "XERO_SCOPES",
-    "accounting.transactions accounting.contacts accounting.settings "
-    "accounting.reports.read accounting.attachments offline_access",
-)
+# A client-credentials Custom Connection must request the token with NO scope:
+# the umbrella auth-code scopes (accounting.transactions, accounting.reports.read,
+# offline_access…) fail with invalid_scope. When scope is omitted, Xero mints a
+# token carrying the connection's own granular scopes (invoices, banktransactions,
+# payments, contacts, settings, reports.*). Default to empty and pass empty through —
+# never fall back to the umbrella string.
+XERO_SCOPES: str = os.getenv("XERO_SCOPES", "")
 
 # ── Paths ──────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent

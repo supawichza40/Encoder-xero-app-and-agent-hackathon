@@ -26,10 +26,18 @@ violate them, do not "improve" past them, do not rebuild what already works.
 - Refund path = 4 writes (adds a credit-note). Planner REFUSES if the invariant fails.
 
 ## 3. Xero / data safety
-- **Xero Demo Company only. Never the live/paid tenant.** Agents do NOT call live Xero.
-  Runtime verification runs against Demo (mock) mode + backend-with-mock-Xero only; the
-  owner runs the one live golden path by hand.
-- Golden path ≤ 10 Xero calls; worst case (refund + all features) ≤ 15/min.
+- **Xero Demo Company only. Never the live/paid tenant.** As of 2026-07-05 the owner
+  AUTHORIZED agents to post the REAL golden-path writes to the **Demo Company** to prove
+  the live end-to-end flow. Before any write, confirm `/health` org reads "Demo Company";
+  if it is NOT a Demo Company, ABORT — never operate on the paid tenant.
+- Golden path ≤ 10 Xero calls; worst case (refund + all features) ≤ 15/min. Serial only —
+  no parallel live-write storms.
+- **Live-Xero connection facts (learned 2026-07-05):** the backend uses a client-credentials
+  **Custom Connection**. `XERO_SCOPES` MUST be empty (omit `scope`) — the connection's own
+  granular scopes are granted automatically. The auth-code umbrella scopes
+  (`accounting.transactions`, `offline_access`) are INVALID for M2M → `invalid_scope`.
+  The `@xeroapi/xero-mcp-server@latest` returns **multiple TEXT content blocks**
+  (`block[0]`=header, `block[1..N]`=`Key: Value` records), not JSON — parse accordingly.
 - Demo data is SYNTHETIC. Only marketplace brand shown anywhere is **"MarketplaceCo"**.
   (Current landing shows Amazon/Etsy/Shopify/eBay/Stripe — these MUST be removed/genericised.)
 

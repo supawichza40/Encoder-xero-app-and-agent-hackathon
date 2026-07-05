@@ -46,7 +46,6 @@ function sleep(ms: number) {
   return new Promise<void>((r) => setTimeout(r, ms));
 }
 
-
 export interface PayoutBridgeApi {
   phase: Phase;
   proposal: ProposalResponse | null;
@@ -121,7 +120,6 @@ export function usePayoutBridge(): PayoutBridgeApi {
     }
   }, []);
 
-
   const fetchStatus = useCallback(async () => {
     if (!proposal) return;
     try {
@@ -133,9 +131,7 @@ export function usePayoutBridge(): PayoutBridgeApi {
       // REGRESSION GUARD: the backend route is GET /status/{file_hash} — the
       // hash is a PATH param, never a query string (?file_hash=). Keep the
       // hash inside the path segment below; `?hash=` variants 404 on FastAPI.
-      const res = await fetch(
-        `${API_BASE}/status/${encodeURIComponent(proposal.file_hash)}`,
-      );
+      const res = await fetch(`${API_BASE}/status/${encodeURIComponent(proposal.file_hash)}`);
       if (!res.ok) return;
       const data = (await res.json()) as StatusResponse;
       setAudit(data.audit_entries ?? []);
@@ -193,7 +189,6 @@ export function usePayoutBridge(): PayoutBridgeApi {
         revealed.push(step);
         setApproval({ ...data, results: [...revealed] });
       }
-
 
       if (data.verified && data.results.every((r) => r.status === "success")) {
         setPhase("verified");
@@ -258,15 +253,13 @@ function normalizeDashboard(raw: RawDashboard): DashboardResponse {
     (p): DashboardResponse["recent_payouts"][number] => {
       // Only the backend shape carries completed_steps — narrow on that.
       if ("completed_steps" in p) {
-        const cleared =
-          p.clearing_balance == null || Number(p.clearing_balance) === 0;
+        const cleared = p.clearing_balance == null || Number(p.clearing_balance) === 0;
         return {
           date: p.file_hash.slice(0, 8),
           source: "MarketplaceCo",
           gross: null,
           net: null,
-          status:
-            cleared && p.completed_steps.length > 0 ? "verified" : "idempotent",
+          status: cleared && p.completed_steps.length > 0 ? "verified" : "idempotent",
           file_hash: p.file_hash,
         };
       }
