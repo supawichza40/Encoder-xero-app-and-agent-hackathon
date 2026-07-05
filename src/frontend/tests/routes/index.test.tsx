@@ -20,10 +20,9 @@ vi.mock("@tanstack/react-router", () => ({
 // Control upload-history presence (GEN-2 empty-state gate) without touching
 // the real localStorage-backed InvoiceHistory component (owned by 2b).
 vi.mock("@/components/InvoiceHistory", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/components/InvoiceHistory")>(
-      "@/components/InvoiceHistory",
-    );
+  const actual = await vi.importActual<typeof import("@/components/InvoiceHistory")>(
+    "@/components/InvoiceHistory",
+  );
   return { ...actual, loadHistory: vi.fn(() => actual.loadHistory()) };
 });
 

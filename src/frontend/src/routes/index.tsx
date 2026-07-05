@@ -346,9 +346,7 @@ function RunHistoryTable({ entries }: { entries: RunHistoryEntry[] | null }) {
                       {r.status}
                     </span>
                   </td>
-                  <td className="py-1.5 pr-4 text-right tabular-nums text-foreground">
-                    £{r.net}
-                  </td>
+                  <td className="py-1.5 pr-4 text-right tabular-nums text-foreground">£{r.net}</td>
                   <td className="py-1.5 tabular-nums text-muted-foreground">
                     {r.hash.slice(0, 8)}…
                   </td>
@@ -523,31 +521,31 @@ export function Dashboard({ user }: { user: DemoUser }) {
 
       <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         {persona === "owner" ? (
-        <div className="overflow-hidden rounded-xl border border-border/80 bg-card/50 backdrop-blur-sm">
-          <Marquee speed="slow" className="py-2.5">
-            {tickerItems.map((item) => (
-              <span
-                key={item.detail}
-                className="inline-flex items-center gap-2 px-6 text-xs text-muted-foreground"
-              >
-                <LiveDot
-                  tone={
-                    item.tone === "success"
-                      ? "success"
-                      : item.tone === "warning"
-                        ? "warning"
-                        : "primary"
-                  }
-                  className="size-1.5"
-                />
-                <span className="font-semibold uppercase tracking-wider text-foreground/80">
-                  {item.label}
+          <div className="overflow-hidden rounded-xl border border-border/80 bg-card/50 backdrop-blur-sm">
+            <Marquee speed="slow" className="py-2.5">
+              {tickerItems.map((item) => (
+                <span
+                  key={item.detail}
+                  className="inline-flex items-center gap-2 px-6 text-xs text-muted-foreground"
+                >
+                  <LiveDot
+                    tone={
+                      item.tone === "success"
+                        ? "success"
+                        : item.tone === "warning"
+                          ? "warning"
+                          : "primary"
+                    }
+                    className="size-1.5"
+                  />
+                  <span className="font-semibold uppercase tracking-wider text-foreground/80">
+                    {item.label}
+                  </span>
+                  <span>{item.detail}</span>
                 </span>
-                <span>{item.detail}</span>
-              </span>
-            ))}
-          </Marquee>
-        </div>
+              ))}
+            </Marquee>
+          </div>
         ) : null}
 
         {/* bento header row */}
@@ -578,16 +576,16 @@ export function Dashboard({ user }: { user: DemoUser }) {
               </p>
             ) : null}
             {persona === "owner" ? (
-            <p
-              key={insightIndex}
-              className={`mt-3 min-h-[1.5rem] text-sm text-muted-foreground sm:text-base ${!reducedMotion ? "insight-rotate" : ""}`}
-            >
-              {insights[insightIndex]}
-            </p>
+              <p
+                key={insightIndex}
+                className={`mt-3 min-h-[1.5rem] text-sm text-muted-foreground sm:text-base ${!reducedMotion ? "insight-rotate" : ""}`}
+              >
+                {insights[insightIndex]}
+              </p>
             ) : (
-            <p className="mt-3 min-h-[1.5rem] text-sm text-muted-foreground sm:text-base">
-              {persona === "bookkeeper" ? bookkeeperInsight : freelancerInsight}
-            </p>
+              <p className="mt-3 min-h-[1.5rem] text-sm text-muted-foreground sm:text-base">
+                {persona === "bookkeeper" ? bookkeeperInsight : freelancerInsight}
+              </p>
             )}
           </div>
 
@@ -601,7 +599,8 @@ export function Dashboard({ user }: { user: DemoUser }) {
             {persona === "bookkeeper" ? (
               <div className="mt-4 flex items-baseline justify-between gap-3">
                 <span className="text-3xl font-black tabular-nums text-primary">
-                  +£<CountUp value={hiddenRevenue} duration={1200} />
+                  +£
+                  <CountUp value={hiddenRevenue} duration={1200} />
                 </span>
                 <span className="text-xs text-muted-foreground">recovered vs the bank feed</span>
               </div>
@@ -677,17 +676,20 @@ export function Dashboard({ user }: { user: DemoUser }) {
           className={`pointer-events-none absolute -right-32 top-32 h-72 w-72 rounded-full ${tone.glowHue} blur-3xl animate-glow-pulse`}
         />
         {persona === "owner" ? (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -left-24 bottom-1/4 h-56 w-56 rounded-full bg-emerald-500/8 blur-3xl animate-glow-pulse"
-          style={{ animationDelay: "2.5s" }}
-        />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-24 bottom-1/4 h-56 w-56 rounded-full bg-emerald-500/8 blur-3xl animate-glow-pulse"
+            style={{ animationDelay: "2.5s" }}
+          />
         ) : null}
 
         {/* KPI cards — PRI-4/SAM-2/SAM-3/ALX-1: DOM order (not CSS order)
             differs per persona so keyboard/screen-reader order matches the
             visual order (§7 accessibility). */}
-        <section key={persona} className="relative grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section
+          key={persona}
+          className="relative grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        >
           {persona === "freelancer" ? (
             <>
               <div
@@ -729,48 +731,51 @@ export function Dashboard({ user }: { user: DemoUser }) {
             illustrative charts, bookkeeper gets the run-history table
             instead, freelancer gets neither. */}
         {persona === "owner" ? (
-        <section className="relative grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="animate-fade-up lg:col-span-2" style={{ animationDelay: "580ms" }}>
-            <ChartCard
-              className="h-full"
-              accent="blue"
-              live
-              title="Reported vs real turnover"
-              subtitle="Last 6 months"
-            >
-              <LiveTurnoverAreaChart data={revenueSeries} />
-              <div className="mt-3 flex flex-wrap gap-3 border-t border-border/60 pt-3">
-                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span
-                    className="size-2.5 rounded-full bg-slate-400 animate-glow-pulse"
-                    aria-hidden
-                  />{" "}
-                  Reported
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className="relative flex size-2.5 items-center justify-center" aria-hidden>
-                    <span className="absolute inset-0 rounded-full bg-blue-500/40 animate-pulse-ring" />
-                    <span className="size-2.5 rounded-full bg-blue-500" />
-                  </span>{" "}
-                  Real turnover
-                </span>
-              </div>
-            </ChartCard>
-          </div>
+          <section className="relative grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div className="animate-fade-up lg:col-span-2" style={{ animationDelay: "580ms" }}>
+              <ChartCard
+                className="h-full"
+                accent="blue"
+                live
+                title="Reported vs real turnover"
+                subtitle="Last 6 months"
+              >
+                <LiveTurnoverAreaChart data={revenueSeries} />
+                <div className="mt-3 flex flex-wrap gap-3 border-t border-border/60 pt-3">
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <span
+                      className="size-2.5 rounded-full bg-slate-400 animate-glow-pulse"
+                      aria-hidden
+                    />{" "}
+                    Reported
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <span
+                      className="relative flex size-2.5 items-center justify-center"
+                      aria-hidden
+                    >
+                      <span className="absolute inset-0 rounded-full bg-blue-500/40 animate-pulse-ring" />
+                      <span className="size-2.5 rounded-full bg-blue-500" />
+                    </span>{" "}
+                    Real turnover
+                  </span>
+                </div>
+              </ChartCard>
+            </div>
 
-          <div className="animate-fade-up" style={{ animationDelay: "660ms" }}>
-            <ChartCard
-              accent="amber"
-              className="h-full"
-              live
-              title="Fees this month"
-              subtitle="Where £5,048 went"
-            >
-              <LiveFeesDonutChart data={feeBreakdown} total={feesTotal} />
-              <LiveFeeLegend data={feeBreakdown} colors={PIE_COLORS} />
-            </ChartCard>
-          </div>
-        </section>
+            <div className="animate-fade-up" style={{ animationDelay: "660ms" }}>
+              <ChartCard
+                accent="amber"
+                className="h-full"
+                live
+                title="Fees this month"
+                subtitle="Where £5,048 went"
+              >
+                <LiveFeesDonutChart data={feeBreakdown} total={feesTotal} />
+                <LiveFeeLegend data={feeBreakdown} colors={PIE_COLORS} />
+              </ChartCard>
+            </div>
+          </section>
         ) : persona === "bookkeeper" ? (
           <section className="animate-fade-up" style={{ animationDelay: "580ms" }}>
             <RunHistoryTable entries={runHistory} />
@@ -781,17 +786,17 @@ export function Dashboard({ user }: { user: DemoUser }) {
             recent activity stays for everyone, taking the freed-up width. */}
         <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {persona === "owner" ? (
-          <div className="animate-fade-up" style={{ animationDelay: "740ms" }}>
-            <ChartCard
-              accent="emerald"
-              className="h-full"
-              live
-              title="Payouts reconciled per week"
-              subtitle="Last 6 weeks"
-            >
-              <LivePayoutBarChart data={payoutsPerWeek} />
-            </ChartCard>
-          </div>
+            <div className="animate-fade-up" style={{ animationDelay: "740ms" }}>
+              <ChartCard
+                accent="emerald"
+                className="h-full"
+                live
+                title="Payouts reconciled per week"
+                subtitle="Last 6 weeks"
+              >
+                <LivePayoutBarChart data={payoutsPerWeek} />
+              </ChartCard>
+            </div>
           ) : null}
 
           <div
