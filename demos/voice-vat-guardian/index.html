@@ -109,7 +109,7 @@
         <h1>VAT Guardian</h1>
         <p>PayoutBridge voice assistant — proactive VAT-threshold warning</p>
       </div>
-      <div class="tag">Synthetic demo · Sarah @ MarketplaceCo</div>
+      <div class="tag">Synthetic demo · Supa @ MarketplaceCo</div>
     </header>
 
     <div class="grid">
@@ -118,13 +118,13 @@
         <h2>The payout that just landed</h2>
         <div class="rows">
           <div class="row gross"><span class="k">Gross sale</span><span class="v">£1,340.00</span></div>
-          <div class="row net"><span class="k">Net that reached her books</span><span class="v">£847.00</span></div>
+          <div class="row net"><span class="k">Net that reached their books</span><span class="v">£847.00</span></div>
           <div class="row hidden"><span class="k"><b>Hidden</b> — commission £445.90 + fees £47.10</span><span class="v">£493.00</span></div>
         </div>
         <div class="thresh">
           <b>≈ 37%</b> of the sale is invisible (£493 ÷ £1,340). VAT registration keys off
-          <b>turnover</b>, not profit — so on her recent trend Sarah could edge toward the
-          <b>£90,000</b> line within a couple of months, and her own books wouldn't show it.
+          <b>turnover</b>, not profit — so on their recent trend Supa could edge toward the
+          <b>£90,000</b> line within a couple of months, and their own books wouldn't show it.
         </div>
       </section>
 
@@ -136,7 +136,7 @@
           <span class="dot"></span>
           <span>
             <span id="badgeLbl" class="lbl">Awaiting approval</span>
-            <span id="badgeSub" class="sub">Nothing posts until Sarah says yes</span>
+            <span id="badgeSub" class="sub">Nothing posts until Supa says yes</span>
           </span>
         </div>
         <div id="hint" class="hint"></div>
@@ -178,7 +178,7 @@
 
     <footer>
       Human-in-the-loop by design · the correction posts only on a spoken “yes”.
-      Synthetic data — Sarah &amp; MarketplaceCo are fictional.
+      Synthetic data — Supa &amp; MarketplaceCo are fictional.
     </footer>
   </div>
 
@@ -209,7 +209,7 @@
       approved = false;
       badge.classList.remove("approved");
       el("badgeLbl").textContent = "Awaiting approval";
-      el("badgeSub").textContent = "Nothing posts until Sarah says yes";
+      el("badgeSub").textContent = "Nothing posts until Supa says yes";
     }
 
     // ---- Live badge poller (best-effort; voice works even if this errors) ----
@@ -249,7 +249,7 @@
 
     // ---- Offline walkthrough (clearly labeled simulation) ----
     var script = [
-      {who:"agent", t:"Hi Sarah, it's your PayoutBridge assistant — quick heads-up, nothing's on fire. A MarketplaceCo payout of thirteen hundred and forty pounds just landed, but only the eight hundred and forty-seven net is in your books, so about thirty-seven percent of that sale is currently invisible. On your recent trend your real turnover could edge toward the ninety-thousand line in the next couple of months. Want me to walk you through a correction that makes your real numbers show?"},
+      {who:"agent", t:"Hi Supa, it's your PayoutBridge assistant — quick heads-up, nothing's on fire. A MarketplaceCo payout of thirteen hundred and forty pounds just landed, but only the eight hundred and forty-seven net is in your books, so about thirty-seven percent of that sale is currently invisible. On your recent trend your real turnover could edge toward the ninety-thousand line in the next couple of months. Want me to walk you through a correction that makes your real numbers show?"},
       {who:"user",  t:"Wait — where does the four hundred and ninety-three go?"},
       {who:"agent", t:"That's commission of four forty-five ninety plus fees of forty-seven ten — MarketplaceCo kept it before paying out, so right now both that cost and that turnover are invisible."},
       {who:"user",  t:"Hang on — is this tax advice? Are you telling me I have to register for VAT?"},
@@ -270,7 +270,7 @@
         var m = script[i++];
         var b = document.createElement("div");
         b.className = "bubble " + m.who;
-        b.innerHTML = '<span class="who">' + (m.who === "agent" ? "VAT Guardian" : "Sarah") + '</span>' + m.t;
+        b.innerHTML = '<span class="who">' + (m.who === "agent" ? "VAT Guardian" : "Supa") + '</span>' + m.t;
         box.appendChild(b); box.scrollTop = box.scrollHeight;
         if(m.approve){ setTimeout(lightBadge, 700); }
         setTimeout(next, m.who === "agent" ? 3400 : 1600);

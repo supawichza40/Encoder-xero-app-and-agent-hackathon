@@ -1,7 +1,7 @@
 # VAT Guardian — standalone voice demo
 
-A one-page voice demo: the PayoutBridge assistant proactively calls Sarah, warns her that a
-netted MarketplaceCo payout is hiding ~37% of a sale (£493 of £1,340) and nudging her turnover
+A one-page voice demo: the PayoutBridge assistant proactively calls Supa, warns them that a
+netted MarketplaceCo payout is hiding ~37% of a sale (£493 of £1,340) and nudging their turnover
 toward the £90,000 VAT line, then posts a correction only on a spoken "yes". The approval lights
 a badge on the page (in the full app the same token drives the real Xero posting).
 

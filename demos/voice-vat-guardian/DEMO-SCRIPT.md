@@ -1,8 +1,8 @@
 # Voice VAT-Guardian — Call Script & Expected Answers
 
 What you (or a judge) say to the voice assistant, what it will say back, and where
-the sell lands. The agent is proactive — the fiction is that **it called Sarah**, so
-you play Sarah. Total golden path: **under 90 seconds of talking.**
+the sell lands. The agent is proactive — the fiction is that **it called Supa**, so
+you play Supa. Total golden path: **under 90 seconds of talking.**
 
 > **Naming rule (hard):** to judges this is *"our voice assistant"* / *"VAT Guardian,
 > PayoutBridge's voice feature."* Never say the vendor's name on stage. The agent
@@ -19,7 +19,7 @@ Open the demo page, start the voice session, say nothing — **the agent speaks 
 
 **Expect (the warning — THIS IS THE SELL, let it land, don't interrupt):**
 
-> "Hi Sarah, it's your PayoutBridge assistant — quick heads-up, nothing's on fire. A
+> "Hi Supa, it's your PayoutBridge assistant — quick heads-up, nothing's on fire. A
 > MarketplaceCo payout of thirteen hundred and forty pounds just landed, but only the
 > eight hundred and forty-seven net is in your books, so about thirty-seven percent of
 > that sale is currently invisible. Because VAT registration is based on your total
@@ -29,7 +29,7 @@ Open the demo page, start the voice session, say nothing — **the agent speaks 
 > you through it?"
 
 **[pause — 2 beats of silence. The judges just heard software warn a business owner
-about a VAT-threshold risk her own books can't see. That's the product.]**
+about a VAT-threshold risk their own books can't see. That's the product.]**
 
 ### Beat 2 — Make it explain itself (~0:40)
 
@@ -54,7 +54,7 @@ Say: **"Hang on — is this tax advice? Are you telling me I have to register fo
 
 **Expect (hedged, this is deliberate):** no — it flags a bookkeeping discrepancy and
 estimates a trend; the correction is just accurate accounting; the registration call
-is for her accountant. It will NOT say "you must register" and will NOT promise any
+is for their accountant. It will NOT say "you must register" and will NOT promise any
 HMRC outcome.
 
 **[This is the second sell: a warning agent that knows its legal lane. Point it out
@@ -101,7 +101,7 @@ see VERIFICATION.md transcripts).
    *reaches out* before the owner knows there's a question — and forecasting the
    threshold is something JAX is contractually banned from doing. White-space.
 2. **The warning is the moment.** £493 of turnover was invisible — ~37% of the sale.
-   The owner hears about the £90k VAT line **before HMRC would ever tell her**.
+   The owner hears about the £90k VAT line **before HMRC would ever tell them**.
 3. **Human-in-the-loop by design.** Nothing posts without a spoken yes. Decline path
    is first-class. The correction itself is plain, factual bookkeeping.
 
@@ -111,7 +111,7 @@ see VERIFICATION.md transcripts).
 
 - **"Is this real or faked?"** — The conversation is a real live AI voice agent
   reasoning over the payout data — nothing scripted; ask it your own questions. The
-  data is synthetic (Sarah/MarketplaceCo) and in this standalone demo the approval
+  data is synthetic (Supa/MarketplaceCo) and in this standalone demo the approval
   lights the badge rather than writing to Xero; in the full app the same approval
   token calls our `POST /approve`, which does the three real Xero writes to a £0.00
   clearing balance — that part is built and demoed separately.
@@ -156,6 +156,6 @@ see VERIFICATION.md transcripts).
 > **Open:** "Hello?" → agent delivers the warning. **Pause after it.**
 > **Probe:** "Where does the £493 go?" · "Is this tax advice?"
 > **Close:** "Yes, post it." → badge lights.
-> **The line for judges:** *"£493 of her sales were invisible — she'd have crossed
-> the £90k VAT line without knowing. Our assistant told her first, and nothing posted
-> until she said yes."*
+> **The line for judges:** *"£493 of their sales were invisible — they'd have crossed
+> the £90k VAT line without knowing. Our assistant told them first, and nothing posted
+> until they said yes."*
