@@ -68,6 +68,10 @@ CORS_ALLOW_ORIGINS: list[str] = (
         "http://localhost:3000",
         "http://localhost:5174",
         "http://localhost:8080",
+        "http://localhost:8081",
+        # GitHub Pages demo URL — lets the hosted frontend reach a locally
+        # running backend in Real mode (browser on the same machine).
+        "https://supawichza40.github.io",
     ]
 )
 
