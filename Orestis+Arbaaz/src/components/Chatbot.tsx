@@ -3,12 +3,40 @@ import { Maximize2, MessageCircle, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useDemoAuth } from "@/lib/useDemoAuth";
+import { fetchVatCheck } from "@/lib/usePayoutBridge";
 
 type Msg = { role: "user" | "bot"; text: string };
 
 const initialMsgs: Msg[] = [
-  { role: "bot", text: "Hi! I'm your PayoutBridge assistant. Ask me anything about your payouts, fees, or reconciliations." },
+  { role: "bot", text: "Hi! I'm the PayoutBridge demo assistant. Try one of the suggestions below." },
 ];
+
+const PERSONA_PROMPTS: Record<string, string[]> = {
+  owner: ["What did the platform take?", "Check my VAT", "Show me the audit trail"],
+  bookkeeper: ["Show me the audit trail", "What did the platform take?", "Check my VAT"],
+  freelancer: ["Is my income right for taxes?", "What did the platform take?", "Check my VAT"],
+};
+
+async function scriptedReply(prompt: string): Promise<string> {
+  const q = prompt.toLowerCase();
+  if (q.includes("platform") || q.includes("take")) {
+    return "On the latest MarketplaceCo payout the platform took £445.90 commission and £47.10 in fees — £493 total against £1,340 gross.";
+  }
+  if (q.includes("audit")) {
+    return "Opening the audit trail — every request, Xero ID, and timestamp is listed at the bottom of the workspace.";
+  }
+  if (q.includes("income") && q.includes("tax")) {
+    return "For Self Assessment: report the gross £1,340 as income and the £493 platform fees as deductible expenses. Your net £847 is the cash you received, not your reportable income.";
+  }
+  if (q.includes("vat")) {
+    const v = await fetchVatCheck();
+    if (!v) return "Couldn't reach the VAT check endpoint. Ask your accountant to confirm treatment.";
+    const rates = v.org_rates.map((r) => r.name).join(", ");
+    return `Rates on file: ${rates}. This payout posted VAT-free — ${v.consistent ? "consistent" : "inconsistent"}. Ask your accountant to confirm treatment.`;
+  }
+  return "I'm a scripted demo assistant. Try one of the suggested prompts above.";
+}
 
 export function Chatbot({ fullPage = false }: { fullPage?: boolean }) {
   const [open, setOpen] = useState(fullPage);
@@ -16,21 +44,25 @@ export function Chatbot({ fullPage = false }: { fullPage?: boolean }) {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { user } = useDemoAuth();
+  const prompts = PERSONA_PROMPTS[user?.persona ?? "owner"] ?? PERSONA_PROMPTS.owner;
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
 
+  const submitText = async (text: string) => {
+    setMessages((m) => [...m, { role: "user", text }]);
+    setInput("");
+    const reply = await scriptedReply(text);
+    setMessages((m) => [...m, { role: "bot", text: reply }]);
+  };
+
   const send = (e: React.FormEvent) => {
     e.preventDefault();
     const text = input.trim();
     if (!text) return;
-    setMessages((m) => [
-      ...m,
-      { role: "user", text },
-      { role: "bot", text: "Thanks — this is a demo assistant. Real answers coming soon." },
-    ]);
-    setInput("");
+    void submitText(text);
   };
 
   const body = (
@@ -51,6 +83,18 @@ export function Chatbot({ fullPage = false }: { fullPage?: boolean }) {
               {m.text}
             </div>
           </div>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-1.5 border-t px-3 pt-2">
+        {prompts.map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => void submitText(p)}
+            className="rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            {p}
+          </button>
         ))}
       </div>
       <form onSubmit={send} className="flex gap-2 border-t p-3">

@@ -2,22 +2,27 @@ import { useCallback, useState } from "react";
 import type {
   ApprovalResponse,
   AuditEntry,
+  DashboardResponse,
   Phase,
   PnLResponse,
   ProposalResponse,
   StatusResponse,
   StepResult,
+  VatCheckResponse,
 } from "./payout-types";
 import {
   isMockEnabled,
   mockApprove,
+  mockDashboard,
+  mockHealth,
   mockPnl,
   mockPropose,
   mockStatus,
+  mockVatCheck,
   resetMockState,
 } from "./payout-mock";
 
-const API_BASE =
+export const API_BASE =
   (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
 
 // Minimum on-screen time per step during /approve, so the pitch audience can
@@ -107,7 +112,7 @@ export function usePayoutBridge(): PayoutBridgeApi {
         return;
       }
       const res = await fetch(
-        `${API_BASE}/status?file_hash=${encodeURIComponent(proposal.file_hash)}`,
+        `${API_BASE}/status/${encodeURIComponent(proposal.file_hash)}`,
       );
       if (!res.ok) return;
       const data = (await res.json()) as StatusResponse;
@@ -195,4 +200,43 @@ export function usePayoutBridge(): PayoutBridgeApi {
     fetchStatus,
     reset,
   };
+}
+
+export async function fetchDashboard(): Promise<DashboardResponse | null> {
+  try {
+    if (isMockEnabled()) return await mockDashboard();
+    const res = await fetch(`${API_BASE}/dashboard`);
+    if (!res.ok) return null;
+    return (await res.json()) as DashboardResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchVatCheck(): Promise<VatCheckResponse | null> {
+  try {
+    if (isMockEnabled()) return await mockVatCheck();
+    const res = await fetch(`${API_BASE}/vat-check`);
+    if (!res.ok) return null;
+    return (await res.json()) as VatCheckResponse;
+  } catch {
+    return null;
+  }
+}
+
+export interface HealthResponse {
+  status: string;
+  xero_connected: boolean;
+  organisation: string;
+}
+
+export async function fetchHealth(): Promise<HealthResponse | null> {
+  try {
+    if (isMockEnabled()) return await mockHealth();
+    const res = await fetch(`${API_BASE}/health`);
+    if (!res.ok) return null;
+    return (await res.json()) as HealthResponse;
+  } catch {
+    return null;
+  }
 }

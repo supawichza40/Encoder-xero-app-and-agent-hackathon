@@ -5,9 +5,11 @@
 import type {
   ApprovalResponse,
   AuditEntry,
+  DashboardResponse,
   PnLResponse,
   ProposalResponse,
   StatusResponse,
+  VatCheckResponse,
 } from "./payout-types";
 
 
@@ -79,6 +81,45 @@ const DEMO_PAYOUT = {
   ],
 };
 
+const REFUND_PAYOUT = {
+  payout_ref: "MC-PAYOUT-2107",
+  period: "16-21 Jul 2026",
+  gross: "1180.00",
+  commission: "383.50",
+  fees: "41.50",
+  refunds: "60.00",
+  net: "695.00",
+  bookings: [
+    {
+      date: "2026-07-16",
+      client: "Nadia Klein",
+      client_type: "New" as const,
+      service: "Consultation",
+      gross_amount: "220.00",
+      commission_rate: "35%",
+      commission: "77.00",
+    },
+    {
+      date: "2026-07-18",
+      client: "Tom Reyes",
+      client_type: "Repeat" as const,
+      service: "Follow-up",
+      gross_amount: "60.00",
+      commission_rate: "15%",
+      commission: "9.00",
+    },
+    {
+      date: "2026-07-19",
+      client: "Amara Diallo",
+      client_type: "New" as const,
+      service: "Full session",
+      gross_amount: "900.00",
+      commission_rate: "33%",
+      commission: "297.50",
+    },
+  ],
+};
+
 // In-memory idempotency store — persists across renders in a single tab.
 const posted = new Set<string>();
 
@@ -96,36 +137,44 @@ function delay<T>(value: T, ms = 400): Promise<T> {
 
 export async function mockPropose(file: File): Promise<ProposalResponse> {
   const file_hash = hashFile(file);
+  const isRefund = file.name.toLowerCase().includes("2107");
+  const payout = isRefund ? REFUND_PAYOUT : DEMO_PAYOUT;
   if (posted.has(file_hash)) {
     return delay({
       status: "already-posted",
       file_hash,
-      payout: DEMO_PAYOUT,
+      payout,
       plan: null,
       existing_ids: {
         invoice_id: "INV-0042",
         bank_txn_id: "BT-0117",
         payment_id: "PMT-0089",
-        completed_steps: ["create-invoice", "create-bank-transaction", "create-payment"],
+        completed_steps: isRefund
+          ? ["create-invoice", "create-credit-note", "create-bank-transaction", "create-payment"]
+          : ["create-invoice", "create-bank-transaction", "create-payment"],
       },
     });
   }
-  return delay({
-    status: "new",
-    file_hash,
-    payout: DEMO_PAYOUT,
-    plan: {
-      invariant_check: true,
-      steps: [
+  const steps = isRefund
+    ? [
+        { kind: "create-invoice" as const, amount: payout.gross, account: "Platform Clearing", lines: null, clears: null },
+        { kind: "create-credit-note" as const, amount: payout.refunds, account: "Platform Clearing", lines: null, clears: null },
         {
-          kind: "create-invoice",
-          amount: "1340.00",
+          kind: "create-bank-transaction" as const,
+          amount: (Number(payout.commission) + Number(payout.fees)).toFixed(2),
           account: "Platform Clearing",
-          lines: null,
+          lines: [
+            { description: "New-client commission", amount: payout.commission },
+            { description: "Prepayment fees", amount: payout.fees },
+          ],
           clears: null,
         },
+        { kind: "create-payment" as const, amount: payout.net, account: null, lines: null, clears: payout.payout_ref },
+      ]
+    : [
+        { kind: "create-invoice" as const, amount: "1340.00", account: "Platform Clearing", lines: null, clears: null },
         {
-          kind: "create-bank-transaction",
+          kind: "create-bank-transaction" as const,
           amount: "493.00",
           account: "Platform Clearing",
           lines: [
@@ -134,15 +183,13 @@ export async function mockPropose(file: File): Promise<ProposalResponse> {
           ],
           clears: null,
         },
-        {
-          kind: "create-payment",
-          amount: "847.00",
-          account: null,
-          lines: null,
-          clears: "MC-PAYOUT-0407",
-        },
-      ],
-    },
+        { kind: "create-payment" as const, amount: "847.00", account: null, lines: null, clears: "MC-PAYOUT-0407" },
+      ];
+  return delay({
+    status: "new",
+    file_hash,
+    payout,
+    plan: { invariant_check: true, steps },
     existing_ids: null,
   });
 }
@@ -159,6 +206,7 @@ export async function mockApprove(file_hash: string): Promise<ApprovalResponse> 
         { step: 2, kind: "create-bank-transaction", xero_id: "BT-0117", status: "success" },
         { step: 3, kind: "create-payment", xero_id: "PMT-0089", status: "success" },
       ],
+      attachment: { invoice_id: "INV-0042", filename: "settlement.csv", status: "success" },
     },
     200,
   );
@@ -209,6 +257,22 @@ export async function mockStatus(file_hash: string): Promise<StatusResponse> {
       xero_id: "PMT-0089",
       status: "success",
     },
+    {
+      timestamp: t(3),
+      file_hash,
+      action: "attach-source",
+      request: { filename: "settlement.csv", invoice_id: "INV-0042" },
+      xero_id: "INV-0042",
+      status: "success",
+    },
+    {
+      timestamp: t(4),
+      file_hash,
+      action: "history-note",
+      request: { note: "Verified zero-balance clearing" },
+      xero_id: null,
+      status: "info",
+    },
   ];
   return delay({
     file_hash,
@@ -219,6 +283,36 @@ export async function mockStatus(file_hash: string): Promise<StatusResponse> {
     clearing_balance: "0.00",
     audit_entries: entries,
   });
+}
+
+export async function mockDashboard(): Promise<DashboardResponse> {
+  return delay({
+    trial_balance: { clearing: "0.00", fees_expense: "5048.00", revenue: "18930.00" },
+    aged_receivables: [],
+    balance_sheet: { assets: "24800.00", liabilities: "6210.00", equity: "18590.00" },
+    recent_payouts: [
+      { date: "2026-07-02", source: "MarketplaceCo", gross: "1340.00", net: "847.00", status: "verified" },
+      { date: "2026-06-28", source: "MarketplaceCo", gross: "980.00", net: "642.00", status: "verified" },
+      { date: "2026-06-24", source: "MarketplaceCo", gross: "0.00", net: "0.00", status: "idempotent" },
+      { date: "2026-06-20", source: "MarketplaceCo", gross: "2110.00", net: "1368.00", status: "verified" },
+    ],
+    fetched_at: new Date().toISOString(),
+  });
+}
+
+export async function mockVatCheck(): Promise<VatCheckResponse> {
+  return delay({
+    org_rates: [
+      { name: "20% (VAT on Income)", rate: "20" },
+      { name: "No VAT", rate: "0" },
+    ],
+    golden_path_tax_type: "NONE",
+    consistent: true,
+  });
+}
+
+export async function mockHealth(): Promise<{ status: string; xero_connected: boolean; organisation: string }> {
+  return delay({ status: "ok", xero_connected: true, organisation: "Demo Company (UK)" });
 }
 
 export function resetMockState() {

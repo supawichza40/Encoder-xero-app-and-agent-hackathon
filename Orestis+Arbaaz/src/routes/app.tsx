@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 
 import { usePayoutBridge } from "@/lib/usePayoutBridge";
+import { useDemoAuth } from "@/lib/useDemoAuth";
 import { FileUpload } from "@/components/FileUpload";
 import { ApprovalDrawer } from "@/components/ApprovalDrawer";
 import { IdempotencyBanner } from "@/components/IdempotencyBanner";
@@ -41,6 +42,8 @@ export const Route = createFileRoute("/app")({
 
 function Index() {
   const bridge = usePayoutBridge();
+  const { user } = useDemoAuth();
+  const persona = user?.persona ?? "owner";
   const clearingRef = useRef<HTMLDivElement>(null);
   const [lastFileName, setLastFileName] = useState<string | null>(null);
   const [selected, setSelected] = useState<HistoryEntry | null>(null);
@@ -85,6 +88,13 @@ function Index() {
     ? (Number(bridge.proposal.payout.commission) + Number(bridge.proposal.payout.fees)).toFixed(2)
     : "0.00";
 
+  const approvalHeading =
+    persona === "bookkeeper"
+      ? "Writes with Xero IDs"
+      : persona === "freelancer"
+        ? "What we'll record"
+        : "What Xero will do";
+
   return (
     <>
       <Navbar />
@@ -118,6 +128,7 @@ function Index() {
               uploadedAt={selected.uploadedAt}
               proposal={selected.proposal}
               onClose={() => setSelected(null)}
+              attachment={bridge.approval?.attachment ?? null}
             />
           ) : (
             <>
@@ -149,6 +160,7 @@ function Index() {
                   disabled={bridge.phase !== "proposed"}
                   loading={bridge.phase === "approving"}
                   approved={bridge.phase === "verified"}
+                  headingLabel={approvalHeading}
                 />
               ) : null}
 
@@ -156,7 +168,10 @@ function Index() {
                 bridge.phase === "verified" ||
                 bridge.phase === "partial_error") &&
               bridge.approval ? (
-                <StepProgress results={bridge.approval.results} totalSteps={3} />
+                <StepProgress
+                  results={bridge.approval.results}
+                  steps={bridge.proposal?.plan?.steps}
+                />
               ) : null}
 
               {bridge.phase === "partial_error" && bridge.error ? (
@@ -180,7 +195,12 @@ function Index() {
                     />
                   </div>
                   <PnLComparison before={bridge.pnl?.before ?? null} after={bridge.pnl?.after ?? null} />
-                  <AuditTrail entries={bridge.audit} />
+                  <AuditTrail entries={bridge.audit} defaultOpen={persona === "bookkeeper"} />
+                  {bridge.approval.attachment && bridge.approval.attachment.status === "success" ? (
+                    <p className="inline-flex items-center gap-1.5 self-start rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-500">
+                      📎 Source CSV attached to invoice {bridge.approval.attachment.invoice_id}
+                    </p>
+                  ) : null}
                 </>
               ) : null}
             </>

@@ -37,7 +37,11 @@ export interface FeeLineItem {
 }
 
 export interface PlanStep {
-  kind: "create-invoice" | "create-bank-transaction" | "create-payment";
+  kind:
+    | "create-invoice"
+    | "create-credit-note"
+    | "create-bank-transaction"
+    | "create-payment";
   amount: string;
   account: string | null;
   lines: FeeLineItem[] | null;
@@ -77,6 +81,35 @@ export interface ApprovalResponse {
   results: StepResult[];
   clearing_balance: string;
   verified: boolean;
+  attachment?: AttachmentResult | null;
+}
+
+export interface AttachmentResult {
+  invoice_id: string;
+  filename: string;
+  status: "success" | "error";
+}
+
+export interface DashboardPayout {
+  date: string;
+  source: string;
+  gross: string;
+  net: string;
+  status: "verified" | "idempotent";
+}
+
+export interface DashboardResponse {
+  trial_balance: { clearing: string; fees_expense: string; revenue: string };
+  aged_receivables: { name: string; amount: string; days: number }[];
+  balance_sheet: { assets: string; liabilities: string; equity: string };
+  recent_payouts: DashboardPayout[];
+  fetched_at: string;
+}
+
+export interface VatCheckResponse {
+  org_rates: { name: string; rate: string }[];
+  golden_path_tax_type: string;
+  consistent: boolean;
 }
 
 export interface PnLSnapshot {

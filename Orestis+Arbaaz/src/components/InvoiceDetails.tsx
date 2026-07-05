@@ -1,14 +1,15 @@
-import { FileText, Calendar, Hash, X } from "lucide-react";
-import type { ProposalResponse } from "@/lib/payout-types";
+import { FileText, Calendar, Hash, Paperclip, X } from "lucide-react";
+import type { AttachmentResult, ProposalResponse } from "@/lib/payout-types";
 
 interface Props {
   fileName: string;
   uploadedAt: string;
   proposal: ProposalResponse;
   onClose: () => void;
+  attachment?: AttachmentResult | null;
 }
 
-export function InvoiceDetails({ fileName, uploadedAt, proposal, onClose }: Props) {
+export function InvoiceDetails({ fileName, uploadedAt, proposal, onClose, attachment }: Props) {
   const { payout } = proposal;
   const feesTotal = (Number(payout.commission) + Number(payout.fees)).toFixed(2);
 
@@ -64,9 +65,16 @@ export function InvoiceDetails({ fileName, uploadedAt, proposal, onClose }: Prop
         <Metric label="Net" value={payout.net} tone="text-emerald-500" />
       </div>
 
-      <div className="mt-4 flex items-center gap-1 text-[10px] text-muted-foreground">
-        <Hash className="h-3 w-3" />
-        <span className="truncate font-mono">{proposal.file_hash}</span>
+      <div className="mt-4 flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1">
+          <Hash className="h-3 w-3" />
+          <span className="truncate font-mono">{proposal.file_hash}</span>
+        </span>
+        {attachment && attachment.status === "success" ? (
+          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-500">
+            <Paperclip className="h-3 w-3" /> Source CSV attached to invoice
+          </span>
+        ) : null}
       </div>
 
       {payout.bookings.length > 0 ? (

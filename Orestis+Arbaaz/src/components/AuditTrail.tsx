@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Check, X } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronRight, Check, Info, Paperclip, X } from "lucide-react";
 import type { AuditEntry } from "@/lib/payout-types";
 import { cn } from "@/lib/utils";
 
@@ -69,13 +69,19 @@ export function AuditTrail({ entries, defaultOpen = false }: AuditTrailProps) {
                 <tbody>
                   {entries.map((e, i) => {
                     const ok = e.status === "success" || e.status === "ok";
+                    const info = e.status === "info";
+                    const isAttach = e.action === "attach-source";
+                    const attachFailed = isAttach && !ok && !info;
                     return (
                       <tr key={i} className="border-t border-border/60">
                         <td className="px-2 py-2 font-mono text-xs text-muted-foreground">
                           {formatTime(e.timestamp)}
                         </td>
                         <td className="px-2 py-2">
-                          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{e.action}</code>
+                          <code className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs">
+                            {isAttach ? <Paperclip className="size-3" /> : null}
+                            {e.action}
+                          </code>
                         </td>
                         <td className="px-2 py-2 text-muted-foreground">{summarise(e.request)}</td>
                         <td className="px-2 py-2 font-mono text-xs">{e.xero_id ?? "—"}</td>
@@ -83,10 +89,24 @@ export function AuditTrail({ entries, defaultOpen = false }: AuditTrailProps) {
                           <span
                             className={cn(
                               "inline-flex items-center gap-1 text-xs font-medium",
-                              ok ? "text-success" : "text-destructive",
+                              ok
+                                ? "text-success"
+                                : info
+                                  ? "text-muted-foreground"
+                                  : attachFailed
+                                    ? "text-amber-500"
+                                    : "text-destructive",
                             )}
                           >
-                            {ok ? <Check className="size-3.5" /> : <X className="size-3.5" />}
+                            {ok ? (
+                              <Check className="size-3.5" />
+                            ) : info ? (
+                              <Info className="size-3.5" />
+                            ) : attachFailed ? (
+                              <AlertTriangle className="size-3.5" />
+                            ) : (
+                              <X className="size-3.5" />
+                            )}
                             {e.status}
                           </span>
                         </td>

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Loader2, CheckCircle2, FileText, Receipt, Landmark, XCircle } from "lucide-react";
-import type { CanonicalPayout, JournalPlan } from "@/lib/payout-types";
+import { ChevronDown, ChevronRight, Loader2, CheckCircle2, FileText, Receipt, Landmark, RotateCcw, XCircle } from "lucide-react";
+import type { CanonicalPayout, JournalPlan, PlanStep } from "@/lib/payout-types";
 import { cn } from "@/lib/utils";
 
 interface ApprovalDrawerProps {
@@ -11,6 +11,7 @@ interface ApprovalDrawerProps {
   disabled?: boolean;
   loading?: boolean;
   approved?: boolean;
+  headingLabel?: string;
 }
 
 function money(v: string) {
@@ -25,11 +26,10 @@ export function ApprovalDrawer({
   disabled,
   loading,
   approved,
+  headingLabel,
 }: ApprovalDrawerProps) {
   const [openDetail, setOpenDetail] = useState(false);
-
-  const [invoiceStep, feesStep, paymentStep] = plan.steps;
-  const feesAmount = feesStep?.amount ?? "0.00";
+  const hasRefunds = payout.refunds && Number(payout.refunds) > 0;
 
   return (
     <section
@@ -48,16 +48,23 @@ export function ApprovalDrawer({
       </header>
 
       {/* Summary */}
-      <dl className="tabular grid grid-cols-2 gap-x-6 gap-y-4 rounded-lg bg-background/50 p-4 sm:grid-cols-4">
+      <dl className={cn(
+        "tabular grid gap-x-6 gap-y-4 rounded-lg bg-background/50 p-4",
+        hasRefunds ? "grid-cols-2 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4",
+      )}>
         <SummaryCell label="Gross" value={money(payout.gross)} icon={<FileText className="size-3.5" />} tone="blue" />
         <SummaryCell label="Commission" value={money(payout.commission)} icon={<Receipt className="size-3.5" />} tone="amber" />
         <SummaryCell label="Fees" value={money(payout.fees)} icon={<Receipt className="size-3.5" />} tone="rose" />
+        {hasRefunds ? (
+          <SummaryCell label="Refunds" value={money(payout.refunds)} icon={<RotateCcw className="size-3.5" />} tone="rose" />
+        ) : null}
         <SummaryCell label="Net payout" value={money(payout.net)} icon={<Landmark className="size-3.5" />} tone="emerald" />
       </dl>
 
       {/* Equation */}
       <p className="tabular mt-4 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground">
-        {money(payout.gross)} − {money(payout.commission)} − {money(payout.fees)} ={" "}
+        {money(payout.gross)} − {money(payout.commission)} − {money(payout.fees)}
+        {hasRefunds ? <> − {money(payout.refunds)}</> : null} ={" "}
         <span className="font-semibold text-emerald-500">{money(payout.net)}</span>
         {plan.invariant_check ? (
           <span className="inline-flex items-center gap-1 text-emerald-500">
@@ -117,33 +124,17 @@ export function ApprovalDrawer({
         ) : null}
       </div>
 
-      {/* What Xero will do */}
+      {/* Xero writes */}
       <div className="mt-6">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          What Xero will do
+          {headingLabel ?? "What Xero will do"}
         </h3>
         <ul className="mt-3 space-y-2">
-          <ChecklistItem approved={approved} icon={<FileText className="size-4 text-blue-500" />} tone="blue">
-            Create a gross revenue invoice for{" "}
-            <span className="font-semibold text-blue-500">
-              {money(invoiceStep?.amount ?? payout.gross)}
-            </span>{" "}
-            into Platform Clearing
-          </ChecklistItem>
-          <ChecklistItem approved={approved} icon={<Receipt className="size-4 text-amber-500" />} tone="amber">
-            Book commission ({" "}
-            <span className="font-semibold text-amber-500">{money(payout.commission)}</span>) and fees ({" "}
-            <span className="font-semibold text-rose-500">{money(payout.fees)}</span>) as expenses
-            from Platform Clearing ({" "}
-            <span className="font-semibold text-amber-500">{money(feesAmount)}</span>)
-          </ChecklistItem>
-          <ChecklistItem approved={approved} icon={<Landmark className="size-4 text-emerald-500" />} tone="emerald">
-            Clear{" "}
-            <span className="font-semibold text-emerald-500">
-              {money(paymentStep?.amount ?? payout.net)}
-            </span>{" "}
-            against your bank deposit
-          </ChecklistItem>
+          {plan.steps.map((s, i) => (
+            <ChecklistItem key={i} approved={approved} icon={stepIcon(s)} tone={stepTone(s)}>
+              {stepDescription(s)}
+            </ChecklistItem>
+          ))}
         </ul>
       </div>
 
@@ -177,6 +168,31 @@ export function ApprovalDrawer({
       </div>
     </section>
   );
+}
+
+function stepIcon(s: PlanStep) {
+  if (s.kind === "create-invoice") return <FileText className="size-4 text-blue-500" />;
+  if (s.kind === "create-credit-note") return <RotateCcw className="size-4 text-rose-500" />;
+  if (s.kind === "create-bank-transaction") return <Receipt className="size-4 text-amber-500" />;
+  return <Landmark className="size-4 text-emerald-500" />;
+}
+function stepTone(s: PlanStep): "blue" | "amber" | "emerald" {
+  if (s.kind === "create-invoice") return "blue";
+  if (s.kind === "create-payment") return "emerald";
+  return "amber";
+}
+function stepDescription(s: PlanStep): React.ReactNode {
+  const amt = <span className="font-semibold">{money(s.amount)}</span>;
+  switch (s.kind) {
+    case "create-invoice":
+      return <>Create a gross revenue invoice for {amt} into {s.account ?? "Platform Clearing"}</>;
+    case "create-credit-note":
+      return <>Issue a credit note for {amt} to reflect refunds</>;
+    case "create-bank-transaction":
+      return <>Book commission &amp; fees ({amt}) as expenses from {s.account ?? "Platform Clearing"}</>;
+    case "create-payment":
+      return <>Clear {amt} against your bank deposit{s.clears ? ` (${s.clears})` : ""}</>;
+  }
 }
 
 function SummaryCell({

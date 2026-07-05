@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
+  Briefcase,
+  Calculator,
   CheckCircle2,
   FileText,
   PoundSterling,
@@ -10,8 +13,7 @@ import {
   Sparkles,
   TrendingUp,
   Upload,
-  UserPlus,
-  Zap,
+  User,
 } from "lucide-react";
 import {
   Area,
@@ -30,7 +32,9 @@ import {
 import { Chatbot } from "@/components/Chatbot";
 import { HeroReceipt } from "@/components/HeroReceipt";
 import { Navbar } from "@/components/Navbar";
-import { openAuthDialog, useDemoAuth } from "@/lib/useDemoAuth";
+import { openAuthDialog, useDemoAuth, type DemoUser, type Persona } from "@/lib/useDemoAuth";
+import { fetchDashboard } from "@/lib/usePayoutBridge";
+import type { DashboardResponse } from "@/lib/payout-types";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -80,7 +84,6 @@ const revenueSeries = [
 const feeBreakdown = [
   { name: "Commission", value: 4459 },
   { name: "Prepayment fees", value: 471 },
-  { name: "Refund fees", value: 118 },
 ];
 
 const payoutsPerWeek = [
@@ -92,19 +95,82 @@ const payoutsPerWeek = [
   { week: "W27", payouts: 5 },
 ];
 
-const PIE_COLORS = ["#3b82f6", "#f59e0b", "#ec4899"];
+const PIE_COLORS = ["#3b82f6", "#f59e0b"];
 const AREA_REAL = "#3b82f6";
 const AREA_REPORTED = "#94a3b8";
 
-function Dashboard({ user }: { user: string }) {
+function Dashboard({ user }: { user: DemoUser }) {
+  const [dash, setDash] = useState<DashboardResponse | null>(null);
+  const [live, setLive] = useState(false);
+  useEffect(() => {
+    void fetchDashboard().then((d) => {
+      if (d) {
+        setDash(d);
+        setLive(true);
+      }
+    });
+  }, []);
+  const subtitle =
+    user.persona === "bookkeeper"
+      ? "Client books status"
+      : user.persona === "freelancer"
+        ? "Your income, correctly"
+        : "Your real turnover";
+
+  const kpiCards = [
+    <KpiCard
+      key="turnover"
+      label={user.persona === "freelancer" ? "Income (Self Assessment)" : "Real turnover (MTD)"}
+      value={dash ? `£${Number(dash.trial_balance.revenue).toLocaleString("en-GB", { maximumFractionDigits: 0 })}` : "£18,930"}
+      delta="+54.9% vs reported"
+      tone="primary"
+      icon={<PoundSterling className="size-5" />}
+    />,
+    <KpiCard
+      key="fees"
+      label="Fees recovered"
+      value={dash ? `£${Number(dash.trial_balance.fees_expense).toLocaleString("en-GB", { maximumFractionDigits: 0 })}` : "£5,048"}
+      delta="+£812 vs last month"
+      tone="foreground"
+      icon={<TrendingUp className="size-5" />}
+    />,
+    <KpiCard
+      key="reconciled"
+      label="Payouts reconciled"
+      value={dash ? String(dash.recent_payouts.length * 5) : "30"}
+      delta="6 this week"
+      tone="foreground"
+      icon={<CheckCircle2 className="size-5" />}
+    />,
+    <KpiCard
+      key="clearing"
+      label="Clearing balance"
+      value={dash ? `£${Number(dash.trial_balance.clearing).toFixed(2)}` : "£0.00"}
+      delta="Verified · zero-balance"
+      tone="success"
+      icon={<ShieldCheck className="size-5" />}
+    />,
+  ];
+  const kpiOrder =
+    user.persona === "bookkeeper"
+      ? [3, 2, 0, 1]
+      : user.persona === "freelancer"
+        ? [0, 1, 2, 3]
+        : [0, 1, 2, 3];
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10">
       {/* Header */}
       <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
-            Welcome back, <span className="text-primary/80">{user}</span>
+            Welcome back, <span className="text-primary/80">{user.name}</span>
           </h1>
+          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+          {live && dash ? (
+            <p className="mt-1 text-[11px] text-emerald-500">
+              Live from Xero · fetched {new Date(dash.fetched_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+            </p>
+          ) : null}
         </div>
         <Link
           to="/app"
@@ -117,34 +183,7 @@ function Dashboard({ user }: { user: string }) {
 
       {/* KPI cards */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          label="Real turnover (MTD)"
-          value="£18,930"
-          delta="+54.9% vs reported"
-          tone="primary"
-          icon={<PoundSterling className="size-5" />}
-        />
-        <KpiCard
-          label="Fees recovered"
-          value="£5,048"
-          delta="+£812 vs last month"
-          tone="foreground"
-          icon={<TrendingUp className="size-5" />}
-        />
-        <KpiCard
-          label="Payouts reconciled"
-          value="30"
-          delta="6 this week"
-          tone="foreground"
-          icon={<CheckCircle2 className="size-5" />}
-        />
-        <KpiCard
-          label="Clearing balance"
-          value="£0.00"
-          delta="Verified · zero-balance"
-          tone="success"
-          icon={<ShieldCheck className="size-5" />}
-        />
+        {kpiOrder.map((i) => kpiCards[i])}
       </section>
 
       {/* Charts row */}
@@ -277,37 +316,40 @@ function Dashboard({ user }: { user: string }) {
             </Link>
           </div>
           <ul className="mt-4 divide-y divide-border">
-            <ActivityRow
-              status="verified"
-              title="Payout 2026-07-02"
-              detail="Amazon UK · £1,340 gross · £847 net"
-              time="2h ago"
-            />
-            <ActivityRow
-              status="verified"
-              title="Payout 2026-06-28"
-              detail="Etsy · £980 gross · £642 net"
-              time="Yesterday"
-            />
-            <ActivityRow
-              status="idempotent"
-              title="Duplicate blocked"
-              detail="settlement-jun-24.csv already posted"
-              time="Jun 24"
-            />
-            <ActivityRow
-              status="verified"
-              title="Payout 2026-06-20"
-              detail="Amazon UK · £2,110 gross · £1,368 net"
-              time="Jun 20"
-            />
+            {(dash?.recent_payouts.length ? dash.recent_payouts : [
+              { date: "2026-07-02", source: "MarketplaceCo", gross: "1340.00", net: "847.00", status: "verified" as const },
+              { date: "2026-06-28", source: "MarketplaceCo", gross: "980.00", net: "642.00", status: "verified" as const },
+              { date: "2026-06-24", source: "MarketplaceCo", gross: "0.00", net: "0.00", status: "idempotent" as const },
+              { date: "2026-06-20", source: "MarketplaceCo", gross: "2110.00", net: "1368.00", status: "verified" as const },
+            ]).map((p) => (
+              <ActivityRow
+                key={p.date}
+                status={p.status}
+                title={p.status === "idempotent" ? "Duplicate blocked" : `Payout ${p.date}`}
+                detail={
+                  p.status === "idempotent"
+                    ? `settlement-${p.date}.csv already posted`
+                    : `${p.source} · £${p.gross} gross · £${p.net} net`
+                }
+                time={p.date}
+              />
+            ))}
+            {dash && dash.recent_payouts.length === 0 ? (
+              <li className="py-6 text-center text-sm text-muted-foreground">
+                <p>No payouts yet.</p>
+                <Link to="/app" className="mt-2 inline-block text-primary hover:underline">
+                  Upload your first payout statement →
+                </Link>
+              </li>
+            ) : null}
           </ul>
         </div>
       </section>
 
 
       <footer className="pt-2 text-center text-xs text-muted-foreground">
-        Signed in as {user} · demo session · figures are illustrative
+        Signed in as {user.name} · demo session
+        {live ? "" : " · figures are illustrative"}
       </footer>
       <Chatbot />
     </main>
@@ -419,7 +461,7 @@ function SignedOutHome() {
         style={{ backgroundSize: "200% 200%" }}
       >
         <div
-          className="absolute -inset-[100%] animate-gradient-shift bg-gradient-to-br from-red-600 from-40% to-blue-600 to-60%"
+          className="absolute -inset-[100%] animate-gradient-shift bg-gradient-to-br from-blue-900 from-40% to-emerald-600 to-60%"
           style={{ backgroundSize: "200% 200%" }}
           aria-hidden="true"
         />
@@ -532,6 +574,43 @@ function SignedOutHome() {
       />
 
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-24 px-4 pb-20 sm:px-6">
+        {/* Who it's for — 3 personas */}
+        <section aria-labelledby="personas-heading" className="flex flex-col gap-8">
+          <div className="max-w-2xl">
+            <Eyebrow>Who it's for</Eyebrow>
+            <h2 id="personas-heading" className="mt-4 text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">
+              Three doors,{" "}
+              <span className="font-display italic text-emerald-400">one room.</span>
+            </h2>
+            <p className="mt-4 text-pretty text-base text-muted-foreground sm:text-lg">
+              Same deterministic engine, tuned to how you think about your books.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <PersonaCard
+              persona="owner"
+              title="I run the business"
+              pain="Your bank feed shows £847 and calls it revenue — real turnover was £1,340."
+              value="True turnover, fees booked, £0.00 proof — no accounting degree."
+              icon={<Briefcase className="size-5 text-primary" strokeWidth={1.75} />}
+            />
+            <PersonaCard
+              persona="bookkeeper"
+              title="I keep the books"
+              pain="Grossing up settlement statements by hand for every client."
+              value="Deterministic 3-write plan, every figure traceable to a Xero ID."
+              icon={<Calculator className="size-5 text-emerald-400" strokeWidth={1.75} />}
+            />
+            <PersonaCard
+              persona="freelancer"
+              title="I work for myself"
+              pain="Reported income understated by withheld fees — wrong tax filing."
+              value="Correct income and deductible fees for Self Assessment."
+              icon={<User className="size-5 text-amber-400" strokeWidth={1.75} />}
+            />
+          </div>
+        </section>
+
         {/* Why sign up — asymmetric bento */}
         <section aria-labelledby="why-heading" className="flex flex-col gap-8">
           <div className="max-w-2xl">
@@ -948,4 +1027,35 @@ function Eyebrow({
   );
 }
 
+function PersonaCard({
+  persona,
+  title,
+  pain,
+  value,
+  icon,
+}: {
+  persona: Persona;
+  title: string;
+  pain: string;
+  value: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => openAuthDialog("signup", persona)}
+      className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-6 text-left transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <span className="grid size-10 place-items-center rounded-xl bg-muted ring-1 ring-border">
+        {icon}
+      </span>
+      <h3 className="text-base font-semibold">{title}</h3>
+      <p className="text-sm text-rose-400/90">{pain}</p>
+      <p className="text-sm text-foreground/80">{value}</p>
+      <span className="mt-auto inline-flex items-center gap-1 pt-2 text-xs font-semibold text-primary group-hover:underline">
+        Start as {title.toLowerCase().replace(/^i /, "")} <ArrowRight className="size-3.5" />
+      </span>
+    </button>
+  );
+}
 

@@ -1,39 +1,90 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { HelpCircle, Home, LogIn, LogOut, Moon, Sun, UserPlus, X } from "lucide-react";
 import {
+  Briefcase,
+  Calculator,
+  ChevronDown,
+  HelpCircle,
+  Home,
+  LayoutGrid,
+  LogIn,
+  LogOut,
+  MessageCircle,
+  Moon,
+  Sun,
+  User,
+  UserPlus,
+  X,
+} from "lucide-react";
+import {
+  PERSONA_LABEL,
   useAuthDialogRequests,
   useDemoAuth,
   type AuthDialog,
+  type AuthOpenDetail,
+  type Persona,
 } from "@/lib/useDemoAuth";
 import { useTheme } from "@/lib/useTheme";
+import { fetchHealth, type HealthResponse } from "@/lib/usePayoutBridge";
+import { isMockEnabled } from "@/lib/payout-mock";
 
 export function Navbar() {
-  const { user, login, logout } = useDemoAuth();
+  const { user, login, logout, setPersona } = useDemoAuth();
   const { mode, toggle } = useTheme();
 
   const [helpOpen, setHelpOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthDialog | null>(null);
   const [nameInput, setNameInput] = useState("");
+  const [signupPersona, setSignupPersona] = useState<Persona>("owner");
+  const [health, setHealth] = useState<HealthResponse | null>(null);
+  const [personaOpen, setPersonaOpen] = useState(false);
+  const mock = isMockEnabled();
 
-  const openAuth = useCallback((kind: AuthDialog) => {
-    setAuthMode(kind);
+  const openAuth = useCallback((detail: AuthOpenDetail) => {
+    setAuthMode(detail.kind);
+    if (detail.persona) setSignupPersona(detail.persona);
   }, []);
   useAuthDialogRequests(openAuth);
+
+  useEffect(() => {
+    void fetchHealth().then(setHealth);
+  }, []);
 
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur">
         <nav
           aria-label="Primary"
-          className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4 sm:px-6"
+          className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6"
         >
           <Link
             to="/"
             className="text-xl font-black tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
           >
-            Payout<span className="bg-gradient-to-r from-red-500 to-blue-500 bg-clip-text text-transparent">Bridge</span>
+            Payout<span className="bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">Bridge</span>
           </Link>
+
+          {/* Status badges */}
+          <div className="hidden items-center gap-2 md:flex">
+            {health?.xero_connected ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-500">
+                <span className="size-1.5 rounded-full bg-emerald-500" /> Xero · {health.organisation} ✓
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-500">
+                <span className="size-1.5 rounded-full bg-amber-500" /> Xero offline
+              </span>
+            )}
+            <span
+              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+                mock
+                  ? "border-blue-500/30 bg-blue-500/10 text-blue-500"
+                  : "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+              }`}
+            >
+              {mock ? "Demo data" : "Live"}
+            </span>
+          </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
             <Link
@@ -45,6 +96,24 @@ export function Navbar() {
             >
               <Home className="size-4" aria-hidden />
               <span className="hidden sm:inline">Home</span>
+            </Link>
+            <Link
+              to="/app"
+              activeProps={{ className: "text-foreground bg-card" }}
+              inactiveProps={{ className: "text-muted-foreground" }}
+              className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <LayoutGrid className="size-4" aria-hidden />
+              <span className="hidden sm:inline">Workspace</span>
+            </Link>
+            <Link
+              to="/chat"
+              activeProps={{ className: "text-foreground bg-card" }}
+              inactiveProps={{ className: "text-muted-foreground" }}
+              className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <MessageCircle className="size-4" aria-hidden />
+              <span className="hidden sm:inline">Assistant</span>
             </Link>
 
             <button
@@ -85,7 +154,46 @@ export function Navbar() {
               </span>
             </button>
 
-
+            {user ? (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setPersonaOpen((o) => !o)}
+                  aria-haspopup="menu"
+                  aria-expanded={personaOpen}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <PersonaIcon persona={user.persona} />
+                  <span className="hidden sm:inline">{PERSONA_LABEL[user.persona]}</span>
+                  <ChevronDown className="size-3" />
+                </button>
+                {personaOpen ? (
+                  <div
+                    role="menu"
+                    className="absolute right-0 z-50 mt-1 w-56 rounded-lg border border-border bg-card p-1 shadow-lg"
+                    onMouseLeave={() => setPersonaOpen(false)}
+                  >
+                    {(["owner", "bookkeeper", "freelancer"] as Persona[]).map((p) => (
+                      <button
+                        key={p}
+                        role="menuitem"
+                        type="button"
+                        onClick={() => {
+                          setPersona(p);
+                          setPersonaOpen(false);
+                        }}
+                        className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-background ${
+                          user.persona === p ? "font-semibold text-primary" : "text-foreground"
+                        }`}
+                      >
+                        <PersonaIcon persona={p} />
+                        {PERSONA_LABEL[p]}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
 
             {user ? (
               <button
@@ -126,6 +234,8 @@ export function Navbar() {
           mode={authMode}
           value={nameInput}
           onChange={setNameInput}
+          persona={signupPersona}
+          onPersonaChange={setSignupPersona}
           onSwitchMode={(next) => setAuthMode(next)}
           onClose={() => {
             setAuthMode(null);
@@ -134,7 +244,7 @@ export function Navbar() {
           onSubmit={() => {
             const trimmed = nameInput.trim();
             if (!trimmed) return;
-            login(trimmed);
+            login(trimmed, authMode === "signup" ? signupPersona : "owner");
             setAuthMode(null);
             setNameInput("");
           }}
@@ -142,6 +252,12 @@ export function Navbar() {
       ) : null}
     </>
   );
+}
+
+function PersonaIcon({ persona }: { persona: Persona }) {
+  if (persona === "bookkeeper") return <Calculator className="size-3.5" aria-hidden />;
+  if (persona === "freelancer") return <User className="size-3.5" aria-hidden />;
+  return <Briefcase className="size-3.5" aria-hidden />;
 }
 
 function Modal({
@@ -261,6 +377,8 @@ function AuthDialogView({
   onSubmit,
   onClose,
   onSwitchMode,
+  persona,
+  onPersonaChange,
 }: {
   mode: AuthDialog;
   value: string;
@@ -268,6 +386,8 @@ function AuthDialogView({
   onSubmit: () => void;
   onClose: () => void;
   onSwitchMode: (next: AuthDialog) => void;
+  persona: Persona;
+  onPersonaChange: (p: Persona) => void;
 }) {
   const isSignup = mode === "signup";
   const title = isSignup ? "Create your account" : "Log in";
@@ -285,6 +405,34 @@ function AuthDialogView({
             ? "This demo has no backend auth. Pick a display name to create a simulated account."
             : "This demo has no backend auth. Enter a display name to simulate a signed-in session."}
         </p>
+        {isSignup ? (
+          <fieldset className="flex flex-col gap-2">
+            <legend className="text-sm font-medium">I am…</legend>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {([
+                { id: "owner", title: "I run the business", sub: "See true turnover" },
+                { id: "bookkeeper", title: "I keep the books", sub: "Every figure traceable" },
+                { id: "freelancer", title: "I work for myself", sub: "Income for taxes" },
+              ] as { id: Persona; title: string; sub: string }[]).map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => onPersonaChange(c.id)}
+                  className={`rounded-lg border p-3 text-left text-xs transition-colors ${
+                    persona === c.id
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-background hover:bg-muted"
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 font-semibold text-foreground">
+                    <PersonaIcon persona={c.id} /> {c.title}
+                  </div>
+                  <div className="mt-1 text-muted-foreground">{c.sub}</div>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
         <label className="flex flex-col gap-2 text-sm font-medium">
           Display name
           <input
