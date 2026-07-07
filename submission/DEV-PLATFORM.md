@@ -15,7 +15,7 @@ and source), not just claimed.
 
 ## Backend
 
-- **Python 3.12+ / FastAPI** (`fastapi>=0.115.0`) — the agent core and 8 REST endpoints.
+- **Python 3.12+ / FastAPI** (`fastapi>=0.115.0`) — the agent core and 10 REST endpoints.
 - **Uvicorn** — ASGI server.
 - **Pydantic v2** (`pydantic>=2.10.0`) — canonical models and the invariant validator.
 - **MCP Python SDK** (`mcp>=1.9.0`) — stdio client that drives the Xero MCP server.
@@ -29,6 +29,7 @@ and source), not just claimed.
 
 - **React 19 + Vite + TypeScript**, **TanStack Router**, **Tailwind CSS**.
 - Package manager **Bun** (`bun.lock`); `package-lock.json` kept as an npm fallback.
+- **Vitest** test suite — 139 tests across 20 files, all passing (`bun run test`).
 - Ships with a built-in mock layer so the hosted demo works with no backend; `?mock=0`
   switches to the live backend at `VITE_API_URL`.
 

@@ -13,6 +13,8 @@ human approves**, and proves the fix with a live zero-balance check.
 **Live demo (Demo mode, works logged-out):**
 https://supawichza40.github.io/Encoder-xero-app-and-agent-hackathon/
 
+![PayoutBridge — landing and settlement summary](./screenshots/01-landing-dashboard.png)
+
 ## Why it matters
 
 | Item | Amount |
@@ -39,6 +41,21 @@ The planner enforces `gross − commission − fees − refunds === net` and ref
 if it fails. Every write needs explicit human approval. Idempotency is per-step, keyed on
 `sha256(file_bytes)`, so a crash mid-sequence resumes without double-posting.
 
+This path has been run end-to-end against the live Xero Demo Company — the clearing
+account reached a genuine £0.00 on a real tenant, not a mock. Screenshots:
+[proposal](./screenshots/04-proposal.png) · [verified £0.00](./screenshots/05-verified.png).
+
+## Beyond the golden path
+
+- **Persona workspaces** — Owner, Bookkeeper, and Freelancer each get a role-tuned
+  dashboard (KPI ordering, jargon-free labels, tax summary for freelancers).
+- **Streaming assistant** — a data-aware chat assistant (Ollama Cloud) with a
+  Fast/Thinking toggle. The money-posting path stays fully deterministic; the LLM never
+  posts anything ([`screenshots/03-assistant-chat.png`](./screenshots/03-assistant-chat.png)).
+- **Audit export & evidence pack** — `GET /audit/export` (CSV/JSON, with a CSV
+  formula-injection guard) and `GET /evidence-pack/{file_hash}` bundle the full trail
+  for an accountant or auditor.
+
 ## Run it
 
 ### Backend (Python / FastAPI)
@@ -52,13 +69,14 @@ cd ..
 uvicorn backend.main:app --reload --port 8000
 ```
 
-8 endpoints: `POST /propose`, `POST /approve`, `GET /status/{file_hash}`, `GET /pnl`,
-`GET /dashboard`, `GET /vat-check`, `GET /health`, `POST /seed`.
+10 endpoints: `POST /propose`, `POST /approve`, `GET /status/{file_hash}`, `GET /pnl`,
+`GET /dashboard`, `GET /vat-check`, `GET /audit/export`, `GET /evidence-pack/{file_hash}`,
+`GET /health`, `POST /seed`.
 
 Tests:
 
 ```bash
-cd src/backend && pytest        # 104 passing (unit + mock-Xero API tiers)
+cd src/backend && pytest        # 199 passing (unit + mock-Xero API tiers)
 ```
 
 ### Frontend (React / Vite / TanStack — Bun)
@@ -67,6 +85,7 @@ cd src/backend && pytest        # 104 passing (unit + mock-Xero API tiers)
 cd src/frontend
 bun install
 bun dev            # opens with mock data, no backend needed
+bun run test       # 139 passing across 20 files (vitest)
 ```
 
 The app defaults to a built-in mock layer, so the hosted link works with no backend. Add

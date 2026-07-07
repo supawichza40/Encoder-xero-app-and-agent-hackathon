@@ -30,7 +30,12 @@ zero-balance check.
 The planner enforces `gross − commission − fees − refunds === net` and refuses to propose
 if it fails — the agent is structurally unable to post books that don't balance. Writes are
 idempotent per step (keyed on the file's SHA-256), so a crash mid-sequence resumes with no
-double-posting. All amounts are Decimal.
+double-posting. All amounts are Decimal. The full path has been run end-to-end on the live
+Xero Demo Company — clearing reached a genuine £0.00 on a real tenant.
+
+Beyond the golden path: persona-tuned dashboards (Owner / Bookkeeper / Freelancer), a
+data-aware streaming assistant (the LLM never posts anything), and a one-click audit
+export + evidence pack with a CSV formula-injection guard.
 
 ## Xero usage
 
@@ -44,9 +49,9 @@ the live tenant is never touched.
 
 ## Tech
 
-Python 3.12 / FastAPI / Pydantic v2 / MCP Python SDK backend (104 tests passing) · React 19
-/ Vite / TanStack / Tailwind frontend (Bun) · built with Claude Code + Lovable · optional
-Make scenario for email ingestion.
+Python 3.12 / FastAPI / Pydantic v2 / MCP Python SDK backend (199 tests passing) · React 19
+/ Vite / TanStack / Tailwind frontend (Bun, 139 tests passing) · built with Claude Code +
+Lovable · optional Make scenario for email ingestion.
 
 ## Try it
 

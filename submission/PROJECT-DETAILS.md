@@ -62,6 +62,22 @@ appears. Every downstream report and tax filing inherits that error.
 - **Zero-balance proof** — the clearing account returning to £0.00 is a live, checkable
   claim, not a screenshot.
 
+## Beyond the golden path
+
+- **Persona workspaces** — Owner, Bookkeeper, and Freelancer each get a role-tuned
+  dashboard: reordered KPIs, jargon-free labels, and a freelancer tax summary.
+- **Streaming assistant** — a data-aware chat assistant (Ollama Cloud) with a
+  Fast/Thinking toggle. It can explain the payout, the VAT position, and the audit
+  trail; it has no write access — the money path stays fully deterministic.
+- **Audit export & evidence pack** — the full audit trail exports as CSV or JSON
+  (with a CSV formula-injection guard), and a per-file evidence pack bundles the
+  statement hash, plan, Xero IDs, and verification result for an accountant.
+- **Proven live** — the golden path has been executed end-to-end on the live Xero
+  Demo Company; the clearing account reached a genuine £0.00 on a real tenant.
+
+Verified by tests: 199 backend (pytest, unit + mock-Xero API tiers) and 139 frontend
+(vitest) — all passing.
+
 ## Scope, honestly
 
 The refund path (adds a `create-credit-note`, 4 writes) and channel tracking are
